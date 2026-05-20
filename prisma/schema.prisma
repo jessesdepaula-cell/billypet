@@ -1,0 +1,581 @@
+// BillyPet - Schema Prisma
+// Modela todas as entidades do sistema: cadastros, atendimento,
+// agenda, internacao, vendas, financeiro, estoque, fidelidade, etc.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// AUTENTICACAO / PERFIS / UNIDADES
+// ============================================================
+
+model Unit {
+  id        String   @id @default(cuid())
+  name      String
+  cnpj      String?
+  phone     String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users               User[]
+  appointments        Appointment[]
+  sales               Sale[]
+  cashRegisters       CashRegister[]
+  stocks              Stock[]
+  accountsPayable     AccountPayable[]
+  accountsReceivable  AccountReceivable[]
+  hospitalizations    Hospitalization[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   // ADMIN | GESTOR | VETERINARIO | RECEPCAO | FINANCEIRO | ESTOQUE | BANHO_TOSA | VENDEDOR
+  isActive     Boolean  @default(true)
+  unitId       String?
+  unit         Unit?    @relation(fields: [unitId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  appointmentsAsVet    Appointment[]        @relation("VetAppointments")
+  medicalRecords       MedicalRecord[]
+  hospitalizations     Hospitalization[]
+  salesAsSeller        Sale[]
+  cashRegisters        CashRegister[]
+  commissions          Commission[]
+  auditLogs            AuditLog[]
+  supportTickets       SupportTicket[]
+}
+
+// ============================================================
+// CADASTROS PRINCIPAIS
+// ============================================================
+
+model Tutor {
+  id             String   @id @default(cuid())
+  name           String
+  document       String?  // CPF/CNPJ
+  phone          String?
+  whatsapp       String?
+  email          String?
+  address        String?
+  notes          String?
+  loyaltyPoints  Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  pets                Pet[]
+  appointments        Appointment[]
+  sales               Sale[]
+  accountsReceivable  AccountReceivable[]
+  servicePackages     ServicePackage[]
+  loyaltyTransactions LoyaltyTransaction[]
+}
+
+model Pet {
+  id          String   @id @default(cuid())
+  name        String
+  species     String   // Cao, Gato, Ave, Roedor, Reptil, Outro
+  breed       String?
+  sex         String?  // M, F
+  birthDate   DateTime?
+  weightKg    Float?
+  color       String?
+  notes       String?
+  medicalAlert String?
+  isActive    Boolean  @default(true)
+  tutorId     String
+  tutor       Tutor    @relation(fields: [tutorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments     Appointment[]
+  medicalRecords   MedicalRecord[]
+  vaccines         Vaccine[]
+  exams            Exam[]
+  hospitalizations Hospitalization[]
+  servicePackages  ServicePackage[]
+}
+
+// ============================================================
+// PRODUTOS / ESTOQUE
+// ============================================================
+
+model ProductCategory {
+  id        String    @id @default(cuid())
+  name      String
+  products  Product[]
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  name      String
+  document  String?
+  phone     String?
+  email     String?
+  notes     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  products        Product[]
+  accountsPayable AccountPayable[]
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  name           String
+  sku            String?  @unique
+  barcode        String?
+  brand          String?
+  categoryId     String?
+  category       ProductCategory? @relation(fields: [categoryId], references: [id])
+  supplierId     String?
+  supplier       Supplier?        @relation(fields: [supplierId], references: [id])
+  costPrice      Float    @default(0)
+  salePrice      Float    @default(0)
+  minStock       Int      @default(0)
+  unit           String   @default("UN") // UN, KG, L, ML, CX
+  controlByLot   Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  stocks         Stock[]
+  movements      StockMovement[]
+  saleItems      SaleItem[]
+  kitItems       KitItem[]
+}
+
+model Stock {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  unitId    String
+  unit      Unit    @relation(fields: [unitId], references: [id])
+  quantity  Float   @default(0)
+  lot       String?
+  expiresAt DateTime?
+
+  @@unique([productId, unitId, lot])
+}
+
+model StockMovement {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  unitId    String
+  quantity  Float
+  type      String   // ENTRADA, SAIDA_VENDA, SAIDA_USO, TRANSFERENCIA, PERDA, AJUSTE, DEVOLUCAO, XML
+  reason    String?
+  reference String?  // venda id, atendimento id, etc.
+  createdAt DateTime @default(now())
+}
+
+model Kit {
+  id        String   @id @default(cuid())
+  name      String
+  price     Float    @default(0)
+  isActive  Boolean  @default(true)
+  items     KitItem[]
+}
+
+model KitItem {
+  id        String  @id @default(cuid())
+  kitId     String
+  kit       Kit     @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Float
+}
+
+// ============================================================
+// SERVICOS / PACOTES / COMISSAO
+// ============================================================
+
+model Service {
+  id              String   @id @default(cuid())
+  name            String
+  category        String?  // Banho, Tosa, Consulta, Exame, Cirurgia, Outro
+  durationMinutes Int      @default(30)
+  price           Float    @default(0)
+  commissionPct   Float    @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  appointmentServices AppointmentService[]
+  saleItems           SaleItem[]
+  packageServices     ServicePackageItem[]
+}
+
+model ServicePackage {
+  id            String   @id @default(cuid())
+  name          String
+  tutorId       String?
+  tutor         Tutor?   @relation(fields: [tutorId], references: [id])
+  petId         String?
+  pet           Pet?     @relation(fields: [petId], references: [id])
+  totalQuantity Int      // servicos contratados
+  usedQuantity  Int      @default(0)
+  price         Float    @default(0)
+  validUntil    DateTime?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  services ServicePackageItem[]
+  usages   PackageUsage[]
+}
+
+model ServicePackageItem {
+  id        String         @id @default(cuid())
+  packageId String
+  package   ServicePackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  serviceId String
+  service   Service        @relation(fields: [serviceId], references: [id])
+  quantity  Int            @default(1)
+}
+
+model PackageUsage {
+  id          String         @id @default(cuid())
+  packageId   String
+  package     ServicePackage @relation(fields: [packageId], references: [id])
+  serviceName String
+  usedAt      DateTime       @default(now())
+  notes       String?
+}
+
+model CommissionRule {
+  id          String   @id @default(cuid())
+  userId      String?
+  serviceId   String?
+  productId   String?
+  percent     Float    @default(0)
+  fixedValue  Float    @default(0)
+  validFrom   DateTime?
+  validTo     DateTime?
+  isActive    Boolean  @default(true)
+}
+
+model Commission {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  reference String   // sale id or appointment id
+  amount    Float
+  paid      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ============================================================
+// AGENDA / ATENDIMENTO / FICHA / RECEITUARIO
+// ============================================================
+
+model Appointment {
+  id          String   @id @default(cuid())
+  unitId      String
+  unit        Unit     @relation(fields: [unitId], references: [id])
+  tutorId     String
+  tutor       Tutor    @relation(fields: [tutorId], references: [id])
+  petId       String?
+  pet         Pet?     @relation(fields: [petId], references: [id])
+  vetId       String?
+  vet         User?    @relation("VetAppointments", fields: [vetId], references: [id])
+  scheduledAt DateTime
+  type        String   // CONSULTA, RETORNO, BANHO_TOSA, EXAME, PROCEDIMENTO
+  status      String   @default("AGENDADO") // AGENDADO, CONFIRMADO, EM_ATENDIMENTO, FINALIZADO, CANCELADO, NAO_COMPARECEU
+  notes       String?
+  pipelineStage String  @default("AGUARDANDO") // AGUARDANDO, RECEPCAO, TRIAGEM, EM_CONSULTA, EXAMES, BANHO_TOSA, INTERNACAO, PAGAMENTO, FINALIZADO
+  stageEnteredAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services     AppointmentService[]
+  medicalRecord MedicalRecord?
+}
+
+model AppointmentService {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  serviceId     String
+  service       Service     @relation(fields: [serviceId], references: [id])
+  price         Float
+}
+
+model MedicalRecord {
+  id              String      @id @default(cuid())
+  appointmentId   String      @unique
+  appointment     Appointment @relation(fields: [appointmentId], references: [id])
+  petId           String
+  pet             Pet         @relation(fields: [petId], references: [id])
+  vetId           String
+  vet             User        @relation(fields: [vetId], references: [id])
+  complaint       String?
+  anamnesis       String?
+  physicalExam    String?
+  diagnosis       String?
+  conduct         String?
+  procedures      String?
+  observations    String?
+  recommendReturn DateTime?
+  createdAt       DateTime    @default(now())
+
+  prescriptions Prescription[]
+}
+
+model Prescription {
+  id              String        @id @default(cuid())
+  medicalRecordId String
+  medicalRecord   MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+  medication      String
+  dosage          String
+  frequency       String
+  duration        String
+  guidelines      String?
+}
+
+model Vaccine {
+  id          String    @id @default(cuid())
+  petId       String
+  pet         Pet       @relation(fields: [petId], references: [id])
+  name        String
+  appliedAt   DateTime
+  nextDose    DateTime?
+  batch       String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+}
+
+model Exam {
+  id          String    @id @default(cuid())
+  petId       String
+  pet         Pet       @relation(fields: [petId], references: [id])
+  name        String
+  status      String    @default("SOLICITADO") // SOLICITADO, COLETADO, EM_ANALISE, DISPONIVEL, CANCELADO
+  requestedAt DateTime  @default(now())
+  resultAt    DateTime?
+  result      String?
+  attachmentUrl String?
+}
+
+// ============================================================
+// INTERNACAO
+// ============================================================
+
+model Hospitalization {
+  id            String   @id @default(cuid())
+  unitId        String
+  unit          Unit     @relation(fields: [unitId], references: [id])
+  petId         String
+  pet           Pet      @relation(fields: [petId], references: [id])
+  vetId         String
+  vet           User     @relation(fields: [vetId], references: [id])
+  bed           String?
+  reason        String?
+  status        String   @default("ATIVA") // ATIVA, ALTA, OBITO
+  admittedAt    DateTime @default(now())
+  expectedAt    DateTime?
+  dischargedAt  DateTime?
+  notes         String?
+
+  evolutions HospitalizationEvolution[]
+}
+
+model HospitalizationEvolution {
+  id                String          @id @default(cuid())
+  hospitalizationId String
+  hospitalization   Hospitalization @relation(fields: [hospitalizationId], references: [id], onDelete: Cascade)
+  description       String
+  vitals            String?
+  medications       String?
+  createdAt         DateTime        @default(now())
+}
+
+// ============================================================
+// VENDAS / PAGAMENTOS / CAIXA
+// ============================================================
+
+model PaymentMethod {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  type      String   // DINHEIRO, PIX, CREDITO, DEBITO, CONVENIO, ANTECIPADO, OUTRO
+  isActive  Boolean  @default(true)
+
+  payments  Payment[]
+}
+
+model CardMachine {
+  id            String  @id @default(cuid())
+  name          String
+  operator      String?
+  debitFee      Float   @default(0)
+  creditFee     Float   @default(0)
+  receivingDays Int     @default(30)
+  accountName   String?
+  isActive      Boolean @default(true)
+}
+
+model Sale {
+  id          String   @id @default(cuid())
+  unitId      String
+  unit        Unit     @relation(fields: [unitId], references: [id])
+  tutorId     String?
+  tutor       Tutor?   @relation(fields: [tutorId], references: [id])
+  sellerId    String?
+  seller      User?    @relation(fields: [sellerId], references: [id])
+  discount    Float    @default(0)
+  surcharge   Float    @default(0)
+  total       Float    @default(0)
+  status      String   @default("ABERTA") // ABERTA, FINALIZADA, CANCELADA
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  items    SaleItem[]
+  payments Payment[]
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  saleId    String
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id])
+  description String
+  quantity  Float
+  unitPrice Float
+  total     Float
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  saleId          String?
+  sale            Sale?         @relation(fields: [saleId], references: [id])
+  paymentMethodId String
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  amount          Float
+  installments    Int           @default(1)
+  paidAt          DateTime      @default(now())
+}
+
+model CashRegister {
+  id          String   @id @default(cuid())
+  unitId      String
+  unit        Unit     @relation(fields: [unitId], references: [id])
+  openedById  String
+  openedBy    User     @relation(fields: [openedById], references: [id])
+  openedAt    DateTime @default(now())
+  closedAt    DateTime?
+  openValue   Float    @default(0)
+  closeValue  Float?
+  status      String   @default("ABERTO") // ABERTO, FECHADO
+
+  transactions FinancialTransaction[]
+}
+
+model FinancialTransaction {
+  id             String        @id @default(cuid())
+  cashRegisterId String?
+  cashRegister   CashRegister? @relation(fields: [cashRegisterId], references: [id])
+  type           String        // ENTRADA, SAIDA, SANGRIA, SUPRIMENTO
+  category       String?
+  description    String
+  amount         Float
+  createdAt      DateTime      @default(now())
+}
+
+// ============================================================
+// CONTAS A PAGAR / RECEBER
+// ============================================================
+
+model AccountReceivable {
+  id          String   @id @default(cuid())
+  unitId      String
+  unit        Unit     @relation(fields: [unitId], references: [id])
+  tutorId     String?
+  tutor       Tutor?   @relation(fields: [tutorId], references: [id])
+  description String
+  amount      Float
+  dueDate     DateTime
+  paidAt      DateTime?
+  paidAmount  Float?
+  status      String   @default("ABERTA") // ABERTA, PAGA, PARCIAL, VENCIDA, CANCELADA
+  installment String?  // 1/3
+  saleId      String?
+  createdAt   DateTime @default(now())
+}
+
+model AccountPayable {
+  id          String   @id @default(cuid())
+  unitId      String
+  unit        Unit     @relation(fields: [unitId], references: [id])
+  supplierId  String?
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
+  category    String?
+  description String
+  amount      Float
+  dueDate     DateTime
+  paidAt      DateTime?
+  status      String   @default("ABERTA") // ABERTA, PAGA, VENCIDA, CANCELADA
+  recurring   Boolean  @default(false)
+  costCenter  String?
+  createdAt   DateTime @default(now())
+}
+
+// ============================================================
+// FIDELIDADE / DOCUMENTOS / SUPORTE / AUDITORIA
+// ============================================================
+
+model LoyaltyTransaction {
+  id        String   @id @default(cuid())
+  tutorId   String
+  tutor     Tutor    @relation(fields: [tutorId], references: [id])
+  points    Int      // positivo = acumulo, negativo = resgate
+  reason    String
+  createdAt DateTime @default(now())
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  type      String   // TERMO_RESPONSABILIDADE, TERMO_INTERNACAO, AUTORIZACAO, RECIBO, ORCAMENTO, RECEITA
+  title     String
+  content   String
+  tutorId   String?
+  petId     String?
+  signedAt  DateTime?
+  signedBy  String?
+  createdAt DateTime @default(now())
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  subject   String
+  body      String
+  status    String   @default("ABERTO") // ABERTO, EM_ATENDIMENTO, RESOLVIDO, FECHADO
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  createdAt DateTime @default(now())
+}
