@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@billypet.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,20 +62,6 @@ export default function LoginPage() {
           <button className="btn-primary w-full" disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}
           </button>
-
-          <div className="text-xs text-slate-500 border-t pt-3">
-            <p className="font-semibold mb-1">Usuarios de exemplo (senha: 123456, admin: admin123):</p>
-            <ul className="space-y-0.5">
-              <li>admin@billypet.com - Administrador</li>
-              <li>gestor@billypet.com - Gestor</li>
-              <li>vet@billypet.com - Veterinario</li>
-              <li>recepcao@billypet.com - Recepcao</li>
-              <li>financeiro@billypet.com - Financeiro</li>
-              <li>estoque@billypet.com - Estoque</li>
-              <li>banhotosa@billypet.com - Banho e Tosa</li>
-              <li>vendedor@billypet.com - Vendedor</li>
-            </ul>
-          </div>
         </form>
       </div>
     </main>

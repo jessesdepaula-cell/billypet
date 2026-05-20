@@ -2,6 +2,7 @@
 // Cada modulo lista quais roles tem acesso. ADMIN sempre tem acesso total.
 
 export type Role =
+  | "SUPER_ADMIN"
   | "ADMIN"
   | "GESTOR"
   | "VETERINARIO"
@@ -12,6 +13,7 @@ export type Role =
   | "VENDEDOR";
 
 export const ROLE_LABEL: Record<Role, string> = {
+  SUPER_ADMIN: "Super Administrador (Dono BillyPet)",
   ADMIN: "Administrador",
   GESTOR: "Gestor",
   VETERINARIO: "Veterinario",
@@ -47,11 +49,17 @@ export const MODULE_PERMISSIONS: Record<string, Role[]> = {
   unidades:        ["ADMIN", "GESTOR"],
   configuracoes:   ["ADMIN", "GESTOR"],
   suporte:         ["ADMIN", "GESTOR", "VETERINARIO", "RECEPCAO", "FINANCEIRO", "ESTOQUE", "BANHO_TOSA", "VENDEDOR"],
+  "super-admin":   ["SUPER_ADMIN"],
 };
 
 export function canAccess(module: string, role?: string | null) {
   if (!role) return false;
-  if (role === "ADMIN") return true;
+  if (role === "SUPER_ADMIN") return true;
+  if (role === "ADMIN") return module !== "super-admin";
   const allowed = MODULE_PERMISSIONS[module];
   return !!allowed && (allowed as string[]).includes(role);
+}
+
+export function isSuperAdmin(role?: string | null) {
+  return role === "SUPER_ADMIN";
 }

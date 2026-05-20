@@ -8,13 +8,21 @@ import {
   LayoutDashboard, Users, PawPrint, CalendarDays, Stethoscope, KanbanSquare, BedDouble,
   FlaskConical, ShoppingCart, PackageOpen, Wallet, ArrowRightLeft, ClipboardList,
   PiggyBank, FileText, Receipt, ListChecks, GiftIcon, ScrollText, LifeBuoy, Settings,
-  Building2, UserCog, BarChart3, Boxes,
+  Building2, UserCog, BarChart3, Boxes, Crown,
 } from "lucide-react";
 
 type Item = { href: string; label: string; module: string; icon: React.ComponentType<{ className?: string }> };
 type Group = { title: string; items: Item[] };
 
 const groups: Group[] = [
+  {
+    title: "Super Admin",
+    items: [
+      { href: "/super-admin",               label: "Painel BillyPet", module: "super-admin", icon: Crown },
+      { href: "/super-admin/assinaturas",   label: "Assinaturas",     module: "super-admin", icon: Receipt },
+      { href: "/super-admin/clientes",      label: "Clientes",        module: "super-admin", icon: Building2 },
+    ],
+  },
   {
     title: "Geral",
     items: [

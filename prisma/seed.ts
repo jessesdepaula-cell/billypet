@@ -19,10 +19,34 @@ function todayAt(h: number, m = 0) {
   return x;
 }
 
+async function ensureSuperAdmin() {
+  const email = "jessesdepaula@gmail.com";
+  const existing = await prisma.user.findUnique({ where: { email } });
+  const passwordHash = bcrypt.hashSync("je98871688", 10);
+  if (existing) {
+    await prisma.user.update({
+      where: { email },
+      data: { passwordHash, role: "SUPER_ADMIN", isActive: true, name: existing.name || "Jesse de Paula" },
+    });
+    console.log("Super admin atualizado:", email);
+  } else {
+    await prisma.user.create({
+      data: { name: "Jesse de Paula", email, passwordHash, role: "SUPER_ADMIN", isActive: true },
+    });
+    console.log("Super admin criado:", email);
+  }
+}
+
 async function main() {
   const existingUsers = await prisma.user.count();
   if (existingUsers > 0 && process.env.FORCE_SEED !== "1") {
-    console.log(`Banco ja possui ${existingUsers} usuarios. Pulando seed. Use FORCE_SEED=1 para forcar.`);
+    console.log(`Banco ja possui ${existingUsers} usuarios. Pulando seed demo. Garantindo super admin...`);
+    await ensureSuperAdmin();
+    return;
+  }
+  if (process.env.SKIP_DEMO_SEED === "1") {
+    console.log("SKIP_DEMO_SEED=1 - apenas super admin sera criado. Pulando dados demo.");
+    await ensureSuperAdmin();
     return;
   }
   console.log("Limpando dados antigos...");
@@ -380,16 +404,11 @@ async function main() {
     data: { userId: users[1].id, subject: "Como configurar tabela 24h?", body: "Preciso definir valores diferentes a noite.", status: "ABERTO" },
   });
 
+  await ensureSuperAdmin();
+
   console.log("Seed concluido com sucesso!");
-  console.log("\nUsuarios criados (senha: 123456, admin: admin123):");
-  console.log("  admin@billypet.com           ADMIN");
-  console.log("  gestor@billypet.com          GESTOR");
-  console.log("  vet@billypet.com             VETERINARIO");
-  console.log("  recepcao@billypet.com        RECEPCAO");
-  console.log("  financeiro@billypet.com      FINANCEIRO");
-  console.log("  estoque@billypet.com         ESTOQUE");
-  console.log("  banhotosa@billypet.com       BANHO_TOSA");
-  console.log("  vendedor@billypet.com        VENDEDOR");
+  console.log("\nLogin SUPER ADMIN:");
+  console.log("  jessesdepaula@gmail.com / je98871688");
 }
 
 main()
