@@ -100,7 +100,7 @@ export default async function SuperAdminHome() {
           </Link>
           <Link href="/super-admin/clientes/novo" className="rounded-xl border border-brand-200 bg-brand-50/40 p-4 hover:bg-brand-50">
             <div className="font-semibold text-brand-700">+ Nova clinica/cliente</div>
-            <p className="text-xs text-slate-500 mt-1">Cadastrar e iniciar cobranca de R$ 197/mes.</p>
+            <p className="text-xs text-slate-500 mt-1">Cadastrar e iniciar cobranca de R$ 247/mes.</p>
           </Link>
         </div>
       </div>

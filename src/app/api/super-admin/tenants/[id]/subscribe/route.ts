@@ -20,7 +20,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (!tenant) return NextResponse.json({ error: "Cliente nao encontrado" }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
-  const value = Number(body.value || 197);
+  const value = Number(body.value || 247);
   const billingType = body.billingType || "UNDEFINED";
 
   let customerId = tenant.asaasCustomerId;

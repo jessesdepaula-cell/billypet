@@ -16,7 +16,7 @@ export function NovoClienteForm() {
     city: "",
     state: "",
     zipCode: "",
-    value: 197,
+    value: 247,
     billingType: "UNDEFINED" as "BOLETO" | "CREDIT_CARD" | "PIX" | "UNDEFINED",
     startNow: true,
   });

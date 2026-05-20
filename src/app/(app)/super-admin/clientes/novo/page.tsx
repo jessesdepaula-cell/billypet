@@ -15,7 +15,7 @@ export default async function NovoClientePage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Novo cliente BillyPet</h1>
         <p className="text-sm text-slate-500">
-          Cadastra a clinica e, opcionalmente, ja cria a assinatura mensal de R$ 197 no Asaas.
+          Cadastra a clinica e, opcionalmente, ja cria a assinatura mensal de R$ 247 no Asaas.
         </p>
       </div>
       <NovoClienteForm />

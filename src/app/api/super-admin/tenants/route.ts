@@ -56,7 +56,7 @@ export async function POST(req: Request) {
         data: { asaasCustomerId: customer.id },
       });
 
-      const value = Number(body.value || 197);
+      const value = Number(body.value || 247);
       const billingType = body.billingType || "UNDEFINED";
 
       const sub = await createSubscription({
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
         nextDueDate: tomorrowISO(),
         cycle: "MONTHLY",
         billingType,
-        description: `BillyPet - Plano ${value === 197 ? "PRO" : "Custom"}`,
+        description: `BillyPet - Plano ${value === 247 ? "PRO" : "Custom"}`,
         externalReference: tenant.id,
       });
 
