@@ -20,6 +20,11 @@ function todayAt(h: number, m = 0) {
 }
 
 async function main() {
+  const existingUsers = await prisma.user.count();
+  if (existingUsers > 0 && process.env.FORCE_SEED !== "1") {
+    console.log(`Banco ja possui ${existingUsers} usuarios. Pulando seed. Use FORCE_SEED=1 para forcar.`);
+    return;
+  }
   console.log("Limpando dados antigos...");
   // Order matters for FK
   await prisma.auditLog.deleteMany();
