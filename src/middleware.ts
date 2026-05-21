@@ -15,7 +15,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = req.cookies.get("billypet_session")?.value;
+  const token = req.cookies.get("bilyvet_session")?.value;
   if (!token) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
@@ -30,7 +30,7 @@ export async function middleware(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     const res = NextResponse.redirect(url);
-    res.cookies.delete("billypet_session");
+    res.cookies.delete("bilyvet_session");
     return res;
   }
 }

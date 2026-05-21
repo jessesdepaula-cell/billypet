@@ -1,4 +1,4 @@
-// BillyPet - Schema Prisma
+// BilyVet - Schema Prisma
 // Modela todas as entidades do sistema: cadastros, atendimento,
 // agenda, internacao, vendas, financeiro, estoque, fidelidade, etc.
 

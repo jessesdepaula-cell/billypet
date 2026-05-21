@@ -1,8 +1,8 @@
 {
-  "name": "billypet",
+  "name": "bilyvet",
   "version": "1.0.0",
   "private": true,
-  "description": "BillyPet - Plataforma SaaS de gestao para clinicas veterinarias, hospitais, pet shops e banho e tosa",
+  "description": "BilyVet - Plataforma SaaS de gestao para clinicas veterinarias, hospitais, pet shops e banho e tosa",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

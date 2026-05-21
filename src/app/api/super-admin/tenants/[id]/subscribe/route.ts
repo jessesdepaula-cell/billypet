@@ -46,7 +46,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       nextDueDate: tomorrowISO(),
       cycle: "MONTHLY",
       billingType,
-      description: `BillyPet - Mensalidade ${tenant.companyName}`,
+      description: `BilyVet - Mensalidade ${tenant.companyName}`,
       externalReference: tenant.id,
     });
     const subscription = await prisma.subscription.create({

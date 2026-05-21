@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { prisma } from "./db";
 
-const COOKIE = "billypet_session";
+const COOKIE = "bilyvet_session";
 const secret = () => new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret-change-me");
 
 export type SessionUser = {

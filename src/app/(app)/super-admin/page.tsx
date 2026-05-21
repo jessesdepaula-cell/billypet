@@ -43,7 +43,7 @@ export default async function SuperAdminHome() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Painel BillyPet</h1>
+        <h1 className="text-2xl font-bold text-slate-800">Painel BilyVet</h1>
         <p className="text-sm text-slate-500">Visao geral das assinaturas e clientes da plataforma.</p>
       </div>
 

@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "BillyPet - Gestao Veterinaria",
+  title: "BilyVet - Gestao Veterinaria",
   description: "Plataforma SaaS de gestao para clinicas veterinarias, hospitais, pet shops e banho e tosa.",
 };
 

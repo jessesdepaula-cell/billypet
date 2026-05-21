@@ -93,7 +93,7 @@ async function main() {
   console.log("Criando unidades...");
   const unitMatriz = await prisma.unit.create({
     data: {
-      name: "BillyPet Matriz",
+      name: "BilyVet Matriz",
       cnpj: "12.345.678/0001-90",
       phone: "(11) 4000-1000",
       address: "Av. Paulista, 1000 - Sao Paulo, SP",
@@ -101,7 +101,7 @@ async function main() {
   });
   const unitFilial = await prisma.unit.create({
     data: {
-      name: "BillyPet Filial Zona Sul",
+      name: "BilyVet Filial Zona Sul",
       cnpj: "12.345.678/0002-71",
       phone: "(11) 4000-2000",
       address: "Av. Santo Amaro, 2500 - Sao Paulo, SP",
@@ -111,15 +111,15 @@ async function main() {
   console.log("Criando usuarios...");
   const hash = (p: string) => bcrypt.hashSync(p, 10);
   const users = await Promise.all([
-    prisma.user.create({ data: { name: "Administrador", email: "admin@billypet.com", passwordHash: hash("admin123"), role: "ADMIN", unitId: unitMatriz.id } }),
-    prisma.user.create({ data: { name: "Carla Gestora", email: "gestor@billypet.com", passwordHash: hash("123456"), role: "GESTOR", unitId: unitMatriz.id } }),
-    prisma.user.create({ data: { name: "Dr. Marcos Vet", email: "vet@billypet.com", passwordHash: hash("123456"), role: "VETERINARIO", unitId: unitMatriz.id } }),
-    prisma.user.create({ data: { name: "Dra. Ana Vet", email: "ana@billypet.com", passwordHash: hash("123456"), role: "VETERINARIO", unitId: unitFilial.id } }),
-    prisma.user.create({ data: { name: "Joana Recepcao", email: "recepcao@billypet.com", passwordHash: hash("123456"), role: "RECEPCAO", unitId: unitMatriz.id } }),
-    prisma.user.create({ data: { name: "Paulo Financeiro", email: "financeiro@billypet.com", passwordHash: hash("123456"), role: "FINANCEIRO", unitId: unitMatriz.id } }),
-    prisma.user.create({ data: { name: "Bruna Estoque", email: "estoque@billypet.com", passwordHash: hash("123456"), role: "ESTOQUE", unitId: unitMatriz.id } }),
-    prisma.user.create({ data: { name: "Tiago Tosador", email: "banhotosa@billypet.com", passwordHash: hash("123456"), role: "BANHO_TOSA", unitId: unitMatriz.id } }),
-    prisma.user.create({ data: { name: "Renata Vendedora", email: "vendedor@billypet.com", passwordHash: hash("123456"), role: "VENDEDOR", unitId: unitMatriz.id } }),
+    prisma.user.create({ data: { name: "Administrador", email: "admin@bilyvet.com", passwordHash: hash("admin123"), role: "ADMIN", unitId: unitMatriz.id } }),
+    prisma.user.create({ data: { name: "Carla Gestora", email: "gestor@bilyvet.com", passwordHash: hash("123456"), role: "GESTOR", unitId: unitMatriz.id } }),
+    prisma.user.create({ data: { name: "Dr. Marcos Vet", email: "vet@bilyvet.com", passwordHash: hash("123456"), role: "VETERINARIO", unitId: unitMatriz.id } }),
+    prisma.user.create({ data: { name: "Dra. Ana Vet", email: "ana@bilyvet.com", passwordHash: hash("123456"), role: "VETERINARIO", unitId: unitFilial.id } }),
+    prisma.user.create({ data: { name: "Joana Recepcao", email: "recepcao@bilyvet.com", passwordHash: hash("123456"), role: "RECEPCAO", unitId: unitMatriz.id } }),
+    prisma.user.create({ data: { name: "Paulo Financeiro", email: "financeiro@bilyvet.com", passwordHash: hash("123456"), role: "FINANCEIRO", unitId: unitMatriz.id } }),
+    prisma.user.create({ data: { name: "Bruna Estoque", email: "estoque@bilyvet.com", passwordHash: hash("123456"), role: "ESTOQUE", unitId: unitMatriz.id } }),
+    prisma.user.create({ data: { name: "Tiago Tosador", email: "banhotosa@bilyvet.com", passwordHash: hash("123456"), role: "BANHO_TOSA", unitId: unitMatriz.id } }),
+    prisma.user.create({ data: { name: "Renata Vendedora", email: "vendedor@bilyvet.com", passwordHash: hash("123456"), role: "VENDEDOR", unitId: unitMatriz.id } }),
   ]);
   const vetMarcos = users[2];
   const seller = users[8];

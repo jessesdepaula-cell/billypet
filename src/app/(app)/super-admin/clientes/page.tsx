@@ -29,7 +29,7 @@ export default async function ClientesPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Clientes BillyPet</h1>
+          <h1 className="text-2xl font-bold text-slate-800">Clientes BilyVet</h1>
           <p className="text-sm text-slate-500">Clinicas / pet shops que assinam a plataforma.</p>
         </div>
         <Link href="/super-admin/clientes/novo" className="btn-primary inline-flex items-center gap-2">

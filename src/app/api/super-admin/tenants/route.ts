@@ -65,7 +65,7 @@ export async function POST(req: Request) {
         nextDueDate: tomorrowISO(),
         cycle: "MONTHLY",
         billingType,
-        description: `BillyPet - Plano ${value === 247 ? "PRO" : "Custom"}`,
+        description: `BilyVet - Plano ${value === 247 ? "PRO" : "Custom"}`,
         externalReference: tenant.id,
       });
 

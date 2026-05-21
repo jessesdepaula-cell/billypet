@@ -39,7 +39,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-3">
             <div className="h-10 w-10 rounded-xl bg-brand-600 grid place-items-center text-white font-bold text-lg shadow-card">B</div>
-            <span className="text-2xl font-bold text-slate-800">BillyPet</span>
+            <span className="text-2xl font-bold text-slate-800">BilyVet</span>
           </div>
           <p className="text-slate-500 text-sm">Plataforma de gestao para clinicas, hospitais e pet shops</p>
         </div>

@@ -1,10 +1,10 @@
-# BillyPet
+# BilyVet
 
 Plataforma SaaS de gestão para clínicas veterinárias, hospitais veterinários, pet shops e banho e tosa.
 
 Visual limpo, moderno e amigável (azul + laranja + branco), com módulos de **atendimento, financeiro, cadastros, estoque, relatórios, agenda, vendas, pacotes, internação, fidelidade, exames e dashboards estratégicos**.
 
-> O sistema **não integra** com Vet Smart. O receituário é interno e gerado pelo próprio BillyPet em PDF.
+> O sistema **não integra** com Vet Smart. O receituário é interno e gerado pelo próprio BilyVet em PDF.
 
 ## Stack
 
@@ -20,7 +20,7 @@ Visual limpo, moderno e amigável (azul + laranja + branco), com módulos de **a
 Pré-requisitos: **Node 18+** e npm.
 
 ```bash
-cd billypet
+cd bilyvet
 npm install
 npm run db:reset    # cria/zera o banco SQLite e roda o seed
 npm run dev
@@ -32,14 +32,14 @@ Abra http://localhost:3000
 
 | Usuário                     | Senha     | Perfil         |
 |-----------------------------|-----------|----------------|
-| admin@billypet.com          | admin123  | Administrador  |
-| gestor@billypet.com         | 123456    | Gestor         |
-| vet@billypet.com            | 123456    | Veterinário    |
-| recepcao@billypet.com       | 123456    | Recepção       |
-| financeiro@billypet.com     | 123456    | Financeiro     |
-| estoque@billypet.com        | 123456    | Estoque        |
-| banhotosa@billypet.com      | 123456    | Banho e Tosa   |
-| vendedor@billypet.com       | 123456    | Vendedor       |
+| admin@bilyvet.com          | admin123  | Administrador  |
+| gestor@bilyvet.com         | 123456    | Gestor         |
+| vet@bilyvet.com            | 123456    | Veterinário    |
+| recepcao@bilyvet.com       | 123456    | Recepção       |
+| financeiro@bilyvet.com     | 123456    | Financeiro     |
+| estoque@bilyvet.com        | 123456    | Estoque        |
+| banhotosa@bilyvet.com      | 123456    | Banho e Tosa   |
+| vendedor@bilyvet.com       | 123456    | Vendedor       |
 
 ## Scripts
 
@@ -55,7 +55,7 @@ npm run db:reset     # zerar e popular
 ## Estrutura
 
 ```
-billypet/
+bilyvet/
 ├── prisma/
 │   ├── schema.prisma     # 30+ modelos cobrindo todo o domínio
 │   └── seed.ts           # dados realistas: tutores, pets, produtos, agenda, vendas, internação...
@@ -125,4 +125,4 @@ billypet/
 
 ---
 
-© BillyPet — Plataforma de gestão para clínicas, hospitais e pet shops.
+© BilyVet — Plataforma de gestão para clínicas, hospitais e pet shops.

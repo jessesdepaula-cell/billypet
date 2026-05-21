@@ -18,7 +18,7 @@ const groups: Group[] = [
   {
     title: "Super Admin",
     items: [
-      { href: "/super-admin",               label: "Painel BillyPet", module: "super-admin", icon: Crown },
+      { href: "/super-admin",               label: "Painel BilyVet", module: "super-admin", icon: Crown },
       { href: "/super-admin/assinaturas",   label: "Assinaturas",     module: "super-admin", icon: Receipt },
       { href: "/super-admin/clientes",      label: "Clientes",        module: "super-admin", icon: Building2 },
     ],
@@ -91,7 +91,7 @@ export function Sidebar({ role }: { role: Role }) {
       <div className="p-4 border-b border-slate-100 flex items-center gap-2">
         <div className="h-9 w-9 rounded-xl bg-brand-600 grid place-items-center text-white font-bold shadow-soft">B</div>
         <div>
-          <div className="text-base font-bold text-slate-800 leading-tight">BillyPet</div>
+          <div className="text-base font-bold text-slate-800 leading-tight">BilyVet</div>
           <div className="text-[10px] uppercase tracking-wider text-slate-400">Gestao Veterinaria</div>
         </div>
       </div>

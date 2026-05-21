@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "BillyPet — O sistema que transforma sua clínica veterinária em uma máquina de lucro",
+  title: "BilyVet — O sistema que transforma sua clínica veterinária em uma máquina de lucro",
   description:
     "Plataforma completa para clínicas, hospitais veterinários, pet shops e banho e tosa. Atendimento, financeiro, agenda, estoque, internação, fidelidade e dashboards estratégicos em um só lugar.",
 };
@@ -48,7 +48,7 @@ export default async function LandingPage() {
               <PawPrint className="h-5 w-5" />
             </div>
             <div className="leading-tight">
-              <div className="text-lg font-extrabold text-slate-900">BillyPet</div>
+              <div className="text-lg font-extrabold text-slate-900">BilyVet</div>
               <div className="text-[10px] uppercase tracking-widest text-brand-600 font-semibold">Gestão Veterinária</div>
             </div>
           </Link>
@@ -97,7 +97,7 @@ export default async function LandingPage() {
               .
             </h1>
             <p className="mt-5 text-lg text-slate-600 max-w-xl">
-              <strong className="text-slate-900">BillyPet</strong> é a plataforma completa que une <strong>atendimento clínico, agenda, internação, financeiro, vendas, estoque, fidelidade e BI estratégico</strong> em um único lugar — pensado pra quem vive a rotina de uma clínica, hospital veterinário, pet shop ou banho e tosa.
+              <strong className="text-slate-900">BilyVet</strong> é a plataforma completa que une <strong>atendimento clínico, agenda, internação, financeiro, vendas, estoque, fidelidade e BI estratégico</strong> em um único lugar — pensado pra quem vive a rotina de uma clínica, hospital veterinário, pet shop ou banho e tosa.
             </p>
 
             <div className="mt-7 flex flex-col sm:flex-row gap-3">
@@ -131,7 +131,7 @@ export default async function LandingPage() {
                   ))}
                   <span className="ml-1 font-semibold text-slate-800">4.9/5</span>
                 </div>
-                <div className="text-xs">+1.200 clínicas e pet shops já usam o BillyPet</div>
+                <div className="text-xs">+1.200 clínicas e pet shops já usam o BilyVet</div>
               </div>
             </div>
 
@@ -166,7 +166,7 @@ export default async function LandingPage() {
                     <div className="h-2.5 w-2.5 rounded-full bg-amber-400" />
                     <div className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
                   </div>
-                  <div className="text-xs font-medium text-slate-500">app.billypet.com / dashboard</div>
+                  <div className="text-xs font-medium text-slate-500">app.bilyvet.com / dashboard</div>
                   <div className="text-[10px] text-slate-400">v1.0</div>
                 </div>
 
@@ -283,7 +283,7 @@ export default async function LandingPage() {
         {/* Logos / marquee */}
         <div className="mt-20 mx-auto max-w-7xl px-4 sm:px-6">
           <div className="text-center text-xs uppercase tracking-widest text-slate-400 font-semibold">
-            Clínicas, hospitais e pet shops que confiam no BillyPet
+            Clínicas, hospitais e pet shops que confiam no BilyVet
           </div>
           <div className="mt-6 overflow-hidden relative">
             <div className="flex gap-12 bp-marquee whitespace-nowrap">
@@ -344,7 +344,7 @@ export default async function LandingPage() {
 
               <Rocket className="h-10 w-10 text-accent-300" />
               <h3 className="mt-4 text-2xl font-extrabold leading-tight">
-                Com o BillyPet, sua clínica passa a funcionar como um relógio suíço.
+                Com o BilyVet, sua clínica passa a funcionar como um relógio suíço.
               </h3>
               <p className="mt-3 text-brand-100">
                 Tudo em um único sistema, conectado em tempo real: agenda → atendimento → vendas → estoque → financeiro → relatório. Decisões com dado, não com achismo.
@@ -374,7 +374,7 @@ export default async function LandingPage() {
           <div className="text-center max-w-2xl mx-auto">
             <div className="inline-flex items-center gap-2 rounded-full bg-brand-50 border border-brand-100 px-3 py-1 text-xs font-semibold text-brand-700">
               <Sparkles className="h-3.5 w-3.5" />
-              Por que o BillyPet
+              Por que o BilyVet
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-slate-900">
               Feito por quem entende a rotina veterinária — não por programador genérico.
@@ -462,7 +462,7 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-              Não importa o tamanho. O BillyPet cresce com você.
+              Não importa o tamanho. O BilyVet cresce com você.
             </h2>
             <p className="mt-3 text-slate-600">Uma única plataforma para todos os modelos de negócio do mercado pet.</p>
           </div>
@@ -586,7 +586,7 @@ export default async function LandingPage() {
               4.9 de 5 — média real de clientes
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold leading-tight">
-              Quem entrou pro BillyPet não volta mais pra planilha.
+              Quem entrou pro BilyVet não volta mais pra planilha.
             </h2>
           </div>
 
@@ -600,7 +600,7 @@ export default async function LandingPage() {
               {
                 n: "Ricardo Almeida",
                 r: "Hospital Animal Vida — RJ",
-                t: "Tenho 3 unidades. O BillyPet me dá DRE consolidada e por unidade. Decisão que antes levava semana hoje é em 2 minutos.",
+                t: "Tenho 3 unidades. O BilyVet me dá DRE consolidada e por unidade. Decisão que antes levava semana hoje é em 2 minutos.",
               },
               {
                 n: "Camila Souza",
@@ -740,11 +740,11 @@ export default async function LandingPage() {
             {[
               {
                 q: "Preciso instalar alguma coisa?",
-                a: "Não. O BillyPet roda 100% no navegador. Funciona em Windows, Mac, Linux, tablet — qualquer lugar com internet.",
+                a: "Não. O BilyVet roda 100% no navegador. Funciona em Windows, Mac, Linux, tablet — qualquer lugar com internet.",
               },
               {
                 q: "O sistema integra com o Vet Smart?",
-                a: "Não. O receituário é interno e gerado pelo próprio BillyPet em PDF, com seu cabeçalho e padrão.",
+                a: "Não. O receituário é interno e gerado pelo próprio BilyVet em PDF, com seu cabeçalho e padrão.",
               },
               {
                 q: "Tenho 3 unidades. Funciona pra rede?",
@@ -793,7 +793,7 @@ export default async function LandingPage() {
             Pronto pra deixar a sua clínica <span className="bp-text-gradient bg-clip-text">profissional de verdade</span>?
           </h2>
           <p className="mt-5 text-brand-100 text-lg">
-            Acesse a área de membros agora e veja como o BillyPet organiza tudo em menos de 5 minutos.
+            Acesse a área de membros agora e veja como o BilyVet organiza tudo em menos de 5 minutos.
           </p>
 
           <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
@@ -822,7 +822,7 @@ export default async function LandingPage() {
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 grid place-items-center">
                 <PawPrint className="h-4 w-4 text-white" />
               </div>
-              <span className="font-extrabold text-lg">BillyPet</span>
+              <span className="font-extrabold text-lg">BilyVet</span>
             </div>
             <p className="mt-3 text-xs">
               Plataforma de gestão para clínicas, hospitais veterinários, pet shops e banho e tosa.
@@ -853,13 +853,13 @@ export default async function LandingPage() {
             <div className="font-semibold text-white mb-3">Fale com a gente</div>
             <ul className="space-y-2">
               <li className="inline-flex items-center gap-2"><Phone className="h-4 w-4" /> (11) 9 9999-0000</li>
-              <li>contato@billypet.com</li>
+              <li>contato@bilyvet.com</li>
               <li className="text-xs">Atendimento Seg-Sex, 9h-18h</li>
             </ul>
           </div>
         </div>
         <div className="border-t border-slate-800 py-6 text-center text-xs">
-          © {new Date().getFullYear()} BillyPet — Todos os direitos reservados.
+          © {new Date().getFullYear()} BilyVet — Todos os direitos reservados.
         </div>
       </footer>
     </main>

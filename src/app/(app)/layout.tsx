@@ -18,7 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Topbar name={s.name} role={s.role as Role} unit={unit?.name} />
         <main className="flex-1 p-5 lg:p-7 max-w-[1500px] w-full mx-auto">{children}</main>
         <footer className="px-5 py-3 text-xs text-slate-400 text-center">
-          BillyPet (c) {new Date().getFullYear()} - Plataforma de gestao para clinicas, hospitais e pet shops
+          BilyVet (c) {new Date().getFullYear()} - Plataforma de gestao para clinicas, hospitais e pet shops
         </footer>
       </div>
     </div>

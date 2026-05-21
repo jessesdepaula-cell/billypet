@@ -13,7 +13,7 @@ export type Role =
   | "VENDEDOR";
 
 export const ROLE_LABEL: Record<Role, string> = {
-  SUPER_ADMIN: "Super Administrador (Dono BillyPet)",
+  SUPER_ADMIN: "Super Administrador (Dono BilyVet)",
   ADMIN: "Administrador",
   GESTOR: "Gestor",
   VETERINARIO: "Veterinario",

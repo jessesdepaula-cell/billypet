@@ -38,7 +38,7 @@ export function MedicalRecordForm({ appointmentId, initial }: { appointmentId: s
 
   function pdf() {
     const doc = new jsPDF();
-    doc.setFontSize(16); doc.text("BillyPet - Receituario", 14, 18);
+    doc.setFontSize(16); doc.text("BilyVet - Receituario", 14, 18);
     doc.setFontSize(10); doc.text(`Data: ${new Date().toLocaleString("pt-BR")}`, 14, 26);
     let y = 36;
     doc.setFontSize(12); doc.text("Prescricao medica:", 14, y); y += 8;
@@ -52,7 +52,7 @@ export function MedicalRecordForm({ appointmentId, initial }: { appointmentId: s
     if (m.conduct) { doc.text(`Conduta: ${m.conduct}`, 14, y); y += 6; }
     doc.text("____________________________", 14, y + 16);
     doc.text("Medico Veterinario", 14, y + 22);
-    doc.save("receita-billypet.pdf");
+    doc.save("receita-bilyvet.pdf");
   }
 
   return (

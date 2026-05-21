@@ -25,7 +25,7 @@ export default async function SuportePage() {
         <div className="card card-pad">
           <h3 className="font-semibold mb-3">FAQ</h3>
           <details className="mb-2"><summary className="font-medium cursor-pointer">Como esqueci minha senha?</summary><p className="text-sm text-slate-600 mt-1">Contate o administrador da clinica para reset.</p></details>
-          <details className="mb-2"><summary className="font-medium cursor-pointer">Posso ter mais de uma unidade?</summary><p className="text-sm text-slate-600 mt-1">Sim, o BillyPet ja vem com suporte multiunidades.</p></details>
+          <details className="mb-2"><summary className="font-medium cursor-pointer">Posso ter mais de uma unidade?</summary><p className="text-sm text-slate-600 mt-1">Sim, o BilyVet ja vem com suporte multiunidades.</p></details>
           <details><summary className="font-medium cursor-pointer">O sistema integra com SEFAZ?</summary><p className="text-sm text-slate-600 mt-1">A estrutura esta preparada para integracao fiscal (NFe/NFSe).</p></details>
         </div>
       </div>
