@@ -2,7 +2,7 @@
 // Se RESEND_API_KEY nao estiver setada, o envio vira no-op (apenas loga no console)
 // e o link bruto e devolvido pelo caller para o super-admin entregar manualmente.
 
-const FROM = process.env.RESEND_FROM || "BilyVet <onboarding@resend.dev>";
+const FROM = process.env.RESEND_FROM || "BilyVet <no-reply@bilyvet.com.br>";
 const API_KEY = process.env.RESEND_API_KEY;
 
 export function emailIsConfigured() {
