@@ -1,7 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const PUBLIC = ["/", "/login", "/api/auth/login"];
+const PUBLIC = ["/", "/login", "/recuperar-senha", "/redefinir-senha"];
+const PUBLIC_API_PREFIXES = [
+  "/api/auth/login",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/asaas/webhook",
+];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -9,7 +15,7 @@ export async function middleware(req: NextRequest) {
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
-    pathname.startsWith("/api/auth/login") ||
+    PUBLIC_API_PREFIXES.some((p) => pathname.startsWith(p)) ||
     PUBLIC.includes(pathname)
   ) {
     return NextResponse.next();
