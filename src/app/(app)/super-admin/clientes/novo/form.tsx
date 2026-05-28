@@ -3,19 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+type CreateResult = {
+  tenant: { id: string };
+  invite?: { link?: string; emailSent: boolean; emailError?: string };
+  warning?: string;
+};
+
 export function NovoClienteForm() {
   const router = useRouter();
   const [form, setForm] = useState({
-    companyName: "",
-    tradeName: "",
-    cnpj: "",
     email: "",
-    phone: "",
-    responsibleName: "",
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
+    companyName: "",
     value: 247,
     billingType: "UNDEFINED" as "BOLETO" | "CREDIT_CARD" | "PIX" | "UNDEFINED",
     dueDay: 1,
@@ -23,6 +21,7 @@ export function NovoClienteForm() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<CreateResult | null>(null);
 
   function set<K extends keyof typeof form>(k: K, v: (typeof form)[K]) {
     setForm((f) => ({ ...f, [k]: v }));
@@ -31,6 +30,7 @@ export function NovoClienteForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setResult(null);
     setLoading(true);
     try {
       const res = await fetch("/api/super-admin/tenants", {
@@ -40,7 +40,7 @@ export function NovoClienteForm() {
       });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Falha ao criar cliente");
-      router.push(`/super-admin/clientes/${j.tenant.id}`);
+      setResult(j);
       router.refresh();
     } catch (err: any) {
       setError(err.message);
@@ -49,48 +49,96 @@ export function NovoClienteForm() {
     }
   }
 
+  if (result) {
+    const link = result.invite?.link;
+    const sent = result.invite?.emailSent;
+    return (
+      <div className="card card-pad space-y-4">
+        <div className="rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm px-3 py-2">
+          Cliente criado com sucesso.
+        </div>
+
+        {sent ? (
+          <p className="text-sm text-slate-700">
+            Enviamos um email para <b>{form.email}</b> com o link para o cliente definir a senha e finalizar o cadastro.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm text-slate-700">
+              O email automatico nao pode ser enviado{result.invite?.emailError ? ` (${result.invite.emailError})` : ""}.
+              Copie o link abaixo e envie manualmente para <b>{form.email}</b>:
+            </p>
+            {link && (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-mono break-all">
+                {link}
+              </div>
+            )}
+            {link && (
+              <button
+                type="button"
+                className="btn-outline text-xs"
+                onClick={() => navigator.clipboard.writeText(link)}
+              >
+                Copiar link
+              </button>
+            )}
+          </div>
+        )}
+
+        {result.warning && (
+          <div className="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm px-3 py-2">
+            {result.warning}
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            className="btn-outline"
+            onClick={() => {
+              setResult(null);
+              setForm({ email: "", companyName: "", value: 247, billingType: "UNDEFINED", dueDay: 1, startNow: true });
+            }}
+          >
+            Cadastrar outro
+          </button>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => router.push(`/super-admin/clientes/${result.tenant.id}`)}
+          >
+            Abrir cliente
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={onSubmit} className="card card-pad space-y-5">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="md:col-span-2">
-          <label className="label">Razao social / Nome da clinica *</label>
-          <input className="input" required value={form.companyName} onChange={(e) => set("companyName", e.target.value)} />
+      <div className="space-y-4">
+        <div>
+          <label className="label">E-mail do cliente *</label>
+          <input
+            className="input"
+            type="email"
+            required
+            value={form.email}
+            onChange={(e) => set("email", e.target.value)}
+            placeholder="cliente@minhaclinica.com.br"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            O cliente recebera por email um link para definir a senha e completar o cadastro (razao social, CNPJ, telefone, endereco, etc.).
+          </p>
         </div>
         <div>
-          <label className="label">Nome fantasia</label>
-          <input className="input" value={form.tradeName} onChange={(e) => set("tradeName", e.target.value)} />
-        </div>
-        <div>
-          <label className="label">CNPJ</label>
-          <input className="input" value={form.cnpj} onChange={(e) => set("cnpj", e.target.value)} placeholder="00.000.000/0000-00" />
-        </div>
-        <div>
-          <label className="label">E-mail de cobranca *</label>
-          <input className="input" type="email" required value={form.email} onChange={(e) => set("email", e.target.value)} />
-        </div>
-        <div>
-          <label className="label">Telefone</label>
-          <input className="input" value={form.phone} onChange={(e) => set("phone", e.target.value)} />
-        </div>
-        <div>
-          <label className="label">Responsavel</label>
-          <input className="input" value={form.responsibleName} onChange={(e) => set("responsibleName", e.target.value)} />
-        </div>
-        <div>
-          <label className="label">CEP</label>
-          <input className="input" value={form.zipCode} onChange={(e) => set("zipCode", e.target.value)} />
-        </div>
-        <div className="md:col-span-2">
-          <label className="label">Endereco</label>
-          <input className="input" value={form.address} onChange={(e) => set("address", e.target.value)} />
-        </div>
-        <div>
-          <label className="label">Cidade</label>
-          <input className="input" value={form.city} onChange={(e) => set("city", e.target.value)} />
-        </div>
-        <div>
-          <label className="label">UF</label>
-          <input className="input" maxLength={2} value={form.state} onChange={(e) => set("state", e.target.value.toUpperCase())} />
+          <label className="label">Nome da clinica (opcional)</label>
+          <input
+            className="input"
+            value={form.companyName}
+            onChange={(e) => set("companyName", e.target.value)}
+            placeholder="Pode deixar em branco - o cliente preenche depois"
+          />
         </div>
       </div>
 
@@ -130,7 +178,7 @@ export function NovoClienteForm() {
       <div className="flex justify-end gap-2">
         <button type="button" className="btn-outline" onClick={() => history.back()}>Cancelar</button>
         <button className="btn-primary" disabled={loading}>
-          {loading ? "Salvando..." : "Salvar e criar assinatura"}
+          {loading ? "Criando..." : "Criar cliente e enviar convite"}
         </button>
       </div>
     </form>

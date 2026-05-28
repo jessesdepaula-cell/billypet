@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -62,6 +63,12 @@ export default function LoginPage() {
           <button className="btn-primary w-full" disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}
           </button>
+
+          <div className="text-center pt-1">
+            <Link href="/recuperar-senha" className="text-xs text-brand-600 hover:underline">
+              Esqueci minha senha
+            </Link>
+          </div>
         </form>
       </div>
     </main>

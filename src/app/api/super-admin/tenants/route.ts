@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/permissions";
 import { asaasIsConfigured, createCustomer, createSubscription } from "@/lib/asaas";
+import { sendEmail, passwordResetEmail } from "@/lib/email";
 
 function nextDueDateISO(dueDay: number) {
   const day = Math.min(Math.max(Math.floor(dueDay) || 1, 1), 28);
@@ -17,22 +20,36 @@ function nextDueDateISO(dueDay: number) {
 
 function digits(v?: string | null) { return (v || "").replace(/\D/g, ""); }
 
+function getAppUrl(req: Request) {
+  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, "");
+  const u = new URL(req.url);
+  return `${u.protocol}//${u.host}`;
+}
+
 export async function POST(req: Request) {
   const s = await getSession();
   if (!s) return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
   if (!isSuperAdmin(s.role)) return NextResponse.json({ error: "Apenas SUPER_ADMIN" }, { status: 403 });
 
   const body = await req.json();
-  if (!body.companyName || !body.email) {
-    return NextResponse.json({ error: "companyName e email sao obrigatorios" }, { status: 400 });
+  const rawEmail = String(body.email || "").trim().toLowerCase();
+  if (!rawEmail) {
+    return NextResponse.json({ error: "Email e obrigatorio" }, { status: 400 });
   }
+
+  const existingUser = await prisma.user.findUnique({ where: { email: rawEmail } });
+  if (existingUser) {
+    return NextResponse.json({ error: "Ja existe um usuario com este email" }, { status: 409 });
+  }
+
+  const companyName = String(body.companyName || "").trim() || rawEmail.split("@")[0];
 
   const tenant = await prisma.tenant.create({
     data: {
-      companyName: body.companyName,
+      companyName,
+      email: rawEmail,
       tradeName: body.tradeName || null,
       cnpj: body.cnpj || null,
-      email: body.email,
       phone: body.phone || null,
       responsibleName: body.responsibleName || null,
       address: body.address || null,
@@ -43,7 +60,40 @@ export async function POST(req: Request) {
     },
   });
 
+  // Cria usuario ADMIN com senha aleatoria (precisa definir via link de reset)
+  const placeholderHash = bcrypt.hashSync(randomBytes(32).toString("hex"), 10);
+  await prisma.user.create({
+    data: {
+      name: companyName,
+      email: rawEmail,
+      passwordHash: placeholderHash,
+      role: "ADMIN",
+      tenantId: tenant.id,
+      isActive: true,
+    },
+  });
+
+  // Gera token de definicao de senha (24h)
+  const token = randomBytes(32).toString("hex");
+  await prisma.passwordResetToken.create({
+    data: {
+      token,
+      email: rawEmail,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    },
+  });
+  const link = `${getAppUrl(req)}/redefinir-senha?token=${token}`;
+
+  const { html, text } = passwordResetEmail({ link, isNewAccount: true });
+  const sendResult = await sendEmail({
+    to: rawEmail,
+    subject: "Bem-vindo a BilyVet - defina sua senha",
+    html,
+    text,
+  });
+
   // Cria customer + subscription no Asaas se solicitado
+  let asaasWarning: string | undefined;
   if (body.startNow && asaasIsConfigured()) {
     try {
       const customer = await createCustomer({
@@ -90,17 +140,19 @@ export async function POST(req: Request) {
 
       await prisma.tenant.update({ where: { id: tenant.id }, data: { status: "ACTIVE" } });
     } catch (err: any) {
-      return NextResponse.json({
-        tenant,
-        warning: `Cliente criado, mas falhou ao criar no Asaas: ${err.message}`,
-      });
+      asaasWarning = `Cliente criado, mas falhou ao criar assinatura no Asaas: ${err.message}`;
     }
   } else if (body.startNow && !asaasIsConfigured()) {
-    return NextResponse.json({
-      tenant,
-      warning: "Cliente criado, mas ASAAS_API_KEY nao esta configurada - assinatura nao foi criada.",
-    });
+    asaasWarning = "Cliente criado, mas ASAAS_API_KEY nao esta configurada - assinatura nao foi criada.";
   }
 
-  return NextResponse.json({ tenant });
+  return NextResponse.json({
+    tenant,
+    invite: {
+      link, // sempre devolve para o super-admin copiar caso o email falhe
+      emailSent: sendResult.ok,
+      emailError: sendResult.ok ? undefined : sendResult.error,
+    },
+    warning: asaasWarning,
+  });
 }
