@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function RedefinirSenhaPage() {
+export const dynamic = "force-dynamic";
+
+function RedefinirSenhaInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const token = sp.get("token") || "";
@@ -46,53 +48,59 @@ export default function RedefinirSenhaPage() {
 
   if (!token) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 via-white to-accent-50 px-4">
-        <div className="card card-pad max-w-md w-full space-y-3 text-center">
-          <h1 className="text-lg font-semibold text-slate-800">Link invalido</h1>
-          <p className="text-sm text-slate-500">Este link de redefinicao de senha esta incompleto. Solicite um novo.</p>
-          <Link href="/recuperar-senha" className="btn-primary inline-block">Solicitar novo link</Link>
-        </div>
-      </main>
+      <div className="card card-pad max-w-md w-full space-y-3 text-center">
+        <h1 className="text-lg font-semibold text-slate-800">Link invalido</h1>
+        <p className="text-sm text-slate-500">Este link de redefinicao de senha esta incompleto. Solicite um novo.</p>
+        <Link href="/recuperar-senha" className="btn-primary inline-block">Solicitar novo link</Link>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 via-white to-accent-50 px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <div className="h-10 w-10 rounded-xl bg-brand-600 grid place-items-center text-white font-bold text-lg shadow-card">B</div>
-            <span className="text-2xl font-bold text-slate-800">BilyVet</span>
-          </div>
-          <p className="text-slate-500 text-sm">Defina sua senha de acesso</p>
+    <div className="w-full max-w-md">
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-2 mb-3">
+          <div className="h-10 w-10 rounded-xl bg-brand-600 grid place-items-center text-white font-bold text-lg shadow-card">B</div>
+          <span className="text-2xl font-bold text-slate-800">BilyVet</span>
+        </div>
+        <p className="text-slate-500 text-sm">Defina sua senha de acesso</p>
+      </div>
+
+      <form onSubmit={onSubmit} className="card card-pad space-y-4">
+        <h1 className="text-lg font-semibold text-slate-800">Definir nova senha</h1>
+
+        <div>
+          <label className="label">Nome da clinica ou responsavel (opcional)</label>
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Clinica Pet Feliz" />
+          <p className="text-xs text-slate-500 mt-1">Se for o primeiro acesso, voce pode aproveitar para preencher o nome agora.</p>
         </div>
 
-        <form onSubmit={onSubmit} className="card card-pad space-y-4">
-          <h1 className="text-lg font-semibold text-slate-800">Definir nova senha</h1>
+        <div>
+          <label className="label">Nova senha *</label>
+          <input className="input" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
 
-          <div>
-            <label className="label">Nome da clinica ou responsavel (opcional)</label>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Clinica Pet Feliz" />
-            <p className="text-xs text-slate-500 mt-1">Se for o primeiro acesso, voce pode aproveitar para preencher o nome agora.</p>
-          </div>
+        <div>
+          <label className="label">Confirmar senha *</label>
+          <input className="input" type="password" required minLength={6} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+        </div>
 
-          <div>
-            <label className="label">Nova senha *</label>
-            <input className="input" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
+        {error && <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">{error}</div>}
 
-          <div>
-            <label className="label">Confirmar senha *</label>
-            <input className="input" type="password" required minLength={6} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-          </div>
+        <button className="btn-primary w-full" disabled={loading}>
+          {loading ? "Salvando..." : "Salvar e entrar"}
+        </button>
+      </form>
+    </div>
+  );
+}
 
-          {error && <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">{error}</div>}
-
-          <button className="btn-primary w-full" disabled={loading}>
-            {loading ? "Salvando..." : "Salvar e entrar"}
-          </button>
-        </form>
-      </div>
+export default function RedefinirSenhaPage() {
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 via-white to-accent-50 px-4">
+      <Suspense fallback={<div className="text-sm text-slate-500">Carregando...</div>}>
+        <RedefinirSenhaInner />
+      </Suspense>
     </main>
   );
 }
