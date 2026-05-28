@@ -4,10 +4,15 @@ import { getSession } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/permissions";
 import { asaasIsConfigured, createCustomer, createSubscription } from "@/lib/asaas";
 
-function tomorrowISO() {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
+function nextDueDateISO(dueDay: number) {
+  const day = Math.min(Math.max(Math.floor(dueDay) || 1, 1), 28);
+  const today = new Date();
+  const candidate = new Date(today.getFullYear(), today.getMonth(), day);
+  if (candidate <= today) candidate.setMonth(candidate.getMonth() + 1);
+  const y = candidate.getFullYear();
+  const m = String(candidate.getMonth() + 1).padStart(2, "0");
+  const d = String(candidate.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function digits(v?: string | null) { return (v || "").replace(/\D/g, ""); }
@@ -58,11 +63,12 @@ export async function POST(req: Request) {
 
       const value = Number(body.value || 247);
       const billingType = body.billingType || "UNDEFINED";
+      const dueDay = Number(body.dueDay || 1);
 
       const sub = await createSubscription({
         customer: customer.id,
         value,
-        nextDueDate: tomorrowISO(),
+        nextDueDate: nextDueDateISO(dueDay),
         cycle: "MONTHLY",
         billingType,
         description: `BilyVet - Plano ${value === 247 ? "PRO" : "Custom"}`,

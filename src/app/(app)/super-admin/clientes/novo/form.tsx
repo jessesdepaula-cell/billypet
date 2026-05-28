@@ -18,6 +18,7 @@ export function NovoClienteForm() {
     zipCode: "",
     value: 247,
     billingType: "UNDEFINED" as "BOLETO" | "CREDIT_CARD" | "PIX" | "UNDEFINED",
+    dueDay: 1,
     startNow: true,
   });
   const [loading, setLoading] = useState(false);
@@ -101,10 +102,15 @@ export function NovoClienteForm() {
           </label>
         </div>
         {form.startNow && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="label">Valor mensal (R$)</label>
               <input className="input" type="number" min={0} step="0.01" value={form.value} onChange={(e) => set("value", Number(e.target.value))} />
+            </div>
+            <div>
+              <label className="label">Dia de vencimento</label>
+              <input className="input" type="number" min={1} max={28} value={form.dueDay} onChange={(e) => set("dueDay", Number(e.target.value))} />
+              <p className="text-xs text-slate-500 mt-1">A 1a cobranca cai no proximo dia {form.dueDay}; recorre todo mes nesse dia.</p>
             </div>
             <div>
               <label className="label">Forma de pagamento</label>
