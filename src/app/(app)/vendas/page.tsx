@@ -17,6 +17,7 @@ export default async function VendasPage() {
   return (
     <>
       <PageHeader title="Vendas"
+        tutorialSlug="vendas-pdv"
         actions={<Link href="/vendas/nova" className="btn-primary"><Plus className="h-4 w-4" /> Nova venda</Link>} />
       <div className="card overflow-hidden">
         <table className="bp-table">

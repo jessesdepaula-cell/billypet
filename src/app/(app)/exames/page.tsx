@@ -15,7 +15,7 @@ export default async function ExamesPage() {
   const petOpts = pets.map((p) => ({ id: p.id, label: `${p.name} (${p.tutor.name})` }));
   return (
     <>
-      <PageHeader title="Exames" description="Solicitar, acompanhar e registrar resultados" />
+      <PageHeader title="Exames" description="Solicitar, acompanhar e registrar resultados" tutorialSlug="exames" />
       <ExamsClient
         exams={exams.map((e) => ({ id: e.id, name: e.name, status: e.status, pet: e.pet.name, tutor: e.pet.tutor.name, requestedAt: fmtDateTime(e.requestedAt), result: e.result, resultAt: e.resultAt ? fmtDateTime(e.resultAt) : null }))}
         pets={petOpts}

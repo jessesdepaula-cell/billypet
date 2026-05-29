@@ -16,7 +16,7 @@ export default async function PacotesPage() {
   const totalActive = packages.filter((p) => p.isActive && (!p.validUntil || p.validUntil > new Date())).length;
   return (
     <>
-      <PageHeader title="Pacotes de servicos" description="Pacotes de banho, tosa, consultas e outros" />
+      <PageHeader title="Pacotes de servicos" description="Pacotes de banho, tosa, consultas e outros" tutorialSlug="pacotes" />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <div className="card card-pad"><div className="text-xs text-slate-500">Total de pacotes</div><div className="text-2xl font-bold">{totalSold}</div></div>
         <div className="card card-pad"><div className="text-xs text-slate-500">Ativos</div><div className="text-2xl font-bold text-emerald-600">{totalActive}</div></div>

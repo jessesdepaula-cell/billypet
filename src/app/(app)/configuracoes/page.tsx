@@ -18,7 +18,7 @@ export default async function ConfiguracoesPage() {
 
   return (
     <>
-      <PageHeader title="Cadastros e configuracoes" description="Servicos, formas de pagamento, maquinas de cartao, comissoes e auxiliares" />
+      <PageHeader title="Cadastros e configuracoes" description="Servicos, formas de pagamento, maquinas de cartao, comissoes e auxiliares" tutorialSlug="configuracoes" />
       <div className="grid lg:grid-cols-2 gap-5">
         <Card title="Servicos">
           <table className="bp-table"><thead><tr><th>Nome</th><th>Categoria</th><th>Tempo</th><th>Preco</th><th>Comissao</th></tr></thead>

@@ -24,6 +24,7 @@ export default async function TutoresPage({ searchParams }: { searchParams: { q?
       <PageHeader
         title="Tutores"
         description="Cadastro de clientes / tutores responsaveis pelos pets"
+        tutorialSlug="tutores"
         actions={<Link className="btn-primary" href="/tutores/novo"><Plus className="h-4 w-4" /> Novo tutor</Link>}
       />
 

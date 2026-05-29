@@ -15,7 +15,7 @@ export default async function EstoquePage() {
   ]);
   return (
     <>
-      <PageHeader title="Movimentacoes de estoque" description="Entradas, saidas, perdas, ajustes e devolucoes" />
+      <PageHeader title="Movimentacoes de estoque" description="Entradas, saidas, perdas, ajustes e devolucoes" tutorialSlug="estoque" />
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-1"><StockForm products={products} units={units} /></div>
         <div className="lg:col-span-2 card overflow-hidden">

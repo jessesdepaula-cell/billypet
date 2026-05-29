@@ -25,6 +25,7 @@ export default async function PetsPage({ searchParams }: { searchParams: { q?: s
       <PageHeader
         title="Pets"
         description="Cadastro de animais"
+        tutorialSlug="pets"
         actions={<Link className="btn-primary" href="/pets/novo"><Plus className="h-4 w-4" /> Novo pet</Link>}
       />
 

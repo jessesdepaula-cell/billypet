@@ -17,7 +17,7 @@ export default async function ContasPagarPage() {
   const vencidas = list.filter((a) => a.status === "VENCIDA").reduce((s, a) => s + a.amount, 0);
   return (
     <>
-      <PageHeader title="Contas a pagar" description="Fornecedores, despesas fixas e variaveis" />
+      <PageHeader title="Contas a pagar" description="Fornecedores, despesas fixas e variaveis" tutorialSlug="contas-pagar" />
       <div className="grid sm:grid-cols-3 gap-3 mb-4">
         <div className="card card-pad"><div className="text-xs text-slate-500">Total em aberto</div><div className="text-2xl font-bold text-red-600">{fmtMoney(total)}</div></div>
         <div className="card card-pad"><div className="text-xs text-slate-500">Vencidas</div><div className="text-2xl font-bold text-red-600">{fmtMoney(vencidas)}</div></div>

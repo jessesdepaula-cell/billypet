@@ -16,7 +16,7 @@ export default async function EsteiraPage() {
   });
   return (
     <>
-      <PageHeader title="Esteira de atendimento" description="Acompanhe o fluxo do dia em kanban" />
+      <PageHeader title="Esteira de atendimento" description="Acompanhe o fluxo do dia em kanban" tutorialSlug="esteira" />
       <EsteiraBoard cards={cards as any} />
     </>
   );

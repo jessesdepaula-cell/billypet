@@ -17,6 +17,7 @@ export default async function InternacaoPage() {
   return (
     <>
       <PageHeader title="Internacoes ativas"
+        tutorialSlug="internacao"
         actions={<Link href="/internacao/nova" className="btn-primary"><Plus className="h-4 w-4" /> Nova internacao</Link>} />
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {list.map((h) => (

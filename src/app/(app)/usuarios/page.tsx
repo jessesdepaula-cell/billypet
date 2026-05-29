@@ -11,7 +11,7 @@ export default async function UsuariosPage() {
   const users = await prisma.user.findMany({ where: { tenantId }, include: { unit: true }, orderBy: { name: "asc" } });
   return (
     <>
-      <PageHeader title="Usuarios e permissoes" description="Gerencie acessos ao sistema" />
+      <PageHeader title="Usuarios e permissoes" description="Gerencie acessos ao sistema" tutorialSlug="usuarios" />
       <div className="card overflow-hidden mb-5">
         <table className="bp-table">
           <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Unidade</th><th>Criado em</th><th>Status</th></tr></thead>

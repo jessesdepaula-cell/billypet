@@ -37,7 +37,7 @@ export default async function RelatoriosPage() {
 
   return (
     <>
-      <PageHeader title="Relatorios" description="Visao consolidada com filtro padrao dos ultimos 30 dias" />
+      <PageHeader title="Relatorios" description="Visao consolidada com filtro padrao dos ultimos 30 dias" tutorialSlug="relatorios" />
 
       <div className="grid lg:grid-cols-3 gap-5 mb-5">
         <div className="card card-pad lg:col-span-2">

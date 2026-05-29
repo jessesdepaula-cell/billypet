@@ -15,7 +15,7 @@ export default async function TransferenciasPage() {
   ]);
   return (
     <>
-      <PageHeader title="Transferencias entre estoques" />
+      <PageHeader title="Transferencias entre estoques" tutorialSlug="estoque" />
       <div className="grid lg:grid-cols-3 gap-5">
         <TransferForm products={products} units={units} />
         <div className="lg:col-span-2 card overflow-hidden">

@@ -17,7 +17,7 @@ export default async function ContasReceberPage() {
   const vencidas = list.filter((a) => a.status === "VENCIDA").reduce((s, a) => s + a.amount, 0);
   return (
     <>
-      <PageHeader title="Contas a receber" description="Mensalidades, parcelamentos e atendimentos em aberto" />
+      <PageHeader title="Contas a receber" description="Mensalidades, parcelamentos e atendimentos em aberto" tutorialSlug="contas-receber" />
       <div className="grid sm:grid-cols-3 gap-3 mb-4">
         <div className="card card-pad"><div className="text-xs text-slate-500">Total em aberto</div><div className="text-2xl font-bold text-emerald-600">{fmtMoney(total)}</div></div>
         <div className="card card-pad"><div className="text-xs text-slate-500">Vencidas (inadimplencia)</div><div className="text-2xl font-bold text-red-600">{fmtMoney(vencidas)}</div></div>

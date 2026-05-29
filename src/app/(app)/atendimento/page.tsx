@@ -16,6 +16,7 @@ export default async function AtendimentoPage() {
   return (
     <>
       <PageHeader title="Atendimentos" description="Atendimentos em andamento e proximos"
+        tutorialSlug="atendimento"
         actions={<Link className="btn-outline" href="/esteira">Ver esteira</Link>} />
       <div className="card overflow-hidden">
         <table className="bp-table">

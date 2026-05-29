@@ -22,6 +22,7 @@ export default async function ProdutosPage({ searchParams }: { searchParams: { q
   return (
     <>
       <PageHeader title="Produtos" description="Cadastro de produtos comercializaveis e insumos"
+        tutorialSlug="produtos"
         actions={<Link className="btn-primary" href="/produtos/novo"><Plus className="h-4 w-4" /> Novo produto</Link>} />
       <form className="card card-pad mb-4 flex gap-2">
         <div className="relative flex-1">

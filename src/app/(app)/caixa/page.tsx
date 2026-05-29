@@ -24,7 +24,7 @@ export default async function CaixaPage() {
 
   return (
     <>
-      <PageHeader title="Caixa diario" description="Abertura, fechamento, sangrias e suprimentos" />
+      <PageHeader title="Caixa diario" description="Abertura, fechamento, sangrias e suprimentos" tutorialSlug="caixa" />
       {!open ? (
         <CashActions mode="open" />
       ) : (

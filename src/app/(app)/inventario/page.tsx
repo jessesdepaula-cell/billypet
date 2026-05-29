@@ -15,7 +15,7 @@ export default async function InventarioPage() {
   const valorTotal = products.reduce((s, p) => s + p.stocks.reduce((q, st) => q + st.quantity, 0) * p.costPrice, 0);
   return (
     <>
-      <PageHeader title="Inventario" description="Posicao consolidada de estoque por produto e unidade" />
+      <PageHeader title="Inventario" description="Posicao consolidada de estoque por produto e unidade" tutorialSlug="estoque" />
       <div className="card card-pad mb-4">
         <div className="text-xs text-slate-500">Valor total em estoque (custo)</div>
         <div className="text-3xl font-bold">{fmtMoney(valorTotal)}</div>

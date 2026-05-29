@@ -13,7 +13,7 @@ export default async function FidelidadePage() {
   ]);
   return (
     <>
-      <PageHeader title="Programa de fidelidade" description="Regra padrao: 1 ponto a cada R$ 10 em compras / servicos" />
+      <PageHeader title="Programa de fidelidade" description="Regra padrao: 1 ponto a cada R$ 10 em compras / servicos" tutorialSlug="pacotes" />
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="card card-pad lg:col-span-2">
           <h3 className="font-semibold mb-3">Top tutores fidelidade</h3>

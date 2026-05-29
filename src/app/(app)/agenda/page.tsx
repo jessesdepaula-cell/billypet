@@ -37,6 +37,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
   return (
     <>
       <PageHeader title="Agenda" description={`Visualizacao ${view === "day" ? "diaria" : "semanal"}`}
+        tutorialSlug="agenda"
         actions={<Link className="btn-primary" href={`/agenda/novo?date=${isoDate(start)}`}><Plus className="h-4 w-4" /> Novo agendamento</Link>} />
 
       <form className="card card-pad mb-4 flex flex-wrap gap-2 items-end">
