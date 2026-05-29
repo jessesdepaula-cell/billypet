@@ -1,20 +1,24 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtMoney } from "@/lib/utils";
 import { CategoriesBar, RevenueLine } from "@/components/charts/DashboardCharts";
 
+export const dynamic = "force-dynamic";
+
 export default async function RelatoriosPage() {
+  const { tenantId } = await requireTenant();
   const start30 = new Date(Date.now() - 30 * 86400000);
   const [salesByDay, topItems, topClients, lowStock, expiringSoon] = await Promise.all([
-    prisma.sale.findMany({ where: { createdAt: { gte: start30 }, status: "FINALIZADA" } }),
-    prisma.saleItem.groupBy({ by: ["description"], _sum: { total: true, quantity: true }, orderBy: { _sum: { total: "desc" } }, take: 10 }),
-    prisma.sale.groupBy({ by: ["tutorId"], _sum: { total: true }, _count: true, orderBy: { _sum: { total: "desc" } }, take: 10 }),
-    prisma.stock.findMany({ where: { product: { isActive: true } }, include: { product: true, unit: true } }),
-    prisma.stock.findMany({ where: { expiresAt: { lte: new Date(Date.now() + 60 * 86400000), gte: new Date() } }, include: { product: true, unit: true } }),
+    prisma.sale.findMany({ where: { unit: { tenantId }, createdAt: { gte: start30 }, status: "FINALIZADA" } }),
+    prisma.saleItem.groupBy({ by: ["description"], where: { sale: { unit: { tenantId } } }, _sum: { total: true, quantity: true }, orderBy: { _sum: { total: "desc" } }, take: 10 }),
+    prisma.sale.groupBy({ by: ["tutorId"], where: { unit: { tenantId } }, _sum: { total: true }, _count: true, orderBy: { _sum: { total: "desc" } }, take: 10 }),
+    prisma.stock.findMany({ where: { unit: { tenantId }, product: { isActive: true } }, include: { product: true, unit: true } }),
+    prisma.stock.findMany({ where: { unit: { tenantId }, expiresAt: { lte: new Date(Date.now() + 60 * 86400000), gte: new Date() } }, include: { product: true, unit: true } }),
   ]);
 
   const tutorIds = topClients.map((t) => t.tutorId).filter(Boolean) as string[];
-  const tutorsMap = new Map((await prisma.tutor.findMany({ where: { id: { in: tutorIds } } })).map((t) => [t.id, t.name]));
+  const tutorsMap = new Map((await prisma.tutor.findMany({ where: { tenantId, id: { in: tutorIds } } })).map((t) => [t.id, t.name]));
 
   const days: { day: string; total: number }[] = [];
   for (let i = 29; i >= 0; i--) {

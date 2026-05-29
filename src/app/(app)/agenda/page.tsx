@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { fmtTime, fmtDate } from "@/lib/utils";
+import { fmtTime } from "@/lib/utils";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+
+export const dynamic = "force-dynamic";
 
 function startOfWeek(d: Date) { const x = new Date(d); const day = x.getDay(); x.setHours(0,0,0,0); x.setDate(x.getDate() - day); return x; }
 function addDays(d: Date, n: number) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
 
 export default async function AgendaPage({ searchParams }: { searchParams: { date?: string; vet?: string; view?: "day" | "week" } }) {
+  const { tenantId } = await requireTenant();
   const view = searchParams.view === "day" ? "day" : "week";
   const baseDate = searchParams.date ? new Date(searchParams.date) : new Date();
   const start = view === "day" ? new Date(baseDate.setHours(0,0,0,0)) : startOfWeek(baseDate);
@@ -16,11 +20,15 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
 
   const [appts, vets] = await Promise.all([
     prisma.appointment.findMany({
-      where: { scheduledAt: { gte: start, lt: end }, ...(vetId ? { vetId } : {}) },
+      where: {
+        unit: { tenantId },
+        scheduledAt: { gte: start, lt: end },
+        ...(vetId ? { vetId } : {}),
+      },
       include: { tutor: true, pet: true, vet: true, services: { include: { service: true } } },
       orderBy: { scheduledAt: "asc" },
     }),
-    prisma.user.findMany({ where: { role: "VETERINARIO", isActive: true }, orderBy: { name: "asc" } }),
+    prisma.user.findMany({ where: { tenantId, role: "VETERINARIO", isActive: true }, orderBy: { name: "asc" } }),
   ]);
 
   const days = view === "day" ? [start] : Array.from({ length: 7 }, (_, i) => addDays(start, i));

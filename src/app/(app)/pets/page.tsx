@@ -1,13 +1,18 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Plus, Search } from "lucide-react";
 import { ageFromBirth } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function PetsPage({ searchParams }: { searchParams: { q?: string } }) {
+  const { tenantId } = await requireTenant();
   const q = (searchParams.q ?? "").trim();
   const pets = await prisma.pet.findMany({
     where: {
+      tutor: { tenantId },
       isActive: true,
       ...(q ? { OR: [{ name: { contains: q } }, { breed: { contains: q } }, { species: { contains: q } }, { tutor: { name: { contains: q } } }] } : {}),
     },
@@ -46,7 +51,7 @@ export default async function PetsPage({ searchParams }: { searchParams: { q?: s
                 <td className="text-right"><Link className="text-brand-600 hover:underline text-sm" href={`/pets/${p.id}`}>abrir</Link></td>
               </tr>
             ))}
-            {pets.length === 0 && <tr><td colSpan={7} className="text-center py-6 text-slate-500">Nenhum pet encontrado.</td></tr>}
+            {pets.length === 0 && <tr><td colSpan={7} className="text-center py-6 text-slate-500">Nenhum pet cadastrado ainda. Cadastre um tutor primeiro e depois adicione os pets dele.</td></tr>}
           </tbody>
         </table>
       </div>

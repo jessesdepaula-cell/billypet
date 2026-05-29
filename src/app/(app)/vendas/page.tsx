@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime, fmtMoney } from "@/lib/utils";
 import { Plus } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function VendasPage() {
+  const { tenantId } = await requireTenant();
   const sales = await prisma.sale.findMany({
+    where: { unit: { tenantId } },
     include: { tutor: true, seller: true, items: true, payments: { include: { paymentMethod: true } } },
     orderBy: { createdAt: "desc" }, take: 100,
   });
@@ -28,7 +33,7 @@ export default async function VendasPage() {
                 <td><span className={s.status === "FINALIZADA" ? "badge-green" : s.status === "CANCELADA" ? "badge-red" : "badge-yellow"}>{s.status.toLowerCase()}</span></td>
               </tr>
             ))}
-            {sales.length === 0 && <tr><td colSpan={7} className="py-6 text-center text-slate-500">Nenhuma venda.</td></tr>}
+            {sales.length === 0 && <tr><td colSpan={7} className="py-6 text-center text-slate-500">Nenhuma venda registrada ainda.</td></tr>}
           </tbody>
         </table>
       </div>

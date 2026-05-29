@@ -11,6 +11,7 @@ export type SessionUser = {
   email: string;
   role: string;
   unitId?: string | null;
+  tenantId?: string | null;
 };
 
 export async function signSession(user: SessionUser) {

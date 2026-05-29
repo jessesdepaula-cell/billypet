@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PetForm } from "../PetForm";
 import { fmtDate, fmtDateTime, ageFromBirth } from "@/lib/utils";
 import { Syringe, FlaskConical, BedDouble, Stethoscope } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function PetDetailPage({ params }: { params: { id: string } }) {
-  const p = await prisma.pet.findUnique({
-    where: { id: params.id },
+  const { tenantId } = await requireTenant();
+  const p = await prisma.pet.findFirst({
+    where: { id: params.id, tutor: { tenantId } },
     include: {
       tutor: true,
       vaccines: { orderBy: { appliedAt: "desc" } },
@@ -19,7 +23,7 @@ export default async function PetDetailPage({ params }: { params: { id: string }
     },
   });
   if (!p) return notFound();
-  const tutors = await prisma.tutor.findMany({ where: { isActive: true }, select: { id: true, name: true } });
+  const tutors = await prisma.tutor.findMany({ where: { tenantId, isActive: true }, select: { id: true, name: true } });
 
   return (
     <>

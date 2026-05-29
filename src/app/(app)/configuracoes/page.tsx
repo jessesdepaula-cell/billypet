@@ -1,15 +1,19 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtMoney } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function ConfiguracoesPage() {
+  const { tenantId } = await requireTenant();
   const [services, methods, machines, categories, suppliers, commissionRules] = await Promise.all([
-    prisma.service.findMany({ orderBy: { name: "asc" } }),
-    prisma.paymentMethod.findMany({ orderBy: { name: "asc" } }),
-    prisma.cardMachine.findMany(),
-    prisma.productCategory.findMany({ orderBy: { name: "asc" } }),
-    prisma.supplier.findMany({ orderBy: { name: "asc" } }),
-    prisma.commissionRule.findMany({ where: { isActive: true } }),
+    prisma.service.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
+    prisma.paymentMethod.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
+    prisma.cardMachine.findMany({ where: { tenantId } }),
+    prisma.productCategory.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
+    prisma.supplier.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
+    prisma.commissionRule.findMany({ where: { isActive: true, userId: { in: (await prisma.user.findMany({ where: { tenantId }, select: { id: true } })).map((u) => u.id) } } }),
   ]);
 
   return (

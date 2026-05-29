@@ -1,18 +1,20 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime, fmtMoney } from "@/lib/utils";
-import { getSession } from "@/lib/auth";
 import { CashActions } from "./CashActions";
 
+export const dynamic = "force-dynamic";
+
 export default async function CaixaPage() {
-  const s = await getSession();
+  const { unitId } = await requireTenant();
   const open = await prisma.cashRegister.findFirst({
-    where: { unitId: s?.unitId ?? undefined, status: "ABERTO" },
+    where: { unitId, status: "ABERTO" },
     include: { transactions: { orderBy: { createdAt: "desc" } }, openedBy: true },
     orderBy: { openedAt: "desc" },
   });
   const closedToday = await prisma.cashRegister.findMany({
-    where: { unitId: s?.unitId ?? undefined, status: "FECHADO", closedAt: { gte: new Date(Date.now() - 7 * 86400000) } },
+    where: { unitId, status: "FECHADO", closedAt: { gte: new Date(Date.now() - 7 * 86400000) } },
     orderBy: { closedAt: "desc" }, take: 7,
   });
 

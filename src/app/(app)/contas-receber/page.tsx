@@ -1,13 +1,17 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDate, fmtMoney } from "@/lib/utils";
 import { ReceivableActions } from "./Actions";
 import { ReceiveClient } from "./ReceiveClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function ContasReceberPage() {
+  const { tenantId } = await requireTenant();
   const [list, tutors] = await Promise.all([
-    prisma.accountReceivable.findMany({ include: { tutor: true }, orderBy: { dueDate: "asc" }, take: 200 }),
-    prisma.tutor.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
+    prisma.accountReceivable.findMany({ where: { unit: { tenantId } }, include: { tutor: true }, orderBy: { dueDate: "asc" }, take: 200 }),
+    prisma.tutor.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" } }),
   ]);
   const total = list.filter((a) => a.status !== "PAGA").reduce((s, a) => s + a.amount, 0);
   const vencidas = list.filter((a) => a.status === "VENCIDA").reduce((s, a) => s + a.amount, 0);

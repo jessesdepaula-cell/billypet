@@ -1,17 +1,21 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { fmtMoney } from "@/lib/utils";
 import { TrendingUp, TrendingDown, Wallet, Receipt } from "lucide-react";
 import { RevenueLine, PaymentMixPie } from "@/components/charts/DashboardCharts";
 
+export const dynamic = "force-dynamic";
+
 export default async function FinanceiroPage() {
+  const { tenantId } = await requireTenant();
   const start30 = new Date(Date.now() - 30 * 86400000);
   const [sales30, payable, receivable, payments] = await Promise.all([
-    prisma.sale.findMany({ where: { createdAt: { gte: start30 }, status: "FINALIZADA" } }),
-    prisma.accountPayable.findMany({ where: { status: { in: ["ABERTA", "VENCIDA"] } } }),
-    prisma.accountReceivable.findMany({ where: { status: { in: ["ABERTA", "VENCIDA", "PARCIAL"] } } }),
-    prisma.payment.findMany({ where: { paidAt: { gte: start30 } }, include: { paymentMethod: true } }),
+    prisma.sale.findMany({ where: { unit: { tenantId }, createdAt: { gte: start30 }, status: "FINALIZADA" } }),
+    prisma.accountPayable.findMany({ where: { unit: { tenantId }, status: { in: ["ABERTA", "VENCIDA"] } } }),
+    prisma.accountReceivable.findMany({ where: { unit: { tenantId }, status: { in: ["ABERTA", "VENCIDA", "PARCIAL"] } } }),
+    prisma.payment.findMany({ where: { sale: { unit: { tenantId } }, paidAt: { gte: start30 } }, include: { paymentMethod: true } }),
   ]);
   const revenue = sales30.reduce((s, x) => s + x.total, 0);
   const totalPayable = payable.reduce((s, x) => s + x.amount, 0);

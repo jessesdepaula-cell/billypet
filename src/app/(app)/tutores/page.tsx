@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Plus, Search } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function TutoresPage({ searchParams }: { searchParams: { q?: string } }) {
+  const { tenantId } = await requireTenant();
   const q = (searchParams.q ?? "").trim();
   const tutors = await prisma.tutor.findMany({
     where: {
+      tenantId,
       isActive: true,
       ...(q ? { OR: [{ name: { contains: q } }, { document: { contains: q } }, { email: { contains: q } }, { phone: { contains: q } }] } : {}),
     },
@@ -45,7 +50,7 @@ export default async function TutoresPage({ searchParams }: { searchParams: { q?
                 <td className="text-right"><Link className="text-brand-600 hover:underline text-sm" href={`/tutores/${t.id}`}>abrir</Link></td>
               </tr>
             ))}
-            {tutors.length === 0 && <tr><td colSpan={7} className="text-center py-6 text-slate-500">Nenhum tutor encontrado.</td></tr>}
+            {tutors.length === 0 && <tr><td colSpan={7} className="text-center py-6 text-slate-500">Nenhum tutor cadastrado ainda. Use o botao "Novo tutor" para comecar.</td></tr>}
           </tbody>
         </table>
       </div>

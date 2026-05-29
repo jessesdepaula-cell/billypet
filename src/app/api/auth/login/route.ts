@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   if (!ok) return NextResponse.json({ error: "Credenciais invalidas" }, { status: 401 });
 
   const token = await signSession({
-    id: user.id, name: user.name, email: user.email, role: user.role, unitId: user.unitId,
+    id: user.id, name: user.name, email: user.email, role: user.role, unitId: user.unitId, tenantId: user.tenantId,
   });
   await setSessionCookie(token);
   await prisma.auditLog.create({ data: { userId: user.id, action: "LOGIN", entity: "User", details: "Login realizado" } });

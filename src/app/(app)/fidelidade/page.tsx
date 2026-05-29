@@ -1,11 +1,15 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function FidelidadePage() {
+  const { tenantId } = await requireTenant();
   const [topTutors, recent] = await Promise.all([
-    prisma.tutor.findMany({ where: { isActive: true, loyaltyPoints: { gt: 0 } }, orderBy: { loyaltyPoints: "desc" }, take: 20 }),
-    prisma.loyaltyTransaction.findMany({ include: { tutor: true }, orderBy: { createdAt: "desc" }, take: 50 }),
+    prisma.tutor.findMany({ where: { tenantId, isActive: true, loyaltyPoints: { gt: 0 } }, orderBy: { loyaltyPoints: "desc" }, take: 20 }),
+    prisma.loyaltyTransaction.findMany({ where: { tutor: { tenantId } }, include: { tutor: true }, orderBy: { createdAt: "desc" }, take: 50 }),
   ]);
   return (
     <>

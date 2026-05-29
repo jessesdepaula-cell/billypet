@@ -1,12 +1,16 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime } from "@/lib/utils";
 import { InternacaoActions } from "./Actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function InternacaoDetailPage({ params }: { params: { id: string } }) {
-  const h = await prisma.hospitalization.findUnique({
-    where: { id: params.id },
+  const { tenantId } = await requireTenant();
+  const h = await prisma.hospitalization.findFirst({
+    where: { id: params.id, unit: { tenantId } },
     include: { pet: { include: { tutor: true } }, vet: true, evolutions: { orderBy: { createdAt: "desc" } } },
   });
   if (!h) return notFound();

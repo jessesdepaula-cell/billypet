@@ -1,12 +1,16 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime } from "@/lib/utils";
 import { ExamsClient } from "./ExamsClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function ExamesPage() {
+  const { tenantId } = await requireTenant();
   const [exams, pets] = await Promise.all([
-    prisma.exam.findMany({ include: { pet: { include: { tutor: true } } }, orderBy: { requestedAt: "desc" }, take: 200 }),
-    prisma.pet.findMany({ where: { isActive: true }, include: { tutor: true }, orderBy: { name: "asc" } }),
+    prisma.exam.findMany({ where: { pet: { tutor: { tenantId } } }, include: { pet: { include: { tutor: true } } }, orderBy: { requestedAt: "desc" }, take: 200 }),
+    prisma.pet.findMany({ where: { tutor: { tenantId }, isActive: true }, include: { tutor: true }, orderBy: { name: "asc" } }),
   ]);
   const petOpts = pets.map((p) => ({ id: p.id, label: `${p.name} (${p.tutor.name})` }));
   return (

@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireSession } from "@/lib/auth";
+import { requireTenantApi, isTenantError } from "@/lib/tenant";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const s = await requireSession();
+  const ctx = await requireTenantApi();
+  if (isTenantError(ctx)) return NextResponse.json({ error: ctx.error }, { status: ctx.status });
+  const existing = await prisma.hospitalization.findFirst({ where: { id: params.id, unit: { tenantId: ctx.tenantId } } });
+  if (!existing) return NextResponse.json({ error: "Nao encontrado" }, { status: 404 });
   const b = await req.json();
   const data: any = {};
   if (b.status) { data.status = b.status; if (b.status !== "ATIVA") data.dischargedAt = new Date(); }
@@ -16,6 +19,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       data: { hospitalizationId: h.id, description: b.evolution.description ?? "", vitals: b.evolution.vitals, medications: b.evolution.medications },
     });
   }
-  await prisma.auditLog.create({ data: { userId: s.id, action: "UPDATE", entity: "Hospitalization", entityId: h.id } });
+  await prisma.auditLog.create({ data: { tenantId: ctx.tenantId, userId: ctx.session.id, action: "UPDATE", entity: "Hospitalization", entityId: h.id } });
   return NextResponse.json(h);
 }

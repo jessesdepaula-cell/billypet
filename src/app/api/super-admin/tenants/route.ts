@@ -60,6 +60,31 @@ export async function POST(req: Request) {
     },
   });
 
+  // Unit Matriz default para o tenant
+  const matriz = await prisma.unit.create({
+    data: { tenantId: tenant.id, name: "Matriz" },
+  });
+
+  // Formas de pagamento padrao
+  await prisma.paymentMethod.createMany({
+    data: [
+      { tenantId: tenant.id, name: "Dinheiro", type: "DINHEIRO" },
+      { tenantId: tenant.id, name: "Pix", type: "PIX" },
+      { tenantId: tenant.id, name: "Cartao Credito", type: "CREDITO" },
+      { tenantId: tenant.id, name: "Cartao Debito", type: "DEBITO" },
+    ],
+  });
+
+  // Categorias de produto padrao
+  await prisma.productCategory.createMany({
+    data: [
+      { tenantId: tenant.id, name: "Racao" },
+      { tenantId: tenant.id, name: "Medicamento" },
+      { tenantId: tenant.id, name: "Acessorio" },
+      { tenantId: tenant.id, name: "Higiene" },
+    ],
+  });
+
   // Cria usuario ADMIN com senha aleatoria (precisa definir via link de reset)
   const placeholderHash = bcrypt.hashSync(randomBytes(32).toString("hex"), 10);
   await prisma.user.create({
@@ -69,6 +94,7 @@ export async function POST(req: Request) {
       passwordHash: placeholderHash,
       role: "ADMIN",
       tenantId: tenant.id,
+      unitId: matriz.id,
       isActive: true,
     },
   });

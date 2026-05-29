@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { TutorForm } from "../TutorForm";
 import { fmtDateTime, fmtMoney, ageFromBirth } from "@/lib/utils";
 import { PawPrint, ShoppingCart, Stethoscope, Gift } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function TutorDetailPage({ params }: { params: { id: string } }) {
-  const t = await prisma.tutor.findUnique({
-    where: { id: params.id },
+  const { tenantId } = await requireTenant();
+  const t = await prisma.tutor.findFirst({
+    where: { id: params.id, tenantId },
     include: {
       pets: { orderBy: { name: "asc" } },
       loyaltyTransactions: { orderBy: { createdAt: "desc" } },

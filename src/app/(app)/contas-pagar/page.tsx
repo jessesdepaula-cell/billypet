@@ -1,13 +1,17 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDate, fmtMoney } from "@/lib/utils";
 import { PayableActions } from "./Actions";
 import { PayClient } from "./PayClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function ContasPagarPage() {
+  const { tenantId } = await requireTenant();
   const [list, suppliers] = await Promise.all([
-    prisma.accountPayable.findMany({ include: { supplier: true }, orderBy: { dueDate: "asc" }, take: 200 }),
-    prisma.supplier.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
+    prisma.accountPayable.findMany({ where: { unit: { tenantId } }, include: { supplier: true }, orderBy: { dueDate: "asc" }, take: 200 }),
+    prisma.supplier.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" } }),
   ]);
   const total = list.filter((a) => a.status !== "PAGA").reduce((s, a) => s + a.amount, 0);
   const vencidas = list.filter((a) => a.status === "VENCIDA").reduce((s, a) => s + a.amount, 0);

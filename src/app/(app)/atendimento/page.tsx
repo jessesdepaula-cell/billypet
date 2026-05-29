@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function AtendimentoPage() {
+  const { tenantId } = await requireTenant();
   const list = await prisma.appointment.findMany({
-    where: { status: { in: ["AGENDADO", "CONFIRMADO", "EM_ATENDIMENTO"] } },
+    where: { unit: { tenantId }, status: { in: ["AGENDADO", "CONFIRMADO", "EM_ATENDIMENTO"] } },
     include: { tutor: true, pet: true, vet: true, services: { include: { service: true } } },
     orderBy: { scheduledAt: "asc" }, take: 100,
   });

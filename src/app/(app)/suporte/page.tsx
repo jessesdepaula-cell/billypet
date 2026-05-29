@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime } from "@/lib/utils";
 import { TicketForm } from "./TicketForm";
 
+export const dynamic = "force-dynamic";
+
 export default async function SuportePage() {
-  const tickets = await prisma.supportTicket.findMany({ include: { user: true }, orderBy: { createdAt: "desc" }, take: 50 });
+  const { tenantId } = await requireTenant();
+  const tickets = await prisma.supportTicket.findMany({ where: { user: { tenantId } }, include: { user: true }, orderBy: { createdAt: "desc" }, take: 50 });
   return (
     <>
       <PageHeader title="Central de ajuda e suporte" description="Tutoriais, FAQ e chamados internos" />

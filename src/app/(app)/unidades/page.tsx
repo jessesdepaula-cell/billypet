@@ -1,8 +1,12 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 
+export const dynamic = "force-dynamic";
+
 export default async function UnidadesPage() {
-  const units = await prisma.unit.findMany({ include: { _count: { select: { users: true, appointments: true, sales: true, stocks: true } } } });
+  const { tenantId } = await requireTenant();
+  const units = await prisma.unit.findMany({ where: { tenantId }, include: { _count: { select: { users: true, appointments: true, sales: true, stocks: true } } } });
   return (
     <>
       <PageHeader title="Unidades" description="Multiunidades - matriz e filiais" />

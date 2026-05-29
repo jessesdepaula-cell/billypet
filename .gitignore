@@ -12,3 +12,4 @@ prisma/dev.db-journal
 .vercel
 .env*.local
 tsconfig.tsbuildinfo
+.env.production.local

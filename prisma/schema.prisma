@@ -18,6 +18,8 @@ datasource db {
 
 model Unit {
   id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name      String
   cnpj      String?
   phone     String?
@@ -34,6 +36,8 @@ model Unit {
   accountsPayable    AccountPayable[]
   accountsReceivable AccountReceivable[]
   hospitalizations   Hospitalization[]
+
+  @@index([tenantId])
 }
 
 model User {
@@ -83,9 +87,18 @@ model Tenant {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  users         User[]
-  subscriptions Subscription[]
-  payments      SubscriptionPayment[]
+  users             User[]
+  subscriptions     Subscription[]
+  payments          SubscriptionPayment[]
+  units             Unit[]
+  tutors            Tutor[]
+  products          Product[]
+  productCategories ProductCategory[]
+  suppliers         Supplier[]
+  services          Service[]
+  kits              Kit[]
+  paymentMethods    PaymentMethod[]
+  cardMachines      CardMachine[]
 }
 
 model Subscription {
@@ -155,6 +168,8 @@ model PasswordResetToken {
 
 model Tutor {
   id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name          String
   document      String? // CPF/CNPJ
   phone         String?
@@ -173,6 +188,8 @@ model Tutor {
   accountsReceivable  AccountReceivable[]
   servicePackages     ServicePackage[]
   loyaltyTransactions LoyaltyTransaction[]
+
+  @@index([tenantId])
 }
 
 model Pet {
@@ -206,12 +223,18 @@ model Pet {
 
 model ProductCategory {
   id       String    @id @default(cuid())
+  tenantId String
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name     String
   products Product[]
+
+  @@index([tenantId])
 }
 
 model Supplier {
   id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name      String
   document  String?
   phone     String?
@@ -222,12 +245,16 @@ model Supplier {
 
   products        Product[]
   accountsPayable AccountPayable[]
+
+  @@index([tenantId])
 }
 
 model Product {
   id           String           @id @default(cuid())
+  tenantId     String
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name         String
-  sku          String?          @unique
+  sku          String?
   barcode      String?
   brand        String?
   categoryId   String?
@@ -247,6 +274,9 @@ model Product {
   movements StockMovement[]
   saleItems SaleItem[]
   kitItems  KitItem[]
+
+  @@unique([tenantId, sku])
+  @@index([tenantId])
 }
 
 model Stock {
@@ -276,10 +306,14 @@ model StockMovement {
 
 model Kit {
   id       String    @id @default(cuid())
+  tenantId String
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name     String
   price    Float     @default(0)
   isActive Boolean   @default(true)
   items    KitItem[]
+
+  @@index([tenantId])
 }
 
 model KitItem {
@@ -297,6 +331,8 @@ model KitItem {
 
 model Service {
   id              String   @id @default(cuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name            String
   category        String? // Banho, Tosa, Consulta, Exame, Cirurgia, Outro
   durationMinutes Int      @default(30)
@@ -308,6 +344,8 @@ model Service {
   appointmentServices AppointmentService[]
   saleItems           SaleItem[]
   packageServices     ServicePackageItem[]
+
+  @@index([tenantId])
 }
 
 model ServicePackage {
@@ -499,15 +537,22 @@ model HospitalizationEvolution {
 
 model PaymentMethod {
   id       String  @id @default(cuid())
-  name     String  @unique
+  tenantId String
+  tenant   Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name     String
   type     String // DINHEIRO, PIX, CREDITO, DEBITO, CONVENIO, ANTECIPADO, OUTRO
   isActive Boolean @default(true)
 
   payments Payment[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
 }
 
 model CardMachine {
   id            String  @id @default(cuid())
+  tenantId      String
+  tenant        Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name          String
   operator      String?
   debitFee      Float   @default(0)
@@ -515,6 +560,8 @@ model CardMachine {
   receivingDays Int     @default(30)
   accountName   String?
   isActive      Boolean @default(true)
+
+  @@index([tenantId])
 }
 
 model Sale {
@@ -640,6 +687,7 @@ model LoyaltyTransaction {
 
 model Document {
   id        String    @id @default(cuid())
+  tenantId  String
   type      String // TERMO_RESPONSABILIDADE, TERMO_INTERNACAO, AUTORIZACAO, RECIBO, ORCAMENTO, RECEITA
   title     String
   content   String
@@ -648,6 +696,8 @@ model Document {
   signedAt  DateTime?
   signedBy  String?
   createdAt DateTime  @default(now())
+
+  @@index([tenantId])
 }
 
 model SupportTicket {
@@ -663,6 +713,7 @@ model SupportTicket {
 
 model AuditLog {
   id        String   @id @default(cuid())
+  tenantId  String?
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
   action    String
@@ -670,4 +721,6 @@ model AuditLog {
   entityId  String?
   details   String?
   createdAt DateTime @default(now())
+
+  @@index([tenantId])
 }

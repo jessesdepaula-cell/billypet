@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireSession } from "@/lib/auth";
+import { requireTenantApi, isTenantError } from "@/lib/tenant";
 
 export async function GET(req: Request) {
-  await requireSession();
+  const ctx = await requireTenantApi();
+  if (isTenantError(ctx)) return NextResponse.json({ error: ctx.error }, { status: ctx.status });
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.trim() ?? "";
   const tutorId = searchParams.get("tutorId") || undefined;
   const pets = await prisma.pet.findMany({
     where: {
+      tutor: { tenantId: ctx.tenantId },
       isActive: true,
       ...(tutorId ? { tutorId } : {}),
       ...(q ? { OR: [{ name: { contains: q } }, { breed: { contains: q } }, { species: { contains: q } }] } : {}),
@@ -20,8 +22,12 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const s = await requireSession();
+  const ctx = await requireTenantApi();
+  if (isTenantError(ctx)) return NextResponse.json({ error: ctx.error }, { status: ctx.status });
   const b = await req.json();
+  // valida que o tutor pertence ao tenant
+  const tutor = await prisma.tutor.findFirst({ where: { id: b.tutorId, tenantId: ctx.tenantId } });
+  if (!tutor) return NextResponse.json({ error: "Tutor invalido" }, { status: 400 });
   const p = await prisma.pet.create({
     data: {
       name: b.name, species: b.species, breed: b.breed, sex: b.sex,
@@ -31,6 +37,6 @@ export async function POST(req: Request) {
       tutorId: b.tutorId,
     },
   });
-  await prisma.auditLog.create({ data: { userId: s.id, action: "CREATE", entity: "Pet", entityId: p.id, details: p.name } });
+  await prisma.auditLog.create({ data: { tenantId: ctx.tenantId, userId: ctx.session.id, action: "CREATE", entity: "Pet", entityId: p.id, details: p.name } });
   return NextResponse.json(p);
 }

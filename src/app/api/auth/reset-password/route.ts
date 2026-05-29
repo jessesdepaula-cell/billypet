@@ -55,6 +55,7 @@ export async function POST(req: Request) {
     email: user.email,
     role: user.role,
     unitId: user.unitId,
+    tenantId: user.tenantId,
   });
   await setSessionCookie(token2);
 

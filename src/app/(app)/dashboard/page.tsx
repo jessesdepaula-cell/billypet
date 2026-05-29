@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { StatCard } from "@/components/ui/StatCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtMoney, fmtTime } from "@/lib/utils";
@@ -6,9 +7,14 @@ import { CalendarDays, Wallet, ShoppingCart, AlertTriangle, BedDouble, Syringe, 
 import { RevenueLine, CategoriesBar, PaymentMixPie } from "@/components/charts/DashboardCharts";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
+  const { tenantId } = await requireTenant();
   const start = new Date(); start.setHours(0, 0, 0, 0);
   const end = new Date(); end.setHours(23, 59, 59, 999);
+
+  const unitFilter = { unit: { tenantId } };
 
   const [
     todayAppointments,
@@ -24,36 +30,41 @@ export default async function DashboardPage() {
     topServices,
   ] = await Promise.all([
     prisma.appointment.findMany({
-      where: { scheduledAt: { gte: start, lte: end } },
+      where: { ...unitFilter, scheduledAt: { gte: start, lte: end } },
       include: { tutor: true, pet: true, vet: true, services: { include: { service: true } } },
       orderBy: { scheduledAt: "asc" },
     }),
-    prisma.appointment.count({ where: { status: "EM_ATENDIMENTO" } }),
+    prisma.appointment.count({ where: { ...unitFilter, status: "EM_ATENDIMENTO" } }),
     prisma.sale.findMany({
-      where: { createdAt: { gte: start, lte: end }, status: "FINALIZADA" },
+      where: { ...unitFilter, createdAt: { gte: start, lte: end }, status: "FINALIZADA" },
       include: { payments: { include: { paymentMethod: true } } },
     }),
-    prisma.accountPayable.findMany({ where: { status: { in: ["ABERTA", "VENCIDA"] } }, orderBy: { dueDate: "asc" }, take: 5 }),
-    prisma.accountReceivable.findMany({ where: { status: { in: ["ABERTA", "VENCIDA", "PARCIAL"] } }, orderBy: { dueDate: "asc" }, take: 5 }),
-    prisma.hospitalization.findMany({ where: { status: "ATIVA" }, include: { pet: { include: { tutor: true } }, vet: true } }),
+    prisma.accountPayable.findMany({ where: { ...unitFilter, status: { in: ["ABERTA", "VENCIDA"] } }, orderBy: { dueDate: "asc" }, take: 5 }),
+    prisma.accountReceivable.findMany({ where: { ...unitFilter, status: { in: ["ABERTA", "VENCIDA", "PARCIAL"] } }, orderBy: { dueDate: "asc" }, take: 5 }),
+    prisma.hospitalization.findMany({ where: { ...unitFilter, status: "ATIVA" }, include: { pet: { include: { tutor: true } }, vet: true } }),
     prisma.stock.findMany({
       include: { product: true, unit: true },
-      where: { product: { isActive: true } },
+      where: { unit: { tenantId }, product: { isActive: true } },
     }),
     prisma.vaccine.findMany({
-      where: { nextDose: { gte: new Date(), lte: new Date(Date.now() + 30 * 86400000) } },
+      where: {
+        pet: { tutor: { tenantId } },
+        nextDose: { gte: new Date(), lte: new Date(Date.now() + 30 * 86400000) },
+      },
       include: { pet: { include: { tutor: true } } },
       orderBy: { nextDose: "asc" }, take: 8,
     }),
     prisma.sale.findMany({
-      where: { createdAt: { gte: new Date(Date.now() - 6 * 86400000) }, status: "FINALIZADA" },
+      where: { ...unitFilter, createdAt: { gte: new Date(Date.now() - 6 * 86400000) }, status: "FINALIZADA" },
     }),
     prisma.payment.findMany({
-      where: { paidAt: { gte: new Date(Date.now() - 30 * 86400000) } },
+      where: { sale: { ...unitFilter }, paidAt: { gte: new Date(Date.now() - 30 * 86400000) } },
       include: { paymentMethod: true },
     }),
     prisma.saleItem.groupBy({
-      by: ["description"], _sum: { total: true }, orderBy: { _sum: { total: "desc" } }, take: 5,
+      by: ["description"],
+      where: { sale: { ...unitFilter } },
+      _sum: { total: true }, orderBy: { _sum: { total: "desc" } }, take: 5,
     }),
   ]);
 
@@ -188,12 +199,14 @@ export default async function DashboardPage() {
             {payable.slice(0, 3).map((p) => (
               <li key={p.id} className="flex justify-between"><span className="truncate pr-2">{p.description}</span><span className="text-red-600 font-medium">{fmtMoney(p.amount)}</span></li>
             ))}
+            {payable.length === 0 && <li className="text-slate-400 text-xs">Nada a pagar</li>}
           </ul>
           <div className="text-xs uppercase text-slate-400 mb-1">Receber</div>
           <ul className="text-sm space-y-1">
             {receivable.slice(0, 3).map((r) => (
               <li key={r.id} className="flex justify-between"><span className="truncate pr-2">{r.description}</span><span className="text-emerald-600 font-medium">{fmtMoney(r.amount)}</span></li>
             ))}
+            {receivable.length === 0 && <li className="text-slate-400 text-xs">Nada a receber</li>}
           </ul>
         </div>
       </div>

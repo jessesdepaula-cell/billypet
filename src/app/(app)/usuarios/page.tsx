@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ROLE_LABEL, type Role, MODULE_PERMISSIONS } from "@/lib/permissions";
 import { fmtDateTime } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function UsuariosPage() {
-  const users = await prisma.user.findMany({ include: { unit: true }, orderBy: { name: "asc" } });
+  const { tenantId } = await requireTenant();
+  const users = await prisma.user.findMany({ where: { tenantId }, include: { unit: true }, orderBy: { name: "asc" } });
   return (
     <>
       <PageHeader title="Usuarios e permissoes" description="Gerencie acessos ao sistema" />

@@ -1,11 +1,15 @@
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { NovaInternacaoForm } from "./Form";
 
+export const dynamic = "force-dynamic";
+
 export default async function NovaInternacaoPage({ searchParams }: { searchParams: { petId?: string } }) {
+  const { tenantId } = await requireTenant();
   const [pets, vets] = await Promise.all([
-    prisma.pet.findMany({ where: { isActive: true }, include: { tutor: true }, orderBy: { name: "asc" } }),
-    prisma.user.findMany({ where: { role: "VETERINARIO", isActive: true } }),
+    prisma.pet.findMany({ where: { tutor: { tenantId }, isActive: true }, include: { tutor: true }, orderBy: { name: "asc" } }),
+    prisma.user.findMany({ where: { tenantId, role: "VETERINARIO", isActive: true } }),
   ]);
   return (
     <>

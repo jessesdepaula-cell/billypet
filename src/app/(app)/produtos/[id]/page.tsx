@@ -1,12 +1,16 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { requireTenant } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ProductForm } from "../ProductForm";
-import { fmtDate, fmtDateTime } from "@/lib/utils";
+import { fmtDateTime } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
 
 export default async function ProdutoDetailPage({ params }: { params: { id: string } }) {
-  const product = await prisma.product.findUnique({
-    where: { id: params.id },
+  const { tenantId } = await requireTenant();
+  const product = await prisma.product.findFirst({
+    where: { id: params.id, tenantId },
     include: {
       stocks: { include: { unit: true } },
       movements: { orderBy: { createdAt: "desc" }, take: 30 },
@@ -14,8 +18,8 @@ export default async function ProdutoDetailPage({ params }: { params: { id: stri
   });
   if (!product) return notFound();
   const [categories, suppliers] = await Promise.all([
-    prisma.productCategory.findMany({ orderBy: { name: "asc" } }),
-    prisma.supplier.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
+    prisma.productCategory.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
+    prisma.supplier.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" } }),
   ]);
 
   return (
