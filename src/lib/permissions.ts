@@ -49,6 +49,7 @@ export const MODULE_PERMISSIONS: Record<string, Role[]> = {
   unidades:        ["ADMIN", "GESTOR"],
   configuracoes:   ["ADMIN", "GESTOR"],
   suporte:         ["ADMIN", "GESTOR", "VETERINARIO", "RECEPCAO", "FINANCEIRO", "ESTOQUE", "BANHO_TOSA", "VENDEDOR"],
+  tutorial:        ["ADMIN", "GESTOR", "VETERINARIO", "RECEPCAO", "FINANCEIRO", "ESTOQUE", "BANHO_TOSA", "VENDEDOR"],
   "super-admin":   ["SUPER_ADMIN"],
 };
 

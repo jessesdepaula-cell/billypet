@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, PawPrint, CalendarDays, Stethoscope, KanbanSquare, BedDouble,
   FlaskConical, ShoppingCart, PackageOpen, Wallet, ArrowRightLeft, ClipboardList,
   PiggyBank, FileText, Receipt, ListChecks, GiftIcon, ScrollText, LifeBuoy, Settings,
-  Building2, UserCog, BarChart3, Boxes, Crown,
+  Building2, UserCog, BarChart3, Boxes, Crown, GraduationCap,
 } from "lucide-react";
 
 type Item = { href: string; label: string; module: string; icon: React.ComponentType<{ className?: string }> };
@@ -27,6 +27,7 @@ const groups: Group[] = [
     title: "Geral",
     items: [
       { href: "/dashboard",    label: "Dashboard",       module: "dashboard",  icon: LayoutDashboard },
+      { href: "/tutorial",     label: "Tutoriais",       module: "tutorial",   icon: GraduationCap },
     ],
   },
   {

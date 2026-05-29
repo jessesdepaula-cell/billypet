@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { requireTenant } from "@/lib/tenant";
 import { StatCard } from "@/components/ui/StatCard";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { fmtMoney, fmtTime } from "@/lib/utils";
 import { CalendarDays, Wallet, ShoppingCart, AlertTriangle, BedDouble, Syringe, PiggyBank, Receipt, FileText, PawPrint } from "lucide-react";
 import { RevenueLine, CategoriesBar, PaymentMixPie } from "@/components/charts/DashboardCharts";
@@ -93,6 +94,8 @@ export default async function DashboardPage() {
   return (
     <>
       <PageHeader title="Dashboard" description="Visao geral do negocio em tempo real" />
+
+      <OnboardingChecklist tenantId={tenantId} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <StatCard title="Vendas hoje" value={fmtMoney(totalSalesToday)} hint={`${todaySales.length} vendas finalizadas`} icon={<ShoppingCart className="h-5 w-5" />} tone="orange" />
