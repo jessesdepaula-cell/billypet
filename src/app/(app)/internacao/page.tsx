@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime } from "@/lib/utils";
 import { Plus } from "lucide-react";
@@ -8,7 +8,7 @@ import { Plus } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function InternacaoPage() {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("internacao");
   const list = await prisma.hospitalization.findMany({
     where: { unit: { tenantId }, status: "ATIVA" },
     include: { pet: { include: { tutor: true } }, vet: true, evolutions: { orderBy: { createdAt: "desc" }, take: 1 } },

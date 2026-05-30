@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime } from "@/lib/utils";
 import { ExamsClient } from "./ExamsClient";
@@ -7,7 +7,7 @@ import { ExamsClient } from "./ExamsClient";
 export const dynamic = "force-dynamic";
 
 export default async function ExamesPage() {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("exames");
   const [exams, pets] = await Promise.all([
     prisma.exam.findMany({ where: { pet: { tutor: { tenantId } } }, include: { pet: { include: { tutor: true } } }, orderBy: { requestedAt: "desc" }, take: 200 }),
     prisma.pet.findMany({ where: { tutor: { tenantId }, isActive: true }, include: { tutor: true }, orderBy: { name: "asc" } }),

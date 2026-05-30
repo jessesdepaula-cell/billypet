@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime, fmtMoney } from "@/lib/utils";
 import { CashActions } from "./CashActions";
@@ -7,7 +7,7 @@ import { CashActions } from "./CashActions";
 export const dynamic = "force-dynamic";
 
 export default async function CaixaPage() {
-  const { unitId } = await requireTenant();
+  const { unitId } = await requireModule("caixa");
   const open = await prisma.cashRegister.findFirst({
     where: { unitId, status: "ABERTO" },
     include: { transactions: { orderBy: { createdAt: "desc" } }, openedBy: true },

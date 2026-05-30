@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PetForm } from "../PetForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function NovoPetPage({ searchParams }: { searchParams: { tutorId?: string } }) {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("pets");
   const tutors = await prisma.tutor.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } });
   return (
     <>

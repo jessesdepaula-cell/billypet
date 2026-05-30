@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Plus, Search } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function TutoresPage({ searchParams }: { searchParams: { q?: string } }) {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("tutores");
   const q = (searchParams.q ?? "").trim();
   const tutors = await prisma.tutor.findMany({
     where: {

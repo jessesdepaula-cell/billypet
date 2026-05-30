@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtMoney } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function InventarioPage() {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("inventario");
   const products = await prisma.product.findMany({
     where: { tenantId, isActive: true },
     include: { stocks: { include: { unit: true } } },

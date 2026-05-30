@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime, fmtMoney } from "@/lib/utils";
 import { Plus } from "lucide-react";
@@ -8,7 +8,7 @@ import { Plus } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function VendasPage() {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("vendas");
   const sales = await prisma.sale.findMany({
     where: { unit: { tenantId } },
     include: { tutor: true, seller: true, items: true, payments: { include: { paymentMethod: true } } },

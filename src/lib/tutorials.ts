@@ -683,18 +683,18 @@ export const TUTORIALS: Tutorial[] = [
   {
     slug: "usuarios",
     title: "Usuarios e permissoes",
-    summary: "Crie acessos para sua equipe. Cada perfil ve apenas os modulos que pode operar.",
+    summary: "Crie acessos para sua equipe. Voce escolhe exatamente quais modulos cada um pode ver e usar.",
     moduleHref: "/usuarios",
     moduleLabel: "Abrir Usuarios",
-    minutes: 3,
+    minutes: 4,
     order: 17,
     category: "gestao",
-    whenToUse: "Quando entrar funcionario novo. Tambem para desativar quem sair.",
+    whenToUse: "Quando entrar funcionario novo. Tambem para desativar quem sair ou ajustar permissoes.",
     sections: [
       {
-        heading: "Perfis disponiveis",
+        heading: "Perfis sugeridos",
         paragraphs: [
-          "ADMIN - dono da clinica. Acesso total exceto super-admin.",
+          "ADMIN - dono da clinica. Acesso total exceto super-admin (nao pode ser customizado).",
           "GESTOR - acesso amplo mas sem mexer em usuarios.",
           "VETERINARIO - foco em ficha, agenda, internacao, exames.",
           "RECEPCAO - agenda, esteira, vendas, caixa, contas.",
@@ -703,14 +703,44 @@ export const TUTORIALS: Tutorial[] = [
           "BANHO_TOSA - agenda, esteira, pets e tutores.",
           "VENDEDOR - vendas, pacotes, fidelidade.",
         ],
-        tip: "Use a Matriz de permissoes na propria tela para ver exatamente o que cada perfil acessa.",
+        tip: "O perfil e apenas um ponto de partida - voce pode liberar/bloquear modulos individuais em cada usuario.",
       },
       {
         heading: "Criar usuario novo",
+        steps: [
+          { title: "Gestao > Usuarios > Novo usuario", body: "Botao no topo direito." },
+          { title: "Preencha nome, e-mail e escolha o perfil", body: "Ao escolher o perfil, as permissoes padrao dele aparecem ja marcadas." },
+          { title: "Clique em Personalizar permissoes (opcional)", body: "Expande a matriz com todos os modulos agrupados por area. Marque/desmarque livremente." },
+          { title: "Salvar", body: "Sistema cria o usuario e envia email com link para ele definir a propria senha (24h de validade)." },
+        ],
+        tip: "Se o email nao chegar, o link aparece na propria tela para voce encaminhar manualmente.",
+      },
+      {
+        heading: "Personalizar permissoes",
         paragraphs: [
-          "Hoje o cadastro de usuarios extras e feito pelo suporte (em breve formulario na tela).",
-          "Envie um chamado em Gestao > Suporte com nome, email, perfil e unidade.",
-          "O usuario recebe email com link para definir senha (mesmo fluxo que voce usou).",
+          "Modulos sao organizados em 7 grupos: Geral, Cadastros, Atendimento, Comercial, Financeiro, Estoque, Gestao.",
+          "Cada checkbox libera ou bloqueia um modulo especifico (ex: Caixa, Relatorios, Estoque).",
+          "Use os botoes Marcar todos / Limpar / Padrao do perfil para velocidade.",
+          "O label 'padrao' ao lado do modulo mostra o que o perfil daria por padrao.",
+        ],
+        tip: "Exemplos uteis: Recepcionista que tambem ve relatorios. Veterinario que tambem cobra. Estoquista que tambem faz vendas.",
+      },
+      {
+        heading: "Editar usuario existente",
+        steps: [
+          { title: "Clique no lapis ao lado do usuario", body: "Abre edicao inline de perfil e unidade." },
+          { title: "Linha extra mostra a matriz de permissoes", body: "Marque/desmarque ali mesmo." },
+          { title: "Botao verde de check salva", body: "Mudancas valem no proximo login do usuario." },
+        ],
+        tip: "Se o usuario ja esta logado, peca para ele sair e entrar de novo para refletir as novas permissoes no menu.",
+      },
+      {
+        heading: "Desativar usuario",
+        paragraphs: [
+          "Clique no botao de Power ao lado do usuario.",
+          "O usuario fica inativo - nao consegue mais logar mas o historico fica preservado.",
+          "Para reativar, mesma acao - o sistema pergunta antes.",
+          "Voce nao pode desativar a si mesmo (evita lock-out).",
         ],
       },
     ],

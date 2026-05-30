@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ServicesManager } from "./ServicesManager";
 import { SimpleManager } from "./SimpleManager";
@@ -8,7 +8,7 @@ import { SupplierManager } from "./SupplierManager";
 export const dynamic = "force-dynamic";
 
 export default async function ConfiguracoesPage() {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("configuracoes");
   const [services, methods, machines, categories, suppliers] = await Promise.all([
     prisma.service.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
     prisma.paymentMethod.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),

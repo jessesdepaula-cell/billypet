@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime } from "@/lib/utils";
 import { InternacaoActions } from "./Actions";
@@ -8,7 +8,7 @@ import { InternacaoActions } from "./Actions";
 export const dynamic = "force-dynamic";
 
 export default async function InternacaoDetailPage({ params }: { params: { id: string } }) {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("internacao");
   const h = await prisma.hospitalization.findFirst({
     where: { id: params.id, unit: { tenantId } },
     include: { pet: { include: { tutor: true } }, vet: true, evolutions: { orderBy: { createdAt: "desc" } } },

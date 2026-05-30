@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDate, fmtMoney } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function PacotesPage() {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("pacotes");
   const packages = await prisma.servicePackage.findMany({
     where: { tutor: { tenantId } },
     include: { tutor: true, pet: true, services: { include: { service: true } }, usages: { orderBy: { usedAt: "desc" } } },

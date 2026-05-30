@@ -1,13 +1,13 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { ROLE_LABEL, type Role, MODULE_PERMISSIONS } from "@/lib/permissions";
+import { ROLE_LABEL, type Role, MODULE_PERMISSIONS, parsePermissions } from "@/lib/permissions";
 import { UsersManager } from "./UsersManager";
 
 export const dynamic = "force-dynamic";
 
 export default async function UsuariosPage() {
-  const { tenantId, session } = await requireTenant();
+  const { tenantId, session } = await requireModule("usuarios");
   const [users, units] = await Promise.all([
     prisma.user.findMany({ where: { tenantId }, include: { unit: true }, orderBy: { name: "asc" } }),
     prisma.unit.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" } }),
@@ -22,6 +22,7 @@ export default async function UsuariosPage() {
           initial={users.map((u) => ({
             id: u.id, name: u.name, email: u.email, role: u.role, isActive: u.isActive,
             unitId: u.unitId, unit: u.unit ? { id: u.unit.id, name: u.unit.name } : null,
+            permissions: parsePermissions(u.permissions),
           }))}
           units={units.map((u) => ({ id: u.id, name: u.name }))}
           currentUserId={session.id}

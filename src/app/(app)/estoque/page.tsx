@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime } from "@/lib/utils";
 import { StockForm } from "./StockForm";
@@ -7,7 +7,7 @@ import { StockForm } from "./StockForm";
 export const dynamic = "force-dynamic";
 
 export default async function EstoquePage() {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("estoque");
   const [products, units, movements] = await Promise.all([
     prisma.product.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true, unit: true } }),
     prisma.unit.findMany({ where: { tenantId, isActive: true }, select: { id: true, name: true } }),

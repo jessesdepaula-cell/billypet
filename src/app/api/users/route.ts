@@ -4,8 +4,16 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { requireTenantApi, isTenantError } from "@/lib/tenant";
 import { sendEmail, passwordResetEmail } from "@/lib/email";
+import { ALL_MODULE_SLUGS } from "@/lib/permissions";
 
 const ALLOWED_ROLES = ["ADMIN", "GESTOR", "VETERINARIO", "RECEPCAO", "FINANCEIRO", "ESTOQUE", "BANHO_TOSA", "VENDEDOR"];
+
+function sanitizePermissions(raw: unknown): string[] | null {
+  if (raw == null) return null;
+  if (!Array.isArray(raw)) return null;
+  const valid = raw.filter((x: any): x is string => typeof x === "string" && ALL_MODULE_SLUGS.includes(x));
+  return Array.from(new Set(valid));
+}
 
 function getAppUrl(req: Request) {
   if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, "");
@@ -54,6 +62,8 @@ export async function POST(req: Request) {
   }
 
   const placeholderHash = bcrypt.hashSync(randomBytes(32).toString("hex"), 10);
+  // Permissoes customizadas (opcional). Se vazio/null, sistema usa o padrao do role.
+  const customPermissions = sanitizePermissions(b.permissions);
   const user = await prisma.user.create({
     data: {
       tenantId: ctx.tenantId,
@@ -63,6 +73,7 @@ export async function POST(req: Request) {
       role,
       passwordHash: placeholderHash,
       isActive: true,
+      permissions: customPermissions ? JSON.stringify(customPermissions) : null,
     },
   });
 

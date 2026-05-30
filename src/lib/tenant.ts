@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession, type SessionUser } from "./auth";
 import { prisma } from "./db";
+import { canAccess } from "./permissions";
 
 export type TenantContext = {
   session: SessionUser;
@@ -58,4 +59,13 @@ export async function requireTenantApi(): Promise<TenantContext | { error: strin
 
 export function isTenantError(x: any): x is { error: string; status: number } {
   return x && typeof x === "object" && "error" in x && "status" in x;
+}
+
+// Combina requireTenant + checagem de modulo. Bloqueia acesso direto via URL.
+export async function requireModule(moduleSlug: string): Promise<TenantContext> {
+  const ctx = await requireTenant();
+  if (!canAccess(moduleSlug, ctx.session.role, ctx.session.permissions ?? null)) {
+    redirect("/dashboard");
+  }
+  return ctx;
 }

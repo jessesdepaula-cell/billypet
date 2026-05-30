@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtMoney } from "@/lib/utils";
 import { CategoriesBar, RevenueLine } from "@/components/charts/DashboardCharts";
@@ -7,7 +7,7 @@ import { CategoriesBar, RevenueLine } from "@/components/charts/DashboardCharts"
 export const dynamic = "force-dynamic";
 
 export default async function RelatoriosPage() {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("relatorios");
   const start30 = new Date(Date.now() - 30 * 86400000);
   const [salesByDay, topItems, topClients, lowStock, expiringSoon] = await Promise.all([
     prisma.sale.findMany({ where: { unit: { tenantId }, createdAt: { gte: start30 }, status: "FINALIZADA" } }),

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { fmtMoney } from "@/lib/utils";
@@ -9,7 +9,7 @@ import { RevenueLine, PaymentMixPie } from "@/components/charts/DashboardCharts"
 export const dynamic = "force-dynamic";
 
 export default async function FinanceiroPage() {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("financeiro");
   const start30 = new Date(Date.now() - 30 * 86400000);
   const [sales30, payable, receivable, payments] = await Promise.all([
     prisma.sale.findMany({ where: { unit: { tenantId }, createdAt: { gte: start30 }, status: "FINALIZADA" } }),

@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function FidelidadePage() {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("fidelidade");
   const [topTutors, recent] = await Promise.all([
     prisma.tutor.findMany({ where: { tenantId, isActive: true, loyaltyPoints: { gt: 0 } }, orderBy: { loyaltyPoints: "desc" }, take: 20 }),
     prisma.loyaltyTransaction.findMany({ where: { tutor: { tenantId } }, include: { tutor: true }, orderBy: { createdAt: "desc" }, take: 50 }),

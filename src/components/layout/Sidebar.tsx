@@ -85,7 +85,7 @@ const groups: Group[] = [
   },
 ];
 
-export function Sidebar({ role }: { role: Role }) {
+export function Sidebar({ role, permissions }: { role: Role; permissions?: string[] | null }) {
   const pathname = usePathname();
   return (
     <aside className="hidden md:flex md:w-64 shrink-0 flex-col bg-white border-r border-slate-200 min-h-screen">
@@ -98,7 +98,7 @@ export function Sidebar({ role }: { role: Role }) {
       </div>
       <nav className="p-3 overflow-y-auto flex-1">
         {groups.map((g) => {
-          const visibleItems = g.items.filter((it) => canAccess(it.module, role));
+          const visibleItems = g.items.filter((it) => canAccess(it.module, role, permissions));
           if (visibleItems.length === 0) return null;
           return (
             <div key={g.title} className="mb-4">

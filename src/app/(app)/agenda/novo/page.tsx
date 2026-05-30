@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AppointmentForm } from "./AppointmentForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function NovoAgendamentoPage({ searchParams }: { searchParams: { date?: string } }) {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("agenda");
   const [tutors, pets, vets, services] = await Promise.all([
     prisma.tutor.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
     prisma.pet.findMany({ where: { tutor: { tenantId }, isActive: true }, select: { id: true, name: true, tutorId: true } }),

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Plus, Search } from "lucide-react";
 import { ageFromBirth } from "@/lib/utils";
@@ -8,7 +8,7 @@ import { ageFromBirth } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function PetsPage({ searchParams }: { searchParams: { q?: string } }) {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("pets");
   const q = (searchParams.q ?? "").trim();
   const pets = await prisma.pet.findMany({
     where: {

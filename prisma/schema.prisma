@@ -46,6 +46,7 @@ model User {
   email        String   @unique
   passwordHash String
   role         String // SUPER_ADMIN | ADMIN | GESTOR | VETERINARIO | RECEPCAO | FINANCEIRO | ESTOQUE | BANHO_TOSA | VENDEDOR
+  permissions  String? // JSON array de slugs de modulo liberados. Null = usar padrao do role.
   isActive     Boolean  @default(true)
   unitId       String?
   unit         Unit?    @relation(fields: [unitId], references: [id])

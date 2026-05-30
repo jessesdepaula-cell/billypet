@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export const dynamic = "force-dynamic";
 
 export default async function UnidadesPage() {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("unidades");
   const units = await prisma.unit.findMany({ where: { tenantId }, include: { _count: { select: { users: true, appointments: true, sales: true, stocks: true } } } });
   return (
     <>

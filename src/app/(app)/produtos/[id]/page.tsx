@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ProductForm } from "../ProductForm";
 import { fmtDateTime } from "@/lib/utils";
@@ -8,7 +8,7 @@ import { fmtDateTime } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function ProdutoDetailPage({ params }: { params: { id: string } }) {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("produtos");
   const product = await prisma.product.findFirst({
     where: { id: params.id, tenantId },
     include: {

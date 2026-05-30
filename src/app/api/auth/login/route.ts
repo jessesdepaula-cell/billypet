@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { signSession, setSessionCookie } from "@/lib/auth";
+import { parsePermissions } from "@/lib/permissions";
 
 export async function POST(req: Request) {
   const { email, password } = await req.json();
@@ -16,7 +17,9 @@ export async function POST(req: Request) {
   if (!ok) return NextResponse.json({ error: "Credenciais invalidas" }, { status: 401 });
 
   const token = await signSession({
-    id: user.id, name: user.name, email: user.email, role: user.role, unitId: user.unitId, tenantId: user.tenantId,
+    id: user.id, name: user.name, email: user.email, role: user.role,
+    unitId: user.unitId, tenantId: user.tenantId,
+    permissions: parsePermissions(user.permissions),
   });
   await setSessionCookie(token);
   await prisma.auditLog.create({ data: { userId: user.id, action: "LOGIN", entity: "User", details: "Login realizado" } });

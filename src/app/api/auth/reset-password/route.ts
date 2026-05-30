@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { signSession, setSessionCookie } from "@/lib/auth";
+import { parsePermissions } from "@/lib/permissions";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
@@ -56,6 +57,7 @@ export async function POST(req: Request) {
     role: user.role,
     unitId: user.unitId,
     tenantId: user.tenantId,
+    permissions: parsePermissions(user.permissions),
   });
   await setSessionCookie(token2);
 

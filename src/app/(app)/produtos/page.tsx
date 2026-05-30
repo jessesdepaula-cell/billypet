@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtMoney } from "@/lib/utils";
 import { Plus, Search } from "lucide-react";
@@ -8,7 +8,7 @@ import { Plus, Search } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function ProdutosPage({ searchParams }: { searchParams: { q?: string } }) {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("produtos");
   const q = (searchParams.q ?? "").trim();
   const products = await prisma.product.findMany({
     where: {

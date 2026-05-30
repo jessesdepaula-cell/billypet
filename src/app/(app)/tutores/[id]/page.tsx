@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { TutorForm } from "../TutorForm";
 import { fmtDateTime, fmtMoney, ageFromBirth } from "@/lib/utils";
@@ -10,7 +10,7 @@ import { PawPrint, ShoppingCart, Stethoscope, Gift } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function TutorDetailPage({ params }: { params: { id: string } }) {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("tutores");
   const t = await prisma.tutor.findFirst({
     where: { id: params.id, tenantId },
     include: {

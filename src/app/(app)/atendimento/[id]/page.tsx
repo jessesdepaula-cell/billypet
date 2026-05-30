@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireTenant } from "@/lib/tenant";
+import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { fmtDateTime } from "@/lib/utils";
 import { MedicalRecordForm } from "./MedicalRecordForm";
@@ -9,7 +9,7 @@ import { PipelineSelect } from "./PipelineSelect";
 export const dynamic = "force-dynamic";
 
 export default async function AtendimentoDetailPage({ params }: { params: { id: string } }) {
-  const { tenantId } = await requireTenant();
+  const { tenantId } = await requireModule("atendimento");
   const a = await prisma.appointment.findFirst({
     where: { id: params.id, unit: { tenantId } },
     include: {
