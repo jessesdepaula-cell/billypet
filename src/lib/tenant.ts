@@ -61,11 +61,26 @@ export function isTenantError(x: any): x is { error: string; status: number } {
   return x && typeof x === "object" && "error" in x && "status" in x;
 }
 
-// Combina requireTenant + checagem de modulo. Bloqueia acesso direto via URL.
+// Modulos sempre liberados mesmo quando o tenant esta suspenso/cancelado
+// (precisa permitir o cliente pagar/contatar suporte para reativar)
+const BLOCK_BYPASS_MODULES = new Set(["assinatura", "suporte", "tutorial"]);
+
+// Combina requireTenant + checagem de modulo + bloqueio por inadimplencia.
 export async function requireModule(moduleSlug: string): Promise<TenantContext> {
   const ctx = await requireTenant();
   if (!canAccess(moduleSlug, ctx.session.role, ctx.session.permissions ?? null)) {
     redirect("/dashboard");
+  }
+  // Bloqueio por status do tenant: SUSPENDED ou CANCELED so podem acessar
+  // assinatura / suporte / tutorial. ADMIN tambem e bloqueado (precisa pagar).
+  if (!BLOCK_BYPASS_MODULES.has(moduleSlug)) {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: ctx.tenantId },
+      select: { status: true },
+    });
+    if (tenant && (tenant.status === "SUSPENDED" || tenant.status === "CANCELED")) {
+      redirect("/assinatura?bloqueado=1");
+    }
   }
   return ctx;
 }

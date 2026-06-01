@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, PawPrint, CalendarDays, Stethoscope, KanbanSquare, BedDouble,
   FlaskConical, ShoppingCart, PackageOpen, Wallet, ArrowRightLeft, ClipboardList,
   PiggyBank, FileText, Receipt, ListChecks, GiftIcon, ScrollText, LifeBuoy, Settings,
-  Building2, UserCog, BarChart3, Boxes, Crown, GraduationCap,
+  Building2, UserCog, BarChart3, Boxes, Crown, GraduationCap, CreditCard,
 } from "lucide-react";
 
 type Item = { href: string; label: string; module: string; icon: React.ComponentType<{ className?: string }> };
@@ -80,6 +80,7 @@ const groups: Group[] = [
       { href: "/unidades",      label: "Unidades",    module: "unidades",     icon: Building2 },
       { href: "/usuarios",      label: "Usuarios",    module: "usuarios",     icon: UserCog },
       { href: "/configuracoes", label: "Cadastros",   module: "configuracoes", icon: Settings },
+      { href: "/assinatura",    label: "Assinatura",  module: "assinatura",   icon: CreditCard },
       { href: "/suporte",       label: "Suporte",     module: "suporte",      icon: LifeBuoy },
     ],
   },

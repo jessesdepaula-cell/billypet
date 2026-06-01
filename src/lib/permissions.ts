@@ -49,6 +49,7 @@ export const MODULE_PERMISSIONS: Record<string, Role[]> = {
   usuarios:        ["ADMIN"],
   unidades:        ["ADMIN", "GESTOR"],
   configuracoes:   ["ADMIN", "GESTOR"],
+  assinatura:      ["ADMIN", "GESTOR"],
   suporte:         ["ADMIN", "GESTOR", "VETERINARIO", "RECEPCAO", "FINANCEIRO", "ESTOQUE", "BANHO_TOSA", "VENDEDOR"],
   tutorial:        ["ADMIN", "GESTOR", "VETERINARIO", "RECEPCAO", "FINANCEIRO", "ESTOQUE", "BANHO_TOSA", "VENDEDOR"],
   "super-admin":   ["SUPER_ADMIN"],
@@ -93,6 +94,7 @@ export const MODULE_GROUPS: { group: string; modules: { slug: string; label: str
     { slug: "unidades", label: "Unidades" },
     { slug: "usuarios", label: "Usuarios e permissoes" },
     { slug: "configuracoes", label: "Cadastros" },
+    { slug: "assinatura", label: "Minha assinatura" },
     { slug: "suporte", label: "Suporte" },
   ]},
 ];

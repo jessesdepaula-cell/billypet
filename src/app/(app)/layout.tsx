@@ -9,13 +9,26 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const s = await getSession();
   if (!s) redirect("/login");
 
-  const unit = s.unitId ? await prisma.unit.findUnique({ where: { id: s.unitId } }) : null;
+  const isSuper = s.role === "SUPER_ADMIN";
+
+  const [unit, tenant] = await Promise.all([
+    s.unitId ? prisma.unit.findUnique({ where: { id: s.unitId } }) : Promise.resolve(null),
+    !isSuper && s.tenantId
+      ? prisma.tenant.findUnique({ where: { id: s.tenantId }, select: { id: true, status: true } })
+      : Promise.resolve(null),
+  ]);
 
   return (
     <div className="flex min-h-screen">
       <Sidebar role={s.role as Role} permissions={s.permissions ?? null} />
       <div className="flex-1 flex flex-col min-w-0">
-        <Topbar name={s.name} role={s.role as Role} unit={unit?.name} />
+        <Topbar
+          name={s.name}
+          role={s.role as Role}
+          unit={unit?.name}
+          permissions={s.permissions ?? null}
+          subscriptionStatus={tenant?.status ?? null}
+        />
         <main className="flex-1 p-5 lg:p-7 max-w-[1500px] w-full mx-auto">{children}</main>
         <footer className="px-5 py-3 text-xs text-slate-400 text-center">
           BilyVet (c) {new Date().getFullYear()} - Plataforma de gestao para clinicas, hospitais e pet shops
