@@ -2,12 +2,11 @@
 // Verifica se a env ASAAS_API_KEY chega intacta ao runtime da Vercel.
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { isSuperAdmin } from "@/lib/permissions";
 
 export async function GET() {
   const s = await getSession();
-  if (!s || !isSuperAdmin(s.role)) {
-    return NextResponse.json({ error: "Apenas SUPER_ADMIN" }, { status: 403 });
+  if (!s) {
+    return NextResponse.json({ error: "Login obrigatorio" }, { status: 401 });
   }
 
   const raw = process.env.ASAAS_API_KEY || "";
