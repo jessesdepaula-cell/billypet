@@ -177,7 +177,7 @@ export default async function AssinaturaPage({ searchParams }: { searchParams: {
         </div>
       ) : !sub ? (
         asaasIsConfigured() ? (
-          <ActivateForm />
+          <ActivateForm initialCnpj={tenant.cnpj} initialPhone={tenant.phone} initialZip={tenant.zipCode} />
         ) : (
           <div className="card card-pad border-2 border-slate-200">
             <h2 className="font-semibold text-slate-800 mb-1">Sem assinatura ativa</h2>
@@ -188,7 +188,7 @@ export default async function AssinaturaPage({ searchParams }: { searchParams: {
         )
       ) : sub.status === "CANCELED" || sub.status === "EXPIRED" ? (
         asaasIsConfigured() ? (
-          <ActivateForm reactivation />
+          <ActivateForm reactivation initialCnpj={tenant.cnpj} initialPhone={tenant.phone} initialZip={tenant.zipCode} />
         ) : (
           <div className="card card-pad border-2 border-slate-200">
             <h2 className="font-semibold text-slate-800 mb-1">Assinatura {SUB_LABEL[sub.status]}</h2>

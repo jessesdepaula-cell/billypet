@@ -32,12 +32,22 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({} as any));
   const billingType = String(body.billingType || "UNDEFINED").toUpperCase();
   const dueDay = Math.min(Math.max(Number(body.dueDay) || 1, 1), 28);
+  const incomingCnpj = digits(body.cnpj);
+  const incomingPhone = digits(body.phone);
+  const incomingZip = digits(body.zipCode);
 
   if (!["BOLETO", "CREDIT_CARD", "PIX", "UNDEFINED"].includes(billingType)) {
     return NextResponse.json({ error: "Forma de pagamento invalida" }, { status: 400 });
   }
 
-  const tenant = await prisma.tenant.findUnique({
+  if (!incomingCnpj || (incomingCnpj.length !== 11 && incomingCnpj.length !== 14)) {
+    return NextResponse.json(
+      { error: "CPF ou CNPJ obrigatorio (11 ou 14 digitos)." },
+      { status: 400 }
+    );
+  }
+
+  let tenant = await prisma.tenant.findUnique({
     where: { id: ctx.tenantId },
     include: { subscriptions: { orderBy: { createdAt: "desc" } } },
   });
@@ -51,12 +61,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Voce ja possui uma assinatura ativa" }, { status: 409 });
   }
 
-  // Verifica dados minimos
-  if (!tenant.cnpj && !tenant.email) {
-    return NextResponse.json(
-      { error: "Cadastro incompleto. Preencha CNPJ ou email antes de ativar." },
-      { status: 400 }
-    );
+  // Atualiza dados do tenant com o que foi informado no formulario
+  try {
+    tenant = await prisma.tenant.update({
+      where: { id: tenant.id },
+      data: {
+        cnpj: incomingCnpj,
+        ...(incomingPhone ? { phone: incomingPhone } : {}),
+        ...(incomingZip ? { zipCode: incomingZip } : {}),
+      },
+      include: { subscriptions: { orderBy: { createdAt: "desc" } } },
+    });
+  } catch (err: any) {
+    // Pode falhar se outro tenant ja tem esse CNPJ (constraint @unique)
+    if (String(err.code) === "P2002") {
+      return NextResponse.json(
+        { error: "Este CPF/CNPJ ja esta cadastrado em outra conta." },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ error: `Falha ao atualizar cadastro: ${err.message}` }, { status: 500 });
   }
 
   // Cria (ou reaproveita) customer no Asaas
