@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { asaasIsConfigured } from "@/lib/asaas";
 import { CreditCard, FileText, QrCode, AlertTriangle, CheckCircle2, Clock, XCircle, Receipt } from "lucide-react";
 import { SyncButton } from "./SyncButton";
+import { ActivateForm } from "./ActivateForm";
 
 export const dynamic = "force-dynamic";
 
@@ -175,12 +176,25 @@ export default async function AssinaturaPage({ searchParams }: { searchParams: {
           </div>
         </div>
       ) : !sub ? (
-        <div className="card card-pad border-2 border-slate-200">
-          <h2 className="font-semibold text-slate-800 mb-1">Sem assinatura ativa</h2>
-          <p className="text-sm text-slate-600">
-            Nao localizamos uma assinatura para esta clinica. Entre em contato pelo Suporte para iniciar sua mensalidade.
-          </p>
-        </div>
+        asaasIsConfigured() ? (
+          <ActivateForm />
+        ) : (
+          <div className="card card-pad border-2 border-slate-200">
+            <h2 className="font-semibold text-slate-800 mb-1">Sem assinatura ativa</h2>
+            <p className="text-sm text-slate-600">
+              A integracao Asaas nao esta ativa neste ambiente. Entre em contato pelo Suporte.
+            </p>
+          </div>
+        )
+      ) : sub.status === "CANCELED" || sub.status === "EXPIRED" ? (
+        asaasIsConfigured() ? (
+          <ActivateForm reactivation />
+        ) : (
+          <div className="card card-pad border-2 border-slate-200">
+            <h2 className="font-semibold text-slate-800 mb-1">Assinatura {SUB_LABEL[sub.status]}</h2>
+            <p className="text-sm text-slate-600">Entre em contato pelo Suporte para reativar.</p>
+          </div>
+        )
       ) : (
         <div className="card card-pad border-2 border-slate-200">
           <h2 className="font-semibold text-slate-800 mb-1">Sem fatura em aberto no momento</h2>
