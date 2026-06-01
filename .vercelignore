@@ -1,0 +1,14 @@
+# Nunca subir env locais via vercel CLI - eles sobrescrevem env vars do painel
+.env
+.env.local
+.env.production
+.env.production.local
+.env.preview
+.env.preview.local
+.env.development
+.env.development.local
+
+# Outros artefatos locais
+node_modules
+.next
+.git
