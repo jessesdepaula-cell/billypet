@@ -1,8 +1,17 @@
 // Cliente HTTP para a API do Asaas (produção)
 // Docs: https://docs.asaas.com/
 
-const ASAAS_API_URL = process.env.ASAAS_API_URL || "https://api.asaas.com/v3";
-const ASAAS_API_KEY = process.env.ASAAS_API_KEY || "";
+// Sanitiza variavel de ambiente: remove BOM (U+FEFF), aspas envolventes e whitespace
+// (Vercel UI as vezes injeta BOM ou newline ao colar a chave).
+function cleanEnv(v: string | undefined): string {
+  if (!v) return "";
+  // Remove tudo que nao for ASCII imprimivel (mata BOM, zero-width, CR/LF, etc.)
+  // e remove aspas envolventes. A chave Asaas e somente ASCII.
+  return v.replace(/[^\x20-\x7E]/g, "").replace(/^["']|["']$/g, "").trim();
+}
+
+const ASAAS_API_URL = cleanEnv(process.env.ASAAS_API_URL) || "https://api.asaas.com/v3";
+const ASAAS_API_KEY = cleanEnv(process.env.ASAAS_API_KEY);
 
 export type AsaasCustomer = {
   id: string;
