@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 type TutorOpt = { id: string; name: string };
 type Pet = {
   id?: string; name?: string; species?: string; breed?: string | null;
-  sex?: string | null; birthDate?: string | Date | null; weightKg?: number | null;
+  sex?: string | null; neutered?: boolean | null; birthDate?: string | Date | null; weightKg?: number | null;
   color?: string | null; notes?: string | null; medicalAlert?: string | null; tutorId?: string;
 };
 
@@ -74,6 +74,21 @@ export function PetForm({ initial, tutors }: { initial?: Pet; tutors: TutorOpt[]
           <label className="label">Sexo</label>
           <select className="input" value={p.sex ?? ""} onChange={(e) => u("sex", e.target.value)}>
             <option value="">-</option><option value="M">Macho</option><option value="F">Femea</option>
+          </select>
+        </div>
+        <div>
+          <label className="label">Reproducao</label>
+          <select
+            className="input"
+            value={p.neutered === true ? "castrado" : p.neutered === false ? "fertil" : ""}
+            onChange={(e) => {
+              const v = e.target.value;
+              u("neutered", v === "castrado" ? true : v === "fertil" ? false : null);
+            }}
+          >
+            <option value="">Nao informado</option>
+            <option value="castrado">Castrado</option>
+            <option value="fertil">Fertil</option>
           </select>
         </div>
         <div><label className="label">Data de nascimento</label><input className="input" type="date" value={birthIso} onChange={(e) => u("birthDate", e.target.value)} /></div>

@@ -16,6 +16,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     where: { id: params.id },
     data: {
       name: b.name, species: b.species, breed: b.breed, sex: b.sex,
+      neutered: typeof b.neutered === "boolean" ? b.neutered : null,
       birthDate: b.birthDate ? new Date(b.birthDate) : null,
       weightKg: b.weightKg !== undefined && b.weightKg !== "" ? Number(b.weightKg) : null,
       color: b.color, notes: b.notes, medicalAlert: b.medicalAlert,

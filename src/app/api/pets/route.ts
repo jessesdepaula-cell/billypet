@@ -31,6 +31,7 @@ export async function POST(req: Request) {
   const p = await prisma.pet.create({
     data: {
       name: b.name, species: b.species, breed: b.breed, sex: b.sex,
+      neutered: typeof b.neutered === "boolean" ? b.neutered : null,
       birthDate: b.birthDate ? new Date(b.birthDate) : null,
       weightKg: b.weightKg ? Number(b.weightKg) : null,
       color: b.color, notes: b.notes, medicalAlert: b.medicalAlert,

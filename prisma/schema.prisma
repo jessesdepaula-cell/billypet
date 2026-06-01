@@ -199,6 +199,7 @@ model Pet {
   species      String // Cao, Gato, Ave, Roedor, Reptil, Outro
   breed        String?
   sex          String? // M, F
+  neutered     Boolean? // true=castrado, false=fertil, null=nao informado
   birthDate    DateTime?
   weightKg     Float?
   color        String?
