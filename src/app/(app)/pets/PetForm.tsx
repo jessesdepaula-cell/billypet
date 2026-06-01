@@ -12,7 +12,7 @@ type Pet = {
 
 export function PetForm({ initial, tutors }: { initial?: Pet; tutors: TutorOpt[] }) {
   const router = useRouter();
-  const [p, setP] = useState<Pet>(initial ?? { species: "Cao" });
+  const [p, setP] = useState<Pet>(initial ?? { species: "Canina" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,8 +56,17 @@ export function PetForm({ initial, tutors }: { initial?: Pet; tutors: TutorOpt[]
         </div>
         <div>
           <label className="label">Especie *</label>
-          <select className="input" value={p.species ?? "Cao"} onChange={(e) => u("species", e.target.value)}>
-            <option>Cao</option><option>Gato</option><option>Ave</option><option>Roedor</option><option>Reptil</option><option>Outro</option>
+          <select className="input" value={p.species ?? "Canina"} onChange={(e) => u("species", e.target.value)}>
+            <option>Avicola</option>
+            <option>Bovinos</option>
+            <option>Canina</option>
+            <option>Cunicula</option>
+            <option>Equina</option>
+            <option>Exotico</option>
+            <option>Felina</option>
+            <option>Outras</option>
+            <option>Primata</option>
+            <option>Roedor</option>
           </select>
         </div>
         <div><label className="label">Raca</label><input className="input" value={p.breed ?? ""} onChange={(e) => u("breed", e.target.value)} /></div>
