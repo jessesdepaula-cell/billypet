@@ -67,6 +67,10 @@ export function ActivateForm({ reactivation = false, initialCnpj, initialPhone, 
       });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Falha ao ativar");
+      if (j.invoiceUrl) {
+        // Abre o checkout do Asaas (cartao / PIX / boleto) em nova aba
+        window.open(j.invoiceUrl, "_blank", "noopener,noreferrer");
+      }
       router.refresh();
     } catch (e: any) {
       setError(e.message);
@@ -86,7 +90,7 @@ export function ActivateForm({ reactivation = false, initialCnpj, initialPhone, 
             {reactivation ? "Reativar minha assinatura" : "Ativar minha assinatura"}
           </h2>
           <p className="text-sm text-slate-600">
-            Plano <b>PRO - R$ 197,00/mes</b>. Apos a ativacao voce recebera a primeira fatura no Asaas com PIX, boleto ou link de cartao.
+            Plano <b>PRO - R$ 197,00/mes</b>. Ao confirmar, a primeira fatura abre automaticamente no Asaas - voce escolhe entre <b>PIX</b>, <b>boleto</b> ou <b>cartao de credito</b> e conclui o pagamento na hora.
           </p>
         </div>
       </div>

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireTenantApi, isTenantError } from "@/lib/tenant";
 import { canAccess } from "@/lib/permissions";
-import { asaasIsConfigured, createCustomer, createSubscription } from "@/lib/asaas";
+import { asaasIsConfigured, createCustomer, createSubscription, listSubscriptionPayments } from "@/lib/asaas";
 
 const DEFAULT_VALUE = 197;
 
@@ -149,7 +149,42 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ ok: true, subscription });
+    // Busca a 1a fatura no Asaas e persiste localmente, pra nao depender do webhook
+    // chegar antes do usuario voltar pra tela. Devolve invoiceUrl pro front abrir.
+    let invoiceUrl: string | null = null;
+    try {
+      const { data } = await listSubscriptionPayments(sub.id);
+      const first = data?.[0];
+      if (first) {
+        invoiceUrl = first.invoiceUrl || null;
+        await prisma.subscriptionPayment.upsert({
+          where: { asaasPaymentId: first.id },
+          create: {
+            asaasPaymentId: first.id,
+            tenantId: tenant.id,
+            subscriptionId: subscription.id,
+            value: first.value,
+            netValue: first.netValue,
+            status: (first.status || "PENDING").toUpperCase(),
+            billingType: first.billingType,
+            dueDate: new Date(first.dueDate),
+            paidAt: first.paymentDate ? new Date(first.paymentDate) : null,
+            invoiceUrl: first.invoiceUrl,
+            bankSlipUrl: first.bankSlipUrl,
+            description: first.description,
+          },
+          update: {
+            status: (first.status || "PENDING").toUpperCase(),
+            invoiceUrl: first.invoiceUrl,
+            bankSlipUrl: first.bankSlipUrl,
+          },
+        });
+      }
+    } catch {
+      // se falhar, o webhook do Asaas vai preencher depois - nao bloqueia ativacao
+    }
+
+    return NextResponse.json({ ok: true, subscription, invoiceUrl });
   } catch (err: any) {
     return NextResponse.json({ error: `Falha ao criar assinatura Asaas: ${err.message}` }, { status: 500 });
   }

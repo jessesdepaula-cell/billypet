@@ -146,24 +146,24 @@ export default async function AssinaturaPage({ searchParams }: { searchParams: {
           </div>
           <div className="flex flex-wrap gap-2">
             {openPayment.invoiceUrl && (
-              <a href={openPayment.invoiceUrl} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2">
-                <CreditCard className="h-4 w-4" /> Pagar agora
-              </a>
+              <>
+                <a href={openPayment.invoiceUrl} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" /> Pagar com cartao
+                </a>
+                <a href={openPayment.invoiceUrl} target="_blank" rel="noopener noreferrer" className="btn-outline inline-flex items-center gap-2">
+                  <QrCode className="h-4 w-4" /> Pagar com PIX
+                </a>
+              </>
             )}
             {openPayment.bankSlipUrl && (
               <a href={openPayment.bankSlipUrl} target="_blank" rel="noopener noreferrer" className="btn-outline inline-flex items-center gap-2">
                 <FileText className="h-4 w-4" /> Boleto
               </a>
             )}
-            {openPayment.pixPayload && (
-              <a href={openPayment.invoiceUrl || "#"} target="_blank" rel="noopener noreferrer" className="btn-outline inline-flex items-center gap-2">
-                <QrCode className="h-4 w-4" /> PIX
-              </a>
-            )}
             <SyncButton />
           </div>
           <p className="text-xs text-slate-500 mt-3">
-            Depois de pagar, a confirmacao pode levar alguns minutos. Use <b>Atualizar status</b> para forcar a sincronizacao com o Asaas.
+            A tela do Asaas mostra todas as opcoes (PIX, boleto, cartao). Depois de pagar, a confirmacao pode levar alguns minutos. Use <b>Atualizar status</b> para forcar a sincronizacao.
           </p>
         </div>
       ) : sub && sub.status === "ACTIVE" ? (
