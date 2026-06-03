@@ -107,8 +107,8 @@ model Subscription {
   tenantId            String
   tenant              Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   asaasSubscriptionId String?   @unique
-  plan                String    @default("PRO") // PRO (R$247/mes) - extensivel
-  value               Float     @default(247)
+  plan                String    @default("PRO") // PRO (R$197/mes) - extensivel
+  value               Float     @default(197)
   cycle               String    @default("MONTHLY") // MONTHLY, YEARLY
   billingType         String    @default("UNDEFINED") // BOLETO, CREDIT_CARD, PIX, UNDEFINED
   status              String    @default("PENDING") // PENDING, ACTIVE, OVERDUE, CANCELED, EXPIRED

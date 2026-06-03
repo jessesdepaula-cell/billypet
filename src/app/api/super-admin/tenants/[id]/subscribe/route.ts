@@ -26,7 +26,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (!tenant) return NextResponse.json({ error: "Cliente nao encontrado" }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
-  const value = Number(body.value || 247);
+  const value = Number(body.value || 197);
   const billingType = body.billingType || "UNDEFINED";
   const dueDay = Number(body.dueDay || 1);
 

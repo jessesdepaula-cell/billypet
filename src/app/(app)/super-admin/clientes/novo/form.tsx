@@ -14,7 +14,7 @@ export function NovoClienteForm() {
   const [form, setForm] = useState({
     email: "",
     companyName: "",
-    value: 247,
+    value: 197,
     billingType: "UNDEFINED" as "BOLETO" | "CREDIT_CARD" | "PIX" | "UNDEFINED",
     dueDay: 1,
     startNow: true,
@@ -97,7 +97,7 @@ export function NovoClienteForm() {
             className="btn-outline"
             onClick={() => {
               setResult(null);
-              setForm({ email: "", companyName: "", value: 247, billingType: "UNDEFINED", dueDay: 1, startNow: true });
+              setForm({ email: "", companyName: "", value: 197, billingType: "UNDEFINED", dueDay: 1, startNow: true });
             }}
           >
             Cadastrar outro

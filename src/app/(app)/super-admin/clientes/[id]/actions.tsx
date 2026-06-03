@@ -40,8 +40,8 @@ export function TenantActions({ tenant }: { tenant: Tenant }) {
     <div className="card card-pad space-y-3">
       <div className="flex flex-wrap gap-2">
         {!activeSub && (
-          <button className="btn-primary" disabled={!!loading} onClick={() => call("subscribe", { value: 247, billingType: "UNDEFINED" })}>
-            {loading === "subscribe" ? "Criando..." : "Criar assinatura R$ 247/mes"}
+          <button className="btn-primary" disabled={!!loading} onClick={() => call("subscribe", { value: 197, billingType: "UNDEFINED" })}>
+            {loading === "subscribe" ? "Criando..." : "Criar assinatura R$ 197/mes"}
           </button>
         )}
         {activeSub && (

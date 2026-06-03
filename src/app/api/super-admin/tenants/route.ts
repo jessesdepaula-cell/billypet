@@ -137,7 +137,7 @@ export async function POST(req: Request) {
         data: { asaasCustomerId: customer.id },
       });
 
-      const value = Number(body.value || 247);
+      const value = Number(body.value || 197);
       const billingType = body.billingType || "UNDEFINED";
       const dueDay = Number(body.dueDay || 1);
 
@@ -147,7 +147,7 @@ export async function POST(req: Request) {
         nextDueDate: nextDueDateISO(dueDay),
         cycle: "MONTHLY",
         billingType,
-        description: `BilyVet - Plano ${value === 247 ? "PRO" : "Custom"}`,
+        description: `BilyVet - Plano ${value === 197 ? "PRO" : "Custom"}`,
         externalReference: tenant.id,
       });
 

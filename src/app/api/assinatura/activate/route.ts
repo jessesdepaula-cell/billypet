@@ -4,7 +4,7 @@ import { requireTenantApi, isTenantError } from "@/lib/tenant";
 import { canAccess } from "@/lib/permissions";
 import { asaasIsConfigured, createCustomer, createSubscription } from "@/lib/asaas";
 
-const DEFAULT_VALUE = 247;
+const DEFAULT_VALUE = 197;
 
 function nextDueDateISO(dueDay: number) {
   const day = Math.min(Math.max(Math.floor(dueDay) || 1, 1), 28);

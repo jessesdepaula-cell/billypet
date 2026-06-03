@@ -86,7 +86,7 @@ export function ActivateForm({ reactivation = false, initialCnpj, initialPhone, 
             {reactivation ? "Reativar minha assinatura" : "Ativar minha assinatura"}
           </h2>
           <p className="text-sm text-slate-600">
-            Plano <b>PRO - R$ 247,00/mes</b>. Apos a ativacao voce recebera a primeira fatura no Asaas com PIX, boleto ou link de cartao.
+            Plano <b>PRO - R$ 197,00/mes</b>. Apos a ativacao voce recebera a primeira fatura no Asaas com PIX, boleto ou link de cartao.
           </p>
         </div>
       </div>
@@ -156,7 +156,7 @@ export function ActivateForm({ reactivation = false, initialCnpj, initialPhone, 
           disabled={loading}
         />
         <span>
-          Confirmo que quero contratar o plano <b>PRO - R$ 247/mes</b> da BilyVet e estou ciente que o pagamento sera cobrado mensalmente via Asaas.
+          Confirmo que quero contratar o plano <b>PRO - R$ 197/mes</b> da BilyVet e estou ciente que o pagamento sera cobrado mensalmente via Asaas.
         </span>
       </label>
 
