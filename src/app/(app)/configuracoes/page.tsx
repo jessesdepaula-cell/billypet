@@ -6,6 +6,7 @@ import { SimpleManager } from "./SimpleManager";
 import { SupplierManager } from "./SupplierManager";
 import { StatusManager } from "./StatusManager";
 import { CollaboratorsManager } from "./CollaboratorsManager";
+import { ProtocolsManager } from "./ProtocolsManager";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,8 @@ export default async function ConfiguracoesPage() {
     suppliers,
     statuses,
     users,
-    userServices
+    userServices,
+    protocols
   ] = await Promise.all([
     prisma.service.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
     prisma.paymentMethod.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
@@ -30,13 +32,18 @@ export default async function ConfiguracoesPage() {
     prisma.appointmentStatus.findMany({ where: { tenantId } }),
     prisma.user.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" } }),
     prisma.userService.findMany({ where: { service: { tenantId } } }),
+    prisma.protocol.findMany({
+      where: { pet: { tutor: { tenantId } } },
+      include: { pet: { include: { tutor: true } } },
+      orderBy: { createdAt: "desc" }
+    }),
   ]);
 
   return (
     <>
       <PageHeader
         title="Cadastros e configuracoes"
-        description="Servicos, formas de pagamento, categorias, status, colaboradores e fornecedores"
+        description="Servicos, formas de pagamento, categorias, status, colaboradores, protocolos e fornecedores"
         tutorialSlug="configuracoes"
       />
 
@@ -57,6 +64,26 @@ export default async function ConfiguracoesPage() {
             users={users.map((u) => ({ id: u.id, name: u.name, role: u.role, email: u.email }))}
             services={services.filter((s) => s.isActive).map((s) => ({ id: s.id, name: s.name }))}
             initialLinks={userServices.map((us) => ({ userId: us.userId, serviceId: us.serviceId }))}
+          />
+        </div>
+
+        {/* Protocolos Clínicos Globais */}
+        <div className="card card-pad lg:col-span-2">
+          <ProtocolsManager
+            initial={protocols.map((p) => ({
+              id: p.id,
+              name: p.name,
+              type: p.type,
+              startDate: p.startDate,
+              status: p.status,
+              pet: {
+                id: p.pet.id,
+                name: p.pet.name,
+                tutor: {
+                  name: p.pet.tutor.name
+                }
+              }
+            }))}
           />
         </div>
 

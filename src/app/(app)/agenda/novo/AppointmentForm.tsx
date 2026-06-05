@@ -210,16 +210,40 @@ export function AppointmentForm({
 
         {/* Informações de Seleção Atual (fallback visual se selecionado) */}
         {tutorId && (
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm flex justify-between items-center">
-            <div>
-              <span className="text-slate-500">Tutor:</span> <strong className="text-slate-800">{selectedTutorName}</strong>
-              {petId && (
-                <span className="ml-3">
-                  <span className="text-slate-500">Pet:</span> <strong className="text-slate-800">{selectedPetName}</strong>
-                </span>
-              )}
+          <div className="space-y-3">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm flex justify-between items-center">
+              <div>
+                <span className="text-slate-500">Tutor:</span> <strong className="text-slate-800">{selectedTutorName}</strong>
+                {petId && (
+                  <span className="ml-3">
+                    <span className="text-slate-500">Pet:</span> <strong className="text-slate-800">{selectedPetName}</strong>
+                  </span>
+                )}
+              </div>
+              <button type="button" onClick={clearSelection} className="text-xs text-red-600 hover:underline">Alterar Tutor/Busca</button>
             </div>
-            <button type="button" onClick={clearSelection} className="text-xs text-red-600 hover:underline">Alterar</button>
+
+            {/* Seleção do Pet quando apenas Tutor foi buscado/selecionado ou para trocar de pet */}
+            {tutorPets.length > 0 ? (
+              <div className="bg-brand-50/40 border border-brand-100/50 rounded-lg p-3 text-sm space-y-1.5">
+                <label className="label text-brand-900 font-semibold">Selecione o Pet deste Tutor *</label>
+                <select
+                  className="input text-xs"
+                  required
+                  value={petId}
+                  onChange={(e) => setPetId(e.target.value)}
+                >
+                  <option value="">-- Escolha um Pet --</option>
+                  {tutorPets.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg p-3">
+                Este tutor não possui pets cadastrados. Cadastre um pet para este tutor para poder agendar atendimentos clínicos.
+              </div>
+            )}
           </div>
         )}
 
