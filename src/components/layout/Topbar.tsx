@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LogOut, Search, Bell, User as UserIcon, CreditCard, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ROLE_LABEL, canAccess, type Role } from "@/lib/permissions";
+import { cn } from "@/lib/utils";
 
 type Props = {
   name: string;
@@ -27,10 +28,33 @@ export function Topbar({ name, role, unit, permissions = null, subscriptionStatu
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
+  // Estados de notificações
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch("/api/notifications");
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar notificacoes:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     function onClick(e: MouseEvent) {
-      if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
     }
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
@@ -42,7 +66,26 @@ export function Topbar({ name, role, unit, permissions = null, subscriptionStatu
     router.refresh();
   }
 
+  const markAllRead = async () => {
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    fetchNotifications();
+  };
+
+  const markRead = async (id: string) => {
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    fetchNotifications();
+  };
+
   const canSeeAssinatura = canAccess("assinatura", role, permissions ?? null);
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4">
@@ -53,7 +96,69 @@ export function Topbar({ name, role, unit, permissions = null, subscriptionStatu
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <button className="btn-ghost px-2" aria-label="Notificacoes"><Bell className="h-5 w-5 text-slate-500" /></button>
+        {/* Sino de Notificacoes */}
+        <div className="relative" ref={notifRef}>
+          <button
+            onClick={() => setNotifOpen((v) => !v)}
+            className="btn-ghost px-2 relative"
+            aria-label="Notificacoes"
+          >
+            <Bell className="h-5 w-5 text-slate-500" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500 border border-white animate-pulse" />
+            )}
+          </button>
+
+          {notifOpen && (
+            <div className="absolute right-0 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden z-50">
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <span className="font-semibold text-sm text-slate-800">Notificações ({unreadCount})</span>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllRead}
+                    className="text-xs text-brand-600 hover:underline font-medium"
+                  >
+                    Ler todas
+                  </button>
+                )}
+              </div>
+              <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                {notifications.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-xs text-slate-400">
+                    Nenhuma notificação recente.
+                  </div>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      className={cn(
+                        "px-4 py-3 text-xs flex gap-2 justify-between items-start transition-colors",
+                        n.isRead ? "text-slate-500 bg-white" : "text-slate-800 bg-brand-50/20 font-medium"
+                      )}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold truncate">{n.title}</div>
+                        <div className="text-[11px] text-slate-600 mt-0.5 break-words">{n.message}</div>
+                        <div className="text-[9px] text-slate-400 mt-1">
+                          {new Date(n.createdAt).toLocaleString("pt-BR")}
+                        </div>
+                      </div>
+                      {!n.isRead && (
+                        <button
+                          onClick={() => markRead(n.id)}
+                          className="text-[10px] text-brand-600 hover:text-brand-800 font-medium self-center shrink-0 ml-2 bg-brand-50 hover:bg-brand-100 px-1.5 py-0.5 rounded"
+                          title="Marcar como lida"
+                        >
+                          Lido
+                        </button>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="relative" ref={ref}>
           <button

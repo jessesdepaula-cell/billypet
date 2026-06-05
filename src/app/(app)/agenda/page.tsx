@@ -2,8 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { fmtTime } from "@/lib/utils";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { AppointmentCard } from "./AppointmentCard";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
         scheduledAt: { gte: start, lt: end },
         ...(vetId ? { vetId } : {}),
       },
-      include: { tutor: true, pet: true, vet: true, services: { include: { service: true } } },
+      include: { tutor: true, pet: true, vet: true, statusRelation: true, services: { include: { service: true } } },
       orderBy: { scheduledAt: "asc" },
     }),
     prisma.user.findMany({ where: { tenantId, role: "VETERINARIO", isActive: true }, orderBy: { name: "asc" } }),
@@ -67,17 +67,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
               {dayAppts.length === 0 ? <div className="text-xs text-slate-400">Sem agendamentos</div> : (
                 <ul className="space-y-2">
                   {dayAppts.map((a) => (
-                    <li key={a.id} className="rounded-lg border border-slate-200 p-2 hover:border-brand-300 cursor-pointer">
-                      <Link href={`/atendimento/${a.id}`}>
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-sm">{fmtTime(a.scheduledAt)}</span>
-                          <span className="badge-gray text-[10px]">{a.status.replace(/_/g, " ").toLowerCase()}</span>
-                        </div>
-                        <div className="text-sm font-medium text-slate-800 mt-0.5">{a.pet?.name ?? "Sem pet"}</div>
-                        <div className="text-xs text-slate-500">{a.tutor.name}</div>
-                        <div className="text-xs text-brand-600 mt-1">{a.services.map((s) => s.service.name).join(", ") || a.type}</div>
-                      </Link>
-                    </li>
+                    <AppointmentCard key={a.id} appointment={a} />
                   ))}
                 </ul>
               )}

@@ -4,28 +4,44 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { ServicesManager } from "./ServicesManager";
 import { SimpleManager } from "./SimpleManager";
 import { SupplierManager } from "./SupplierManager";
+import { StatusManager } from "./StatusManager";
+import { CollaboratorsManager } from "./CollaboratorsManager";
 
 export const dynamic = "force-dynamic";
 
 export default async function ConfiguracoesPage() {
   const { tenantId } = await requireModule("configuracoes");
-  const [services, methods, machines, categories, suppliers] = await Promise.all([
+  
+  const [
+    services,
+    methods,
+    machines,
+    categories,
+    suppliers,
+    statuses,
+    users,
+    userServices
+  ] = await Promise.all([
     prisma.service.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
     prisma.paymentMethod.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
     prisma.cardMachine.findMany({ where: { tenantId } }),
     prisma.productCategory.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
     prisma.supplier.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" } }),
+    prisma.appointmentStatus.findMany({ where: { tenantId } }),
+    prisma.user.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" } }),
+    prisma.userService.findMany({ where: { service: { tenantId } } }),
   ]);
 
   return (
     <>
       <PageHeader
         title="Cadastros e configuracoes"
-        description="Servicos, formas de pagamento, categorias e fornecedores"
+        description="Servicos, formas de pagamento, categorias, status, colaboradores e fornecedores"
         tutorialSlug="configuracoes"
       />
 
       <div className="grid lg:grid-cols-2 gap-5">
+        {/* Serviços */}
         <div className="card card-pad lg:col-span-2">
           <ServicesManager
             initial={services.map((s) => ({
@@ -35,6 +51,25 @@ export default async function ConfiguracoesPage() {
           />
         </div>
 
+        {/* Colaboradores */}
+        <div className="card card-pad lg:col-span-2">
+          <CollaboratorsManager
+            users={users.map((u) => ({ id: u.id, name: u.name, role: u.role, email: u.email }))}
+            services={services.filter((s) => s.isActive).map((s) => ({ id: s.id, name: s.name }))}
+            initialLinks={userServices.map((us) => ({ userId: us.userId, serviceId: us.serviceId }))}
+          />
+        </div>
+
+        {/* Status Customizados */}
+        <div className="card card-pad">
+          <StatusManager
+            initial={statuses.map((s) => ({
+              id: s.id, name: s.name, color: s.color, isActive: s.isActive
+            }))}
+          />
+        </div>
+
+        {/* Categorias de Produtos */}
         <div className="card card-pad">
           <SimpleManager
             title="Categorias de produtos"
@@ -44,6 +79,7 @@ export default async function ConfiguracoesPage() {
           />
         </div>
 
+        {/* Fornecedores */}
         <div className="card card-pad">
           <SupplierManager
             initial={suppliers.map((s) => ({
@@ -52,6 +88,7 @@ export default async function ConfiguracoesPage() {
           />
         </div>
 
+        {/* Formas de Pagamento */}
         <div className="card card-pad">
           <h3 className="font-semibold mb-3">Formas de pagamento</h3>
           <ul className="space-y-1 text-sm">{methods.map((m) => (
@@ -63,6 +100,7 @@ export default async function ConfiguracoesPage() {
           <p className="text-xs text-slate-500 mt-3">Em breve: gerenciar formas customizadas (convenio, vale, etc).</p>
         </div>
 
+        {/* Máquinas de Cartão */}
         <div className="card card-pad">
           <h3 className="font-semibold mb-3">Maquinas de cartao</h3>
           {machines.length === 0 ? (

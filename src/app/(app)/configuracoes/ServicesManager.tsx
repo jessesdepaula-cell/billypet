@@ -152,7 +152,12 @@ export function ServicesManager({ initial }: { initial: Service[] }) {
         <td><input className="input text-xs w-20" type="number" min={5} value={draft.durationMinutes ?? 30} onChange={(e) => setDraft({ ...draft, durationMinutes: Number(e.target.value) })} /></td>
         <td><input className="input text-xs w-24" type="number" step="0.01" value={draft.price ?? 0} onChange={(e) => setDraft({ ...draft, price: Number(e.target.value) })} /></td>
         <td><input className="input text-xs w-16" type="number" step="1" min={0} max={100} value={draft.commissionPct ?? 0} onChange={(e) => setDraft({ ...draft, commissionPct: Number(e.target.value) })} /></td>
-        <td><span className="badge-gray text-[10px]">{draft.isActive === false ? "inativo" : "ativo"}</span></td>
+        <td>
+          <label className="flex items-center gap-1 cursor-pointer">
+            <input type="checkbox" checked={draft.isActive !== false} onChange={(e) => setDraft({ ...draft, isActive: e.target.checked })} />
+            Ativo
+          </label>
+        </td>
       </>
     );
   }
