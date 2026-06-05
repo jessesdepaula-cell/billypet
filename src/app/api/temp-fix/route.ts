@@ -33,7 +33,24 @@ export async function GET() {
       return NextResponse.json({ error: "ASAAS_API_KEY nao configurada no Vercel" });
     }
 
-    // Atualiza o billingType na assinatura do Asaas e manda atualizar pagamentos pendentes
+    // 1. Atualizar o cadastro do cliente no Asaas para garantir CPF/CNPJ
+    if (tenant.asaasCustomerId && tenant.cnpj) {
+      await fetch(`${ASAAS_API_URL}/customers/${tenant.asaasCustomerId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          access_token: ASAAS_API_KEY,
+        },
+        body: JSON.stringify({
+          cpfCnpj: tenant.cnpj,
+          phone: tenant.phone || undefined,
+          mobilePhone: tenant.phone || undefined,
+          postalCode: tenant.zipCode || undefined,
+        })
+      });
+    }
+
+    // 2. Atualiza o billingType na assinatura do Asaas e manda atualizar pagamentos pendentes
     const res = await fetch(`${ASAAS_API_URL}/subscriptions/${sub.asaasSubscriptionId}`, {
       method: "POST",
       headers: {
