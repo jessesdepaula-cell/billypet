@@ -22,7 +22,8 @@ export default async function ConfiguracoesPage() {
     statuses,
     users,
     userServices,
-    protocols
+    protocols,
+    pets
   ] = await Promise.all([
     prisma.service.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
     prisma.paymentMethod.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
@@ -36,6 +37,11 @@ export default async function ConfiguracoesPage() {
       where: { pet: { tutor: { tenantId } } },
       include: { pet: { include: { tutor: true } } },
       orderBy: { createdAt: "desc" }
+    }),
+    prisma.pet.findMany({
+      where: { tutor: { tenantId }, isActive: true },
+      include: { tutor: true },
+      orderBy: { name: "asc" }
     }),
   ]);
 
@@ -70,6 +76,11 @@ export default async function ConfiguracoesPage() {
         {/* Protocolos Clínicos Globais */}
         <div className="card card-pad lg:col-span-2">
           <ProtocolsManager
+            pets={pets.map((p) => ({
+              id: p.id,
+              name: p.name,
+              tutorName: p.tutor.name
+            }))}
             initial={protocols.map((p) => ({
               id: p.id,
               name: p.name,

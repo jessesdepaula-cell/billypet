@@ -291,18 +291,7 @@ export function AppointmentForm({
             </div>
           </div>
 
-          {/* Serviços */}
-          <div className="sm:col-span-2">
-            <label className="label">Serviços</label>
-            <div className="grid sm:grid-cols-2 gap-1.5 max-h-40 overflow-y-auto p-2.5 border border-slate-200 rounded-lg bg-white">
-              {services.map((s) => (
-                <label key={s.id} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900">
-                  <input type="checkbox" checked={serviceIds.includes(s.id)} onChange={(e) => setServiceIds((p) => e.target.checked ? [...p, s.id] : p.filter((x) => x !== s.id))} />
-                  {s.name} <span className="text-[10px] text-slate-400 ml-auto">R$ {s.price.toFixed(2)}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+
 
           <div className="sm:col-span-2">
             <label className="label">Observações</label>

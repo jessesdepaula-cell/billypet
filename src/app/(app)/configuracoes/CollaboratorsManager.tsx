@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { UserCog, Check, X } from "lucide-react";
 
 type User = {
@@ -83,6 +84,9 @@ export function CollaboratorsManager({
         <h3 className="font-semibold text-slate-800 flex items-center gap-2">
           <UserCog className="h-5 w-5 text-brand-500" /> Colaboradores e Serviços
         </h3>
+        <Link href="/usuarios" className="btn-primary text-xs px-3 py-1 flex items-center gap-1">
+          Gerenciar Colaboradores
+        </Link>
       </div>
       <p className="text-xs text-slate-500 mb-3">
         Defina um ou mais responsáveis por cada serviço associando os colaboradores autorizados.
