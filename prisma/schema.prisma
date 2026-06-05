@@ -56,6 +56,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   appointmentsAsVet Appointment[]     @relation("VetAppointments")
+  appointmentsAsProfessional AppointmentProfessional[]
   medicalRecords    MedicalRecord[]
   hospitalizations  Hospitalization[]
   salesAsSeller     Sale[]
@@ -63,6 +64,8 @@ model User {
   commissions       Commission[]
   auditLogs         AuditLog[]
   supportTickets    SupportTicket[]
+  reminders         Reminder[]
+  pinnedMenuItems   PinnedMenuItem[]
 }
 
 // ============================================================
@@ -206,6 +209,9 @@ model Pet {
   notes        String?
   medicalAlert String?
   isActive     Boolean   @default(true)
+  isDeceased   Boolean   @default(false)
+  deceasedAt   DateTime?
+  deceasedReason String?
   tutorId      String
   tutor        Tutor     @relation(fields: [tutorId], references: [id])
   createdAt    DateTime  @default(now())
@@ -217,6 +223,8 @@ model Pet {
   exams            Exam[]
   hospitalizations Hospitalization[]
   servicePackages  ServicePackage[]
+  protocols        Protocol[]
+  attachments      Attachment[]
 }
 
 // ============================================================
@@ -346,8 +354,40 @@ model Service {
   appointmentServices AppointmentService[]
   saleItems           SaleItem[]
   packageServices     ServicePackageItem[]
+  serviceCollaborators ServiceCollaborator[]
 
   @@index([tenantId])
+}
+
+// Modelo para Colaboradores (Profissionais da clínica)
+model Collaborator {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  email       String?
+  phone       String?
+  role        String?  // VETERINARIO, BANHO_TOSA, RECEPCAO, OUTRO
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  serviceCollaborators ServiceCollaborator[]
+  appointmentProfessionals AppointmentProfessional[]
+
+  @@index([tenantId])
+}
+
+// Tabela pivô para vincular colaboradores a serviços
+model ServiceCollaborator {
+  id            String       @id @default(cuid())
+  serviceId     String
+  service       Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  collaboratorId String
+  collaborator  Collaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+  isPrimary     Boolean      @default(false) // Responsável principal pelo serviço
+
+  @@unique([serviceId, collaboratorId])
 }
 
 model ServicePackage {
@@ -431,8 +471,20 @@ model Appointment {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  services      AppointmentService[]
-  medicalRecord MedicalRecord?
+  services       AppointmentService[]
+  professionals  AppointmentProfessional[]
+  medicalRecord  MedicalRecord?
+}
+
+model AppointmentProfessional {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  professionalId String
+  professional  User?       @relation(fields: [professionalId], references: [id])
+  collaboratorId String?
+  collaborator  Collaborator? @relation(fields: [collaboratorId], references: [id])
+  role          String      @default("RESPONSAVEL") // RESPONSAVEL, APOIO
 }
 
 model AppointmentService {
@@ -700,6 +752,67 @@ model Document {
   createdAt DateTime  @default(now())
 
   @@index([tenantId])
+}
+
+model Attachment {
+  id        String    @id @default(cuid())
+  tenantId  String
+  petId     String
+  pet       Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  type      String // EXAME, IMAGEM, DOCUMENTO, OUTRO
+  title     String
+  fileUrl   String
+  fileSize  Int?
+  mimeType  String?
+  notes     String?
+  uploadedAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([petId])
+}
+
+model Protocol {
+  id          String    @id @default(cuid())
+  tenantId    String
+  petId       String
+  pet         Pet       @relation(fields: [petId], references: [id], onDelete: Cascade)
+  name        String
+  type        String // VACINACAO, VERMIFUGACAO, ANTIPULGAS, TRATAMENTO, EXAME_PERIODICO, OUTRO
+  startDate   DateTime
+  endDate     DateTime?
+  recurrenceDays Int? // dias entre aplicacoes
+  nextDueDate DateTime?
+  status      String    @default("ATIVO") // ATIVO, CONCLUIDO, SUSPENSO, CANCELADO
+  observations String?
+  notifyEmail Boolean   @default(false) // Enviar lembrete por e-mail ao tutor
+  notifyInternal Boolean @default(true) // Enviar notificacao interna para a clinica
+  lastNotifiedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([petId])
+  @@index([status])
+  @@index([nextDueDate])
+}
+
+// Modelo para Lembretes/Notificacoes do Dashboard
+model Reminder {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  type        String // PROTOCOLO, VENCIMENTO, TAREFA, AGENDAMENTO
+  relatedId   String? // ID do protocolo, conta, etc.
+  dueDate     DateTime?
+  isRead      Boolean   @default(false)
+  userId      String?   // null = para todos os usuarios da unidade
+  createdAt   DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([isRead])
+  @@index([dueDate])
 }
 
 model SupportTicket {
