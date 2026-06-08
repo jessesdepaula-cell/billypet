@@ -11,12 +11,15 @@ type Vet = { id: string; name: string };
 type Service = { id: string; name: string; price: number };
 type Status = { id: string; name: string; color: string };
 
+type AppointmentType = { id: string; name: string };
+
 export function AppointmentForm({
   tutors,
   pets,
   vets,
   services,
   statuses,
+  appointmentTypes,
   initialDate,
 }: {
   tutors: Tutor[];
@@ -24,6 +27,7 @@ export function AppointmentForm({
   vets: Vet[];
   services: Service[];
   statuses: Status[];
+  appointmentTypes: AppointmentType[];
   initialDate?: string;
 }) {
   const router = useRouter();
@@ -31,7 +35,11 @@ export function AppointmentForm({
   const [petId, setPetId] = useState("");
   const [professionalIds, setProfessionalIds] = useState<string[]>([]);
   const [statusId, setStatusId] = useState(statuses[0]?.id || "");
-  const [type, setType] = useState("CONSULTA");
+  const [type, setType] = useState(
+    appointmentTypes && appointmentTypes.length > 0
+      ? appointmentTypes[0].name
+      : "CONSULTA"
+  );
   const [scheduledAt, setScheduledAt] = useState(initialDate ? `${initialDate}T09:00` : "");
   const [serviceIds, setServiceIds] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
@@ -256,11 +264,19 @@ export function AppointmentForm({
           <div>
             <label className="label">Tipo de Atendimento</label>
             <select className="input" value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="CONSULTA">Consulta</option>
-              <option value="RETORNO">Retorno</option>
-              <option value="BANHO_TOSA">Banho e Tosa</option>
-              <option value="EXAME">Exame</option>
-              <option value="PROCEDIMENTO">Procedimento</option>
+              {appointmentTypes && appointmentTypes.length > 0 ? (
+                appointmentTypes.map((t) => (
+                  <option key={t.id} value={t.name}>{t.name}</option>
+                ))
+              ) : (
+                <>
+                  <option value="CONSULTA">Consulta</option>
+                  <option value="RETORNO">Retorno</option>
+                  <option value="BANHO_TOSA">Banho e Tosa</option>
+                  <option value="EXAME">Exame</option>
+                  <option value="PROCEDIMENTO">Procedimento</option>
+                </>
+              )}
             </select>
           </div>
 
@@ -288,6 +304,20 @@ export function AppointmentForm({
                 </label>
               ))}
               {vets.length === 0 && <span className="text-xs text-slate-400 italic">Nenhum profissional disponível.</span>}
+            </div>
+          </div>
+
+          {/* Serviços */}
+          <div className="sm:col-span-2">
+            <label className="label">Serviços</label>
+            <div className="grid sm:grid-cols-2 gap-1.5 max-h-40 overflow-y-auto p-2.5 border border-slate-200 rounded-lg bg-white">
+              {services.map((s) => (
+                <label key={s.id} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900">
+                  <input type="checkbox" checked={serviceIds.includes(s.id)} onChange={(e) => setServiceIds((p) => e.target.checked ? [...p, s.id] : p.filter((x) => x !== s.id))} />
+                  {s.name} <span className="text-[10px] text-slate-400 ml-auto">R$ {s.price.toFixed(2)}</span>
+                </label>
+              ))}
+              {services.length === 0 && <span className="text-xs text-slate-400 italic">Nenhum serviço disponível.</span>}
             </div>
           </div>
 

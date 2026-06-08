@@ -28,7 +28,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
       include: { tutor: true, pet: true, vet: true, statusRelation: true, services: { include: { service: true } } },
       orderBy: { scheduledAt: "asc" },
     }),
-    prisma.user.findMany({ where: { tenantId, role: "VETERINARIO", isActive: true }, orderBy: { name: "asc" } }),
+    prisma.user.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" } }),
   ]);
 
   const days = view === "day" ? [start] : Array.from({ length: 7 }, (_, i) => addDays(start, i));
