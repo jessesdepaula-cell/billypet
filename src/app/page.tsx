@@ -533,7 +533,7 @@ export default async function LandingPage() {
               </ul>
 
               <div className="mt-8 flex gap-3">
-                <Link href="/login" className="btn-primary px-5 py-3">
+                <Link href="/cadastro" className="btn-primary px-5 py-3">
                   Quero acessar agora
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -712,7 +712,7 @@ export default async function LandingPage() {
                 </ul>
 
                 <Link
-                  href="/login"
+                  href="/cadastro"
                   className={`mt-7 w-full ${p.highlight ? "btn-primary bp-glow-blue" : "btn-outline"} px-5 py-3 text-base justify-center`}
                 >
                   {p.cta}

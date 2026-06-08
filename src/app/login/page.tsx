@@ -82,10 +82,16 @@ export default function LoginPage() {
             {loading ? "Entrando..." : "Entrar"}
           </button>
 
-          <div className="text-center pt-1">
+          <div className="text-center pt-1 flex flex-col gap-2">
             <Link href="/recuperar-senha" className="text-xs text-brand-600 hover:underline">
               Esqueci minha senha
             </Link>
+            <div className="text-xs text-slate-500">
+              Não tem uma conta?{" "}
+              <Link href="/cadastro" className="text-brand-600 hover:underline font-semibold">
+                Cadastre-se grátis
+              </Link>
+            </div>
           </div>
         </form>
       </div>
