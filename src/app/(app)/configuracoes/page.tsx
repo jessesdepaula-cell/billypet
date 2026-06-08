@@ -23,8 +23,7 @@ export default async function ConfiguracoesPage() {
     users,
     userServices,
     protocols,
-    pets,
-    appointmentTypes
+    pets
   ] = await Promise.all([
     prisma.service.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
     prisma.paymentMethod.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
@@ -44,7 +43,6 @@ export default async function ConfiguracoesPage() {
       include: { tutor: true },
       orderBy: { name: "asc" }
     }),
-    prisma.appointmentType.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" } }),
   ]);
 
   if (statuses.length === 0) {
@@ -129,15 +127,6 @@ export default async function ConfiguracoesPage() {
           />
         </div>
 
-        {/* Tipos de Atendimento */}
-        <div className="card card-pad">
-          <SimpleManager
-            title="Tipos de atendimento"
-            endpoint="/api/appointment-types"
-            initial={appointmentTypes.map((c) => ({ id: c.id, name: c.name }))}
-            emptyMessage="Crie tipos de atendimento (e.g. Consulta, Banho, Tosa, Exame, Procedimento)."
-          />
-        </div>
 
         {/* Categorias de Produtos */}
         <div className="card card-pad">

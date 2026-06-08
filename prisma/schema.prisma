@@ -102,7 +102,6 @@ model Tenant {
   kits              Kit[]
   paymentMethods    PaymentMethod[]
   cardMachines      CardMachine[]
-  appointmentTypes  AppointmentType[]
 }
 
 model Subscription {
@@ -812,18 +811,6 @@ model Notification {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-}
-
-model AppointmentType {
-  id        String   @id @default(cuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  name      String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-
-  @@unique([tenantId, name])
-  @@index([tenantId])
 }
 
 

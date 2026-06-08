@@ -11,15 +11,12 @@ type Vet = { id: string; name: string };
 type Service = { id: string; name: string; price: number };
 type Status = { id: string; name: string; color: string };
 
-type AppointmentType = { id: string; name: string };
-
 export function AppointmentForm({
   tutors,
   pets,
   vets,
   services,
   statuses,
-  appointmentTypes,
   initialDate,
 }: {
   tutors: Tutor[];
@@ -27,7 +24,6 @@ export function AppointmentForm({
   vets: Vet[];
   services: Service[];
   statuses: Status[];
-  appointmentTypes: AppointmentType[];
   initialDate?: string;
 }) {
   const router = useRouter();
@@ -35,11 +31,7 @@ export function AppointmentForm({
   const [petId, setPetId] = useState("");
   const [professionalIds, setProfessionalIds] = useState<string[]>([]);
   const [statusId, setStatusId] = useState(statuses[0]?.id || "");
-  const [type, setType] = useState(
-    appointmentTypes && appointmentTypes.length > 0
-      ? appointmentTypes[0].name
-      : "CONSULTA"
-  );
+  const [type, setType] = useState("CONSULTA");
   const [scheduledAt, setScheduledAt] = useState(initialDate ? `${initialDate}T09:00` : "");
   const [serviceIds, setServiceIds] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
@@ -264,19 +256,11 @@ export function AppointmentForm({
           <div>
             <label className="label">Tipo de Atendimento</label>
             <select className="input" value={type} onChange={(e) => setType(e.target.value)}>
-              {appointmentTypes && appointmentTypes.length > 0 ? (
-                appointmentTypes.map((t) => (
-                  <option key={t.id} value={t.name}>{t.name}</option>
-                ))
-              ) : (
-                <>
-                  <option value="CONSULTA">Consulta</option>
-                  <option value="RETORNO">Retorno</option>
-                  <option value="BANHO_TOSA">Banho e Tosa</option>
-                  <option value="EXAME">Exame</option>
-                  <option value="PROCEDIMENTO">Procedimento</option>
-                </>
-              )}
+              <option value="CONSULTA">Consulta</option>
+              <option value="RETORNO">Retorno</option>
+              <option value="BANHO_TOSA">Banho e Tosa</option>
+              <option value="EXAME">Exame</option>
+              <option value="PROCEDIMENTO">Procedimento</option>
             </select>
           </div>
 
