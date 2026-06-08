@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { isSuperAdmin } from "@/lib/permissions";
+import { SyncAllButton } from "./SyncAllButton";
 
 export const dynamic = "force-dynamic";
 
@@ -35,9 +36,12 @@ export default async function AssinaturasPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Assinaturas</h1>
-        <p className="text-sm text-slate-500">Todas as assinaturas registradas (vinculadas ao Asaas).</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Assinaturas</h1>
+          <p className="text-sm text-slate-500">Todas as assinaturas registradas (vinculadas ao Asaas).</p>
+        </div>
+        <SyncAllButton />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
