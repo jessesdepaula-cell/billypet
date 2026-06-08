@@ -88,18 +88,21 @@ const groups: Group[] = [
   },
 ];
 
-export function Sidebar({ role, permissions }: { role: Role; permissions?: string[] | null }) {
+export function Sidebar({ role, permissions, userId }: { role: Role; permissions?: string[] | null; userId?: string }) {
   const pathname = usePathname();
   const [pinnedHrefs, setPinnedHrefs] = useState<string[]>([]);
+  const storageKey = userId ? `bilyvet:pinned-items:${userId}` : "bilyvet:pinned-items";
 
   useEffect(() => {
-    const raw = localStorage.getItem("bilyvet:pinned-items");
+    const raw = localStorage.getItem(storageKey);
     if (raw) {
       try {
         setPinnedHrefs(JSON.parse(raw));
       } catch {}
+    } else {
+      setPinnedHrefs([]);
     }
-  }, []);
+  }, [storageKey]);
 
   const togglePin = (href: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -108,7 +111,7 @@ export function Sidebar({ role, permissions }: { role: Role; permissions?: strin
       ? pinnedHrefs.filter((h) => h !== href)
       : [...pinnedHrefs, href];
     setPinnedHrefs(next);
-    localStorage.setItem("bilyvet:pinned-items", JSON.stringify(next));
+    localStorage.setItem(storageKey, JSON.stringify(next));
   };
 
   const allItems = groups.flatMap((g) => g.items);
