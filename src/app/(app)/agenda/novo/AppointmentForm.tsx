@@ -31,7 +31,7 @@ export function AppointmentForm({
   const [petId, setPetId] = useState("");
   const [professionalIds, setProfessionalIds] = useState<string[]>([]);
   const [statusId, setStatusId] = useState(statuses[0]?.id || "");
-  const [type, setType] = useState("CONSULTA");
+  const [type] = useState("CONSULTA");
   const [scheduledAt, setScheduledAt] = useState(initialDate ? `${initialDate}T09:00` : "");
   const [serviceIds, setServiceIds] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
@@ -253,16 +253,7 @@ export function AppointmentForm({
             <input className="input" type="datetime-local" required value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
           </div>
 
-          <div>
-            <label className="label">Tipo de Atendimento</label>
-            <select className="input" value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="CONSULTA">Consulta</option>
-              <option value="RETORNO">Retorno</option>
-              <option value="BANHO_TOSA">Banho e Tosa</option>
-              <option value="EXAME">Exame</option>
-              <option value="PROCEDIMENTO">Procedimento</option>
-            </select>
-          </div>
+
 
           <div>
             <label className="label">Status Inicial</label>
