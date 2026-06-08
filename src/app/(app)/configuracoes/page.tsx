@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function ConfiguracoesPage() {
   const { tenantId } = await requireModule("configuracoes");
   
-  const [
+  let [
     services,
     methods,
     machines,
@@ -46,6 +46,26 @@ export default async function ConfiguracoesPage() {
     }),
     prisma.appointmentType.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" } }),
   ]);
+
+  if (statuses.length === 0) {
+    const defaultStatuses = [
+      { name: "Agendado", color: "slate" },
+      { name: "Confirmado", color: "blue" },
+      { name: "Em Atendimento", color: "orange" },
+      { name: "Finalizado", color: "green" },
+      { name: "Cancelado", color: "red" },
+      { name: "Nao Compareceu", color: "yellow" },
+    ];
+    await prisma.appointmentStatus.createMany({
+      data: defaultStatuses.map(s => ({
+        tenantId,
+        name: s.name,
+        color: s.color,
+        isActive: true
+      }))
+    });
+    statuses = await prisma.appointmentStatus.findMany({ where: { tenantId } });
+  }
 
   return (
     <>

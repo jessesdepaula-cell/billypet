@@ -85,6 +85,18 @@ export async function POST(req: Request) {
     ],
   });
 
+  // Status de agendamento padrao
+  await prisma.appointmentStatus.createMany({
+    data: [
+      { tenantId: tenant.id, name: "Agendado", color: "slate" },
+      { tenantId: tenant.id, name: "Confirmado", color: "blue" },
+      { tenantId: tenant.id, name: "Em Atendimento", color: "orange" },
+      { tenantId: tenant.id, name: "Finalizado", color: "green" },
+      { tenantId: tenant.id, name: "Cancelado", color: "red" },
+      { tenantId: tenant.id, name: "Nao Compareceu", color: "yellow" },
+    ],
+  });
+
   // Cria usuario ADMIN com senha aleatoria (precisa definir via link de reset)
   const placeholderHash = bcrypt.hashSync(randomBytes(32).toString("hex"), 10);
   await prisma.user.create({
