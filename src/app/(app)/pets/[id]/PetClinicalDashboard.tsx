@@ -6,7 +6,9 @@ import Link from "next/link";
 import { PetForm } from "../PetForm";
 import {
   HeartCrack, Syringe, ClipboardList, Stethoscope, Paperclip,
-  Trash2, Plus, Check, Calendar, Download, Eye, Award, BedDouble, AlertCircle, FileText, Settings
+  Trash2, Plus, Check, Calendar, Download, Eye, Award, BedDouble, AlertCircle, FileText, Settings,
+  // Ícones dos cards de ação rápida
+  Cross, Weight, Activity, FileCheck, FlaskConical, Camera, Droplets, FileSignature, MessageCircle, Video, Hospital
 } from "lucide-react";
 import { fmtDate, fmtDateTime, ageFromBirth } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -225,6 +227,51 @@ export function PetClinicalDashboard({ pet, tutors }: Props) {
           </div>
         </div>
       )}
+
+      {/* === Grid de Ações Rápidas (estilo cards coloridos) === */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Adicionar</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {[
+            { label: "Atendimento", icon: Cross,           color: "bg-blue-500",    hoverColor: "hover:bg-blue-600",    action: "link",  href: `/atendimento` },
+            { label: "Peso",        icon: Weight,          color: "bg-yellow-600",  hoverColor: "hover:bg-yellow-700",  action: "tab",   tab: "prontuario" as const },
+            { label: "Patologia",   icon: Activity,        color: "bg-purple-700",  hoverColor: "hover:bg-purple-800",  action: "tab",   tab: "prontuario" as const },
+            { label: "Documento",   icon: FileCheck,       color: "bg-green-500",   hoverColor: "hover:bg-green-600",   action: "tab",   tab: "anexos" as const },
+            { label: "Exame",       icon: FlaskConical,    color: "bg-rose-400",    hoverColor: "hover:bg-rose-500",    action: "link",  href: `/exames` },
+            { label: "Fotos",       icon: Camera,          color: "bg-teal-600",    hoverColor: "hover:bg-teal-700",    action: "tab",   tab: "anexos" as const },
+            { label: "Vacina",      icon: Droplets,        color: "bg-amber-500",   hoverColor: "hover:bg-amber-600",   action: "tab",   tab: "protocolos" as const },
+            { label: "Receita",     icon: FileSignature,   color: "bg-purple-500",  hoverColor: "hover:bg-purple-600",  action: "tab",   tab: "prontuario" as const },
+            { label: "Observações", icon: MessageCircle,   color: "bg-gray-500",    hoverColor: "hover:bg-gray-600",    action: "tab",   tab: "prontuario" as const },
+            { label: "Internação",  icon: Hospital,        color: "bg-emerald-600", hoverColor: "hover:bg-emerald-700", action: "link",  href: `/internacao/nova?petId=${pet.id}` },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => {
+                  if (item.action === "tab" && item.tab) {
+                    setActiveTab(item.tab);
+                  } else if (item.action === "link" && item.href) {
+                    router.push(item.href);
+                  }
+                }}
+                className={cn(
+                  item.color,
+                  item.hoverColor,
+                  "text-white rounded-xl px-4 py-5 flex flex-col items-center justify-center gap-2.5",
+                  "shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5",
+                  "focus:outline-none focus:ring-2 focus:ring-white/40 focus:ring-offset-2 focus:ring-offset-slate-50",
+                  "active:scale-95"
+                )}
+              >
+                <Icon className="h-7 w-7 drop-shadow" />
+                <span className="text-sm font-semibold tracking-wide">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Tabs Clínicas */}
       <div className="flex border-b border-slate-200 gap-4 overflow-x-auto">
