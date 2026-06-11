@@ -58,10 +58,11 @@ export function PetClinicalDashboard({ pet, tutors }: Props) {
   // Processar ações pendentes após render da aba
   useEffect(() => {
     if (!pendingAction) return;
-    if (pendingAction === "open-upload") {
+    if (pendingAction.startsWith("open-upload")) {
       const timer = setTimeout(() => {
         fileInputRef.current?.click();
-      }, 150);
+        setPendingAction(null);
+      }, 200);
       return () => clearTimeout(timer);
     }
     setPendingAction(null);
@@ -304,7 +305,7 @@ export function PetClinicalDashboard({ pet, tutors }: Props) {
                       break;
                     case "upload":
                       setActiveTab("anexos");
-                      setPendingAction("open-upload");
+                      setPendingAction("open-upload-" + Date.now());
                       break;
                     case "vacina":
                       setActiveTab("protocolos");
