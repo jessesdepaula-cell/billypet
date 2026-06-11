@@ -7,15 +7,56 @@ import { AppointmentCard } from "./AppointmentCard";
 
 export const dynamic = "force-dynamic";
 
-function startOfWeek(d: Date) { const x = new Date(d); const day = x.getDay(); x.setHours(0,0,0,0); x.setDate(x.getDate() - day); return x; }
-function addDays(d: Date, n: number) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function getTodayInBrazilString() {
+  const now = new Date();
+  const options = { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" } as const;
+  const formatter = new Intl.DateTimeFormat("en-US", options);
+  const parts = formatter.formatToParts(now);
+  const year = parts.find(p => p.type === "year")!.value;
+  const month = parts.find(p => p.type === "month")!.value;
+  const day = parts.find(p => p.type === "day")!.value;
+  return `${year}-${month}-${day}`;
+}
+
+function getUTCBounds(dateStr: string) {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const start = new Date(Date.UTC(year, month - 1, day, 3, 0, 0, 0));
+  const end = new Date(Date.UTC(year, month - 1, day + 1, 3, 0, 0, 0));
+  return { start, end };
+}
+
+function getBrazilDateString(date: Date | string) {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const options = { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" } as const;
+  const formatter = new Intl.DateTimeFormat("en-US", options);
+  const parts = formatter.formatToParts(d);
+  const year = parts.find(p => p.type === "year")!.value;
+  const month = parts.find(p => p.type === "month")!.value;
+  const day = parts.find(p => p.type === "day")!.value;
+  return `${year}-${month}-${day}`;
+}
+
+function startOfWeekUTC(d: Date) {
+  const x = new Date(d.getTime());
+  const day = x.getUTCDay();
+  x.setUTCDate(x.getUTCDate() - day);
+  return x;
+}
+
+function addDaysUTC(d: Date, n: number) {
+  const x = new Date(d.getTime());
+  x.setUTCDate(x.getUTCDate() + n);
+  return x;
+}
 
 export default async function AgendaPage({ searchParams }: { searchParams: { date?: string; vet?: string; view?: "day" | "week" } }) {
   const { tenantId } = await requireModule("agenda");
   const view = searchParams.view === "day" ? "day" : "week";
-  const baseDate = searchParams.date ? new Date(searchParams.date) : new Date();
-  const start = view === "day" ? new Date(baseDate.setHours(0,0,0,0)) : startOfWeek(baseDate);
-  const end = view === "day" ? new Date(new Date(start).setHours(23,59,59,999)) : addDays(start, 7);
+  const dateStr = searchParams.date || getTodayInBrazilString();
+  const { start: dayStart, end: dayEnd } = getUTCBounds(dateStr);
+
+  const start = view === "day" ? dayStart : startOfWeekUTC(dayStart);
+  const end = view === "day" ? dayEnd : addDaysUTC(start, 7);
   const vetId = searchParams.vet || undefined;
 
   const [appts, vets] = await Promise.all([
@@ -31,7 +72,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
     prisma.user.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" } }),
   ]);
 
-  const days = view === "day" ? [start] : Array.from({ length: 7 }, (_, i) => addDays(start, i));
+  const days = view === "day" ? [start] : Array.from({ length: 7 }, (_, i) => addDaysUTC(start, i));
   const isoDate = (d: Date) => d.toISOString().slice(0, 10);
 
   return (
@@ -53,17 +94,19 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
         </div>
         <button className="btn-outline">Filtrar</button>
         <div className="ml-auto flex gap-1">
-          <Link className="btn-outline" href={`/agenda?view=${view}&vet=${vetId ?? ""}&date=${isoDate(addDays(start, view === "day" ? -1 : -7))}`}><ChevronLeft className="h-4 w-4" /></Link>
-          <Link className="btn-outline" href={`/agenda?view=${view}&vet=${vetId ?? ""}&date=${isoDate(addDays(start, view === "day" ? 1 : 7))}`}><ChevronRight className="h-4 w-4" /></Link>
+          <Link className="btn-outline" href={`/agenda?view=${view}&vet=${vetId ?? ""}&date=${isoDate(addDaysUTC(start, view === "day" ? -1 : -7))}`}><ChevronLeft className="h-4 w-4" /></Link>
+          <Link className="btn-outline" href={`/agenda?view=${view}&vet=${vetId ?? ""}&date=${isoDate(addDaysUTC(start, view === "day" ? 1 : 7))}`}><ChevronRight className="h-4 w-4" /></Link>
         </div>
       </form>
 
       <div className={view === "day" ? "" : "grid grid-cols-1 md:grid-cols-7 gap-3"}>
         {days.map((d) => {
-          const dayAppts = appts.filter((a) => new Date(a.scheduledAt).toDateString() === d.toDateString());
+          const dayAppts = appts.filter((a) => getBrazilDateString(a.scheduledAt) === getBrazilDateString(d));
           return (
             <div key={d.toISOString()} className="card card-pad">
-              <div className="text-xs uppercase tracking-wider text-slate-400 mb-2">{d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" })}</div>
+              <div className="text-xs uppercase tracking-wider text-slate-400 mb-2">
+                {d.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", day: "2-digit", month: "2-digit" })}
+              </div>
               {dayAppts.length === 0 ? <div className="text-xs text-slate-400">Sem agendamentos</div> : (
                 <ul className="space-y-2">
                   {dayAppts.map((a) => (

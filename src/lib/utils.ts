@@ -13,19 +13,33 @@ export function fmtMoney(n: number | null | undefined) {
 export function fmtDate(d: Date | string | null | undefined) {
   if (!d) return "-";
   const date = typeof d === "string" ? new Date(d) : d;
-  return date.toLocaleDateString("pt-BR");
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const year = date.getUTCFullYear();
+  return `${day}/${month}/${year}`;
 }
 
 export function fmtDateTime(d: Date | string | null | undefined) {
   if (!d) return "-";
   const date = typeof d === "string" ? new Date(d) : d;
-  return date.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 export function fmtTime(d: Date | string | null | undefined) {
   if (!d) return "-";
   const date = typeof d === "string" ? new Date(d) : d;
-  return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 export function ageFromBirth(birth: Date | string | null | undefined) {

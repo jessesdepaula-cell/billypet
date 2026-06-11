@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { fmtTime } from "@/lib/utils";
 
 const STAGES = [
   { key: "AGUARDANDO",  label: "Aguardando chegada" },
@@ -62,7 +63,7 @@ export function EsteiraBoard({ cards }: { cards: Card[] }) {
                       draggable onDragStart={(e) => e.dataTransfer.setData("text/plain", c.id)}
                       className="block rounded-lg border border-slate-200 bg-white p-2 hover:border-brand-300">
                   <div className="text-xs text-slate-500 flex justify-between">
-                    <span>{new Date(c.scheduledAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span>{fmtTime(c.scheduledAt)}</span>
                     <span className="badge-yellow">{elapsed(c.stageEnteredAt)}</span>
                   </div>
                   <div className="font-medium text-sm mt-0.5">{c.pet?.name ?? "Sem pet"}</div>

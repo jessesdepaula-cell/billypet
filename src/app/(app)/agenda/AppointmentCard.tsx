@@ -47,7 +47,7 @@ export function AppointmentCard({ appointment: a }: { appointment: any }) {
       const res = await fetch(`/api/appointments/${a.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scheduledAt: newDate }),
+        body: JSON.stringify({ scheduledAt: new Date(newDate).toISOString() }),
       });
       if (res.ok) {
         setRescheduling(false);

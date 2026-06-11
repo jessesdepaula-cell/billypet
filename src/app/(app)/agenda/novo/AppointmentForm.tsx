@@ -143,7 +143,7 @@ export function AppointmentForm({
           professionalIds,
           statusId,
           type,
-          scheduledAt,
+          scheduledAt: new Date(scheduledAt).toISOString(),
           serviceIds,
           notes,
           force: true // se confirmou ou não é óbito, manda force true
