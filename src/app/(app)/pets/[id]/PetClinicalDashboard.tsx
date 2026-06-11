@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PetForm } from "../PetForm";
@@ -36,6 +36,7 @@ export function PetClinicalDashboard({ pet, tutors }: Props) {
   // Estados locais para Anexos
   const [attachments, setAttachments] = useState<any[]>(pet.attachments || []);
   const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Estados locais para Protocolos
   const [protocols, setProtocols] = useState<any[]>(pet.protocols || []);
@@ -45,6 +46,47 @@ export function PetClinicalDashboard({ pet, tutors }: Props) {
   const [protoDate, setProtoDate] = useState(new Date().toISOString().slice(0, 10));
   const [protoNotes, setProtoNotes] = useState("");
   const [savingProto, setSavingProto] = useState(false);
+
+  // Estado para ação pendente após troca de aba
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+
+  // Modal de Peso
+  const [showWeightModal, setShowWeightModal] = useState(false);
+  const [weightValue, setWeightValue] = useState(pet.weightKg?.toString() ?? "");
+  const [savingWeight, setSavingWeight] = useState(false);
+
+  // Processar ações pendentes após render da aba
+  useEffect(() => {
+    if (!pendingAction) return;
+    if (pendingAction === "open-upload") {
+      const timer = setTimeout(() => {
+        fileInputRef.current?.click();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+    setPendingAction(null);
+  }, [pendingAction, activeTab]);
+
+  // Salvar Peso
+  const handleSaveWeight = async () => {
+    if (!weightValue.trim()) return;
+    setSavingWeight(true);
+    try {
+      const res = await fetch(`/api/pets/${pet.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weightKg: parseFloat(weightValue) }),
+      });
+      if (res.ok) {
+        setShowWeightModal(false);
+        router.refresh();
+      }
+    } catch (err) {
+      console.error("Erro ao salvar peso:", err);
+    } finally {
+      setSavingWeight(false);
+    }
+  };
 
   // Registrar Óbito
   const [registeringDeceased, setRegisteringDeceased] = useState(false);
@@ -233,16 +275,16 @@ export function PetClinicalDashboard({ pet, tutors }: Props) {
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Adicionar</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {[
-            { label: "Atendimento", icon: Cross,           color: "bg-blue-500",    hoverColor: "hover:bg-blue-600",    action: "tab",   tab: "historico" as const },
-            { label: "Peso",        icon: Weight,          color: "bg-yellow-600",  hoverColor: "hover:bg-yellow-700",  action: "tab",   tab: "prontuario" as const },
-            { label: "Patologia",   icon: Activity,        color: "bg-purple-700",  hoverColor: "hover:bg-purple-800",  action: "tab",   tab: "prontuario" as const },
-            { label: "Documento",   icon: FileCheck,       color: "bg-green-500",   hoverColor: "hover:bg-green-600",   action: "tab",   tab: "anexos" as const },
-            { label: "Exame",       icon: FlaskConical,    color: "bg-rose-400",    hoverColor: "hover:bg-rose-500",    action: "tab",   tab: "anexos" as const },
-            { label: "Fotos",       icon: Camera,          color: "bg-teal-600",    hoverColor: "hover:bg-teal-700",    action: "tab",   tab: "anexos" as const },
-            { label: "Vacina",      icon: Droplets,        color: "bg-amber-500",   hoverColor: "hover:bg-amber-600",   action: "tab",   tab: "protocolos" as const },
-            { label: "Receita",     icon: FileSignature,   color: "bg-purple-500",  hoverColor: "hover:bg-purple-600",  action: "tab",   tab: "prontuario" as const },
-            { label: "Observações", icon: MessageCircle,   color: "bg-gray-500",    hoverColor: "hover:bg-gray-600",    action: "tab",   tab: "prontuario" as const },
-            { label: "Internação",  icon: Hospital,        color: "bg-emerald-600", hoverColor: "hover:bg-emerald-700", action: "tab",   tab: "historico" as const },
+            { label: "Atendimento", icon: Cross,           color: "bg-blue-500",    hoverColor: "hover:bg-blue-600",    actionKey: "atendimento" },
+            { label: "Peso",        icon: Weight,          color: "bg-yellow-600",  hoverColor: "hover:bg-yellow-700",  actionKey: "peso" },
+            { label: "Patologia",   icon: Activity,        color: "bg-purple-700",  hoverColor: "hover:bg-purple-800",  actionKey: "prontuario" },
+            { label: "Documento",   icon: FileCheck,       color: "bg-green-500",   hoverColor: "hover:bg-green-600",   actionKey: "upload" },
+            { label: "Exame",       icon: FlaskConical,    color: "bg-rose-400",    hoverColor: "hover:bg-rose-500",    actionKey: "upload" },
+            { label: "Fotos",       icon: Camera,          color: "bg-teal-600",    hoverColor: "hover:bg-teal-700",    actionKey: "upload" },
+            { label: "Vacina",      icon: Droplets,        color: "bg-amber-500",   hoverColor: "hover:bg-amber-600",   actionKey: "vacina" },
+            { label: "Receita",     icon: FileSignature,   color: "bg-purple-500",  hoverColor: "hover:bg-purple-600",  actionKey: "prontuario" },
+            { label: "Observações", icon: MessageCircle,   color: "bg-gray-500",    hoverColor: "hover:bg-gray-600",    actionKey: "cadastro" },
+            { label: "Internação",  icon: Hospital,        color: "bg-emerald-600", hoverColor: "hover:bg-emerald-700", actionKey: "internacao" },
           ].map((item) => {
             const Icon = item.icon;
             return (
@@ -250,10 +292,30 @@ export function PetClinicalDashboard({ pet, tutors }: Props) {
                 key={item.label}
                 type="button"
                 onClick={() => {
-                  if (item.action === "tab" && item.tab) {
-                    setActiveTab(item.tab);
-                  } else if (item.action === "link" && item.href) {
-                    router.push(item.href);
+                  switch (item.actionKey) {
+                    case "atendimento":
+                      router.push(`/agenda/novo?date=${new Date().toISOString().slice(0, 10)}&petId=${pet.id}&tutorId=${pet.tutorId}`);
+                      break;
+                    case "peso":
+                      setShowWeightModal(true);
+                      break;
+                    case "prontuario":
+                      setActiveTab("prontuario");
+                      break;
+                    case "upload":
+                      setActiveTab("anexos");
+                      setPendingAction("open-upload");
+                      break;
+                    case "vacina":
+                      setActiveTab("protocolos");
+                      setShowNewProtocol(true);
+                      break;
+                    case "cadastro":
+                      setActiveTab("cadastro");
+                      break;
+                    case "internacao":
+                      router.push(`/internacao/nova?petId=${pet.id}`);
+                      break;
                   }
                 }}
                 className={cn(
@@ -272,6 +334,46 @@ export function PetClinicalDashboard({ pet, tutors }: Props) {
           })}
         </div>
       </div>
+
+      {/* Modal de Registro de Peso */}
+      {showWeightModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowWeightModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+              <Weight className="h-5 w-5 text-yellow-600" /> Registrar Peso
+            </h3>
+            <p className="text-xs text-slate-500">Registre o peso atual de <strong>{pet.name}</strong>.</p>
+            <div>
+              <label className="label">Peso (kg)</label>
+              <input
+                className="input text-lg font-semibold"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Ex: 8.5"
+                value={weightValue}
+                onChange={(e) => setWeightValue(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSaveWeight}
+                disabled={savingWeight || !weightValue.trim()}
+                className="btn-primary flex-1"
+              >
+                {savingWeight ? "Salvando..." : "Salvar Peso"}
+              </button>
+              <button
+                onClick={() => setShowWeightModal(false)}
+                className="btn-outline"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs Clínicas */}
       <div className="flex border-b border-slate-200 gap-4 overflow-x-auto">
@@ -476,7 +578,7 @@ export function PetClinicalDashboard({ pet, tutors }: Props) {
               <div>
                 <label className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1 cursor-pointer">
                   <Plus className="h-3.5 w-3.5" /> Adicionar Arquivo
-                  <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
+                  <input type="file" className="hidden" ref={fileInputRef} onChange={handleUpload} disabled={uploading} />
                 </label>
               </div>
             </div>
