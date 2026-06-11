@@ -233,16 +233,16 @@ export function PetClinicalDashboard({ pet, tutors }: Props) {
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Adicionar</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {[
-            { label: "Atendimento", icon: Cross,           color: "bg-blue-500",    hoverColor: "hover:bg-blue-600",    action: "link",  href: `/atendimento` },
+            { label: "Atendimento", icon: Cross,           color: "bg-blue-500",    hoverColor: "hover:bg-blue-600",    action: "tab",   tab: "historico" as const },
             { label: "Peso",        icon: Weight,          color: "bg-yellow-600",  hoverColor: "hover:bg-yellow-700",  action: "tab",   tab: "prontuario" as const },
             { label: "Patologia",   icon: Activity,        color: "bg-purple-700",  hoverColor: "hover:bg-purple-800",  action: "tab",   tab: "prontuario" as const },
             { label: "Documento",   icon: FileCheck,       color: "bg-green-500",   hoverColor: "hover:bg-green-600",   action: "tab",   tab: "anexos" as const },
-            { label: "Exame",       icon: FlaskConical,    color: "bg-rose-400",    hoverColor: "hover:bg-rose-500",    action: "link",  href: `/exames` },
+            { label: "Exame",       icon: FlaskConical,    color: "bg-rose-400",    hoverColor: "hover:bg-rose-500",    action: "tab",   tab: "anexos" as const },
             { label: "Fotos",       icon: Camera,          color: "bg-teal-600",    hoverColor: "hover:bg-teal-700",    action: "tab",   tab: "anexos" as const },
             { label: "Vacina",      icon: Droplets,        color: "bg-amber-500",   hoverColor: "hover:bg-amber-600",   action: "tab",   tab: "protocolos" as const },
             { label: "Receita",     icon: FileSignature,   color: "bg-purple-500",  hoverColor: "hover:bg-purple-600",  action: "tab",   tab: "prontuario" as const },
             { label: "Observações", icon: MessageCircle,   color: "bg-gray-500",    hoverColor: "hover:bg-gray-600",    action: "tab",   tab: "prontuario" as const },
-            { label: "Internação",  icon: Hospital,        color: "bg-emerald-600", hoverColor: "hover:bg-emerald-700", action: "link",  href: `/internacao/nova?petId=${pet.id}` },
+            { label: "Internação",  icon: Hospital,        color: "bg-emerald-600", hoverColor: "hover:bg-emerald-700", action: "tab",   tab: "historico" as const },
           ].map((item) => {
             const Icon = item.icon;
             return (
