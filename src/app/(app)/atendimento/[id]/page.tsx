@@ -154,6 +154,13 @@ export default async function AtendimentoDetailPage({ params }: { params: { id: 
           <div className="card card-pad">
             <h3 className="font-semibold mb-2">Acoes rapidas</h3>
             <ul className="text-sm space-y-1">
+              {a.petId && (
+                <li>
+                  <Link className="flex items-center gap-1.5 text-brand-600 hover:underline font-semibold" href={`/pets/${a.petId}`}>
+                    <ClipboardList className="h-3.5 w-3.5" /> Ver Ficha Completa do Animal
+                  </Link>
+                </li>
+              )}
               <li><Link className="text-brand-600 hover:underline" href={`/vendas/nova?tutorId=${a.tutorId}&petId=${a.petId ?? ""}&appointmentId=${a.id}`}>Gerar venda do atendimento</Link></li>
               <li><Link className="text-brand-600 hover:underline" href={`/exames?petId=${a.petId ?? ""}`}>Solicitar exames</Link></li>
               <li><Link className="text-brand-600 hover:underline" href={`/internacao/nova?petId=${a.petId ?? ""}`}>Internar pet</Link></li>
