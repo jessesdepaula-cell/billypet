@@ -94,7 +94,18 @@ export function PetForm({ initial, tutors }: { initial?: Pet; tutors: TutorOpt[]
         <div><label className="label">Data de nascimento</label><input className="input" type="date" value={birthIso} onChange={(e) => u("birthDate", e.target.value)} /></div>
         <div><label className="label">Peso (kg)</label><input className="input" type="number" step="0.1" value={p.weightKg ?? ""} onChange={(e) => u("weightKg", e.target.value)} /></div>
         <div><label className="label">Cor</label><input className="input" value={p.color ?? ""} onChange={(e) => u("color", e.target.value)} /></div>
-        <div><label className="label">Microchip</label><input className="input" value={p.microchip ?? ""} onChange={(e) => u("microchip", e.target.value)} /></div>
+        <div className="sm:col-span-2">
+          <label className="label">Microchip</label>
+          <input
+            className="input"
+            type="text"
+            inputMode="numeric"
+            value={p.microchip ?? ""}
+            onChange={(e) => u("microchip", e.target.value)}
+            placeholder="Numero do microchip (ex: 982000123456789)"
+            autoComplete="off"
+          />
+        </div>
         <div className="sm:col-span-2"><label className="label">Alerta medico</label><input className="input" value={p.medicalAlert ?? ""} onChange={(e) => u("medicalAlert", e.target.value)} placeholder="Alergias, condicoes, contraindicacoes..." /></div>
         <div className="sm:col-span-2"><label className="label">Observacoes</label><textarea className="input" rows={3} value={p.notes ?? ""} onChange={(e) => u("notes", e.target.value)} /></div>
       </div>

@@ -854,6 +854,7 @@ model PetAttachment {
   name      String
   mimeType  String
   sizeBytes Int
-  fileData  String   // base64
+  fileData  String?  // legado: base64 (anexos antigos pre-Vercel-Blob)
+  url       String?  // novo: URL publica do Vercel Blob
   createdAt DateTime @default(now())
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 import { PetForm } from "../PetForm";
 import { fmtDate, fmtDateTime, ageFromBirth } from "@/lib/utils";
 import {
@@ -83,15 +84,22 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates }:
     }
   }
 
-  // Attachment upload
+  // Attachment upload (Vercel Blob client-direct upload, ate 50MB)
+  async function reloadAttachments() {
+    const attRes = await fetch(`/api/pets/${pet.id}/attachments`, { cache: "no-store" });
+    if (attRes.ok) {
+      const list = await attRes.json();
+      setAttachments(list);
+    }
+  }
+
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Limite de 4MB (Vercel serverless payload limit é 4.5MB)
-    const MAX_SIZE = 4 * 1024 * 1024;
+    const MAX_SIZE = 50 * 1024 * 1024; // 50MB
     if (file.size > MAX_SIZE) {
-      setUploadError("O arquivo é muito grande (máximo de 4MB). Por favor, comprima o PDF ou use um arquivo menor.");
+      setUploadError("Arquivo muito grande (maximo 50MB). Comprima o PDF ou divida em partes.");
       e.target.value = "";
       return;
     }
@@ -100,30 +108,32 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates }:
     setUploadError(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("name", fileName || file.name);
+      const displayName = (fileName || file.name).trim();
 
-      const res = await fetch(`/api/pets/${pet.id}/attachments`, {
-        method: "POST",
-        body: formData,
+      await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: `/api/pets/${pet.id}/attachments`,
+        clientPayload: JSON.stringify({
+          name: displayName,
+          mimeType: file.type || "application/octet-stream",
+          sizeBytes: file.size,
+        }),
       });
 
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j.error || "Erro ao enviar arquivo");
+      // onUploadCompleted no servidor persiste o anexo de forma assincrona.
+      // Aguarda + 2 retries pra cobrir a janela de propagacao.
+      await new Promise((r) => setTimeout(r, 800));
+      await reloadAttachments();
+      // Retry se ainda nao chegou (callback assincrono do Vercel Blob)
+      for (let i = 0; i < 3; i++) {
+        await new Promise((r) => setTimeout(r, 1200));
+        await reloadAttachments();
       }
 
-      // Reload attachments
-      const attRes = await fetch(`/api/pets/${pet.id}/attachments`);
-      if (attRes.ok) {
-        const list = await attRes.json();
-        setAttachments(list);
-      }
       setFileName("");
       e.target.value = "";
     } catch (err: any) {
-      setUploadError(err.message);
+      setUploadError(err.message || "Erro ao enviar arquivo");
     } finally {
       setUploading(false);
     }
@@ -568,10 +578,11 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates }:
                     </div>
                     <div>
                       <label className="label text-[10px]">Selecionar Arquivo</label>
-                      <input type="file" onChange={handleFileUpload} disabled={uploading} className="block w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 file:cursor-pointer hover:file:bg-brand-100" />
+                      <input type="file" accept="application/pdf,image/*" onChange={handleFileUpload} disabled={uploading} className="block w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 file:cursor-pointer hover:file:bg-brand-100" />
+                      <p className="text-[10px] text-slate-400 mt-1">PDF ou imagem ate 50MB.</p>
                     </div>
                   </div>
-                  {uploading && <p className="text-xs text-brand-600 font-semibold mt-2 animate-pulse">Enviando arquivo para o banco de dados...</p>}
+                  {uploading && <p className="text-xs text-brand-600 font-semibold mt-2 animate-pulse">Enviando arquivo... aguarde, anexos grandes podem demorar.</p>}
                   {uploadError && <p className="text-xs text-red-600 font-semibold mt-2">{uploadError}</p>}
                 </div>
 
