@@ -18,7 +18,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
   const end = view === "day" ? new Date(new Date(start).setHours(23,59,59,999)) : addDays(start, 7);
   const vetId = searchParams.vet || undefined;
 
-  const [appts, vets] = await Promise.all([
+  const [appts, vets, statuses] = await Promise.all([
     prisma.appointment.findMany({
       where: {
         unit: { tenantId },
@@ -29,6 +29,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
       orderBy: { scheduledAt: "asc" },
     }),
     prisma.user.findMany({ where: { tenantId, role: "VETERINARIO", isActive: true }, orderBy: { name: "asc" } }),
+    prisma.appointmentStatus.findMany({ where: { tenantId } }),
   ]);
 
   const days = view === "day" ? [start] : Array.from({ length: 7 }, (_, i) => addDays(start, i));
@@ -62,23 +63,33 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
         {days.map((d) => {
           const dayAppts = appts.filter((a) => new Date(a.scheduledAt).toDateString() === d.toDateString());
           return (
-            <div key={d.toISOString()} className="card card-pad">
-              <div className="text-xs uppercase tracking-wider text-slate-400 mb-2">{d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" })}</div>
+            <div key={d.toISOString()} className="card card-pad bg-slate-50 border border-slate-100">
+              <div className="text-xs uppercase font-bold tracking-wider text-slate-500 mb-2">{d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" })}</div>
               {dayAppts.length === 0 ? <div className="text-xs text-slate-400">Sem agendamentos</div> : (
                 <ul className="space-y-2">
-                  {dayAppts.map((a) => (
-                    <li key={a.id} className="rounded-lg border border-slate-200 p-2 hover:border-brand-300 cursor-pointer">
-                      <Link href={`/atendimento/${a.id}`}>
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-sm">{fmtTime(a.scheduledAt)}</span>
-                          <span className="badge-gray text-[10px]">{a.status.replace(/_/g, " ").toLowerCase()}</span>
-                        </div>
-                        <div className="text-sm font-medium text-slate-800 mt-0.5">{a.pet?.name ?? "Sem pet"}</div>
-                        <div className="text-xs text-slate-500">{a.tutor.name}</div>
-                        <div className="text-xs text-brand-600 mt-1">{a.services.map((s) => s.service.name).join(", ") || a.type}</div>
-                      </Link>
-                    </li>
-                  ))}
+                  {dayAppts.map((a) => {
+                    const statusColor = statuses.find((s) => s.name === a.status)?.color ?? "#94a3b8";
+                    return (
+                      <li key={a.id} className="rounded-xl border border-slate-200 bg-white p-3 hover:border-brand-300 cursor-pointer shadow-soft transition-all">
+                        <Link href={`/atendimento/${a.id}`}>
+                          <div className="flex items-center justify-between gap-1 mb-1">
+                            <span className="font-bold text-xs text-slate-800">{fmtTime(a.scheduledAt)}</span>
+                            <span
+                              className="px-1.5 py-0.5 rounded text-[9px] text-white font-bold uppercase shrink-0"
+                              style={{ backgroundColor: statusColor }}
+                            >
+                              {a.status.replace(/_/g, " ").toLowerCase()}
+                            </span>
+                          </div>
+                          <div className="text-xs font-bold text-slate-800">{a.pet?.name ?? "Sem pet"}</div>
+                          <div className="text-[10px] text-slate-500">{a.tutor.name}</div>
+                          <div className="text-[9px] text-brand-600 font-medium mt-1 truncate bg-brand-50/50 px-1 py-0.5 rounded border border-brand-100/35">
+                            {a.services.map((s) => s.service.name).join(", ") || a.type}
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

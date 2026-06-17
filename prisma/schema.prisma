@@ -63,6 +63,7 @@ model User {
   commissions       Commission[]
   auditLogs         AuditLog[]
   supportTickets    SupportTicket[]
+  collaborator      Collaborator?
 }
 
 // ============================================================
@@ -203,6 +204,7 @@ model Pet {
   birthDate    DateTime?
   weightKg     Float?
   color        String?
+  microchip    String?
   notes        String?
   medicalAlert String?
   isActive     Boolean   @default(true)
@@ -217,6 +219,10 @@ model Pet {
   exams            Exam[]
   hospitalizations Hospitalization[]
   servicePackages  ServicePackage[]
+  deceased         Boolean           @default(false)
+  deceasedAt       DateTime?
+  attachments      PetAttachment[]
+  protocols        Protocol[]
 }
 
 // ============================================================
@@ -346,6 +352,7 @@ model Service {
   appointmentServices AppointmentService[]
   saleItems           SaleItem[]
   packageServices     ServicePackageItem[]
+  collaborators       CollaboratorService[]
 
   @@index([tenantId])
 }
@@ -433,6 +440,7 @@ model Appointment {
 
   services      AppointmentService[]
   medicalRecord MedicalRecord?
+  collaborators AppointmentCollaborator[]
 }
 
 model AppointmentService {
@@ -725,4 +733,127 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@index([tenantId])
+}
+
+// ============================================================
+// NOVAS ENTIDADES
+// ============================================================
+
+model AppointmentStatus {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  color     String   @default("#cbd5e1")
+  position  Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([tenantId, name])
+}
+
+model Collaborator {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  role      String?
+  phone     String?
+  email     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  services     CollaboratorService[]
+  appointments AppointmentCollaborator[]
+  userId       String?                   @unique
+  user         User?                     @relation(fields: [userId], references: [id])
+}
+
+model CollaboratorService {
+  id             String       @id @default(cuid())
+  collaboratorId String
+  collaborator   Collaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+  serviceId      String
+  service        Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  isResponsible  Boolean      @default(false)
+
+  @@unique([collaboratorId, serviceId])
+}
+
+model AppointmentCollaborator {
+  id             String       @id @default(cuid())
+  appointmentId  String
+  appointment    Appointment  @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  collaboratorId String
+  collaborator   Collaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+
+  @@unique([appointmentId, collaboratorId])
+}
+
+model Protocol {
+  id        String                @id @default(cuid())
+  tenantId  String
+  petId     String
+  pet       Pet                   @relation(fields: [petId], references: [id], onDelete: Cascade)
+  name      String
+  type      String
+  startDate DateTime
+  notes     String?
+  status    String                @default("ATIVO") // ATIVO, CONCLUIDO, CANCELADO
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @default(now()) @updatedAt
+  doses     ProtocolApplication[]
+}
+
+model ProtocolApplication {
+  id         String    @id @default(cuid())
+  protocolId String
+  protocol   Protocol  @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+  dueDate    DateTime
+  appliedAt  DateTime?
+  notes      String?
+  status     String    @default("PENDENTE") // PENDENTE, APLICADO, ATRASADO, CANCELADO
+}
+
+model ProtocolTemplate {
+  id        String                 @id @default(cuid())
+  tenantId  String
+  name      String
+  type      String
+  notes     String?
+  isActive  Boolean                @default(true)
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @default(now()) @updatedAt
+  doses     ProtocolTemplateDose[]
+}
+
+model ProtocolTemplateDose {
+  id         String           @id @default(cuid())
+  templateId String
+  template   ProtocolTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  name       String
+  daysOffset Int
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  tenantId  String
+  title     String
+  message   String
+  type      String    @default("PROTOCOL_REMINDER")
+  read      Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  dueDate   DateTime?
+  link      String?
+}
+
+model PetAttachment {
+  id        String   @id @default(cuid())
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  name      String
+  mimeType  String
+  sizeBytes Int
+  fileData  String   // base64
+  createdAt DateTime @default(now())
 }

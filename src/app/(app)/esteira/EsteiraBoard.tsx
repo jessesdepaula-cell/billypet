@@ -4,26 +4,26 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const STAGES = [
-  { key: "AGUARDANDO",  label: "Aguardando chegada" },
-  { key: "RECEPCAO",    label: "Recepcao" },
-  { key: "TRIAGEM",     label: "Triagem" },
-  { key: "EM_CONSULTA", label: "Em consulta" },
-  { key: "EXAMES",      label: "Exames" },
-  { key: "BANHO_TOSA",  label: "Banho e tosa" },
-  { key: "INTERNACAO",  label: "Internacao" },
-  { key: "PAGAMENTO",   label: "Pagamento" },
-  { key: "FINALIZADO",  label: "Finalizado" },
-];
+type StatusOpt = {
+  id: string;
+  name: string;
+  color: string;
+};
 
 type Card = {
-  id: string; scheduledAt: string | Date; type: string; pipelineStage: string;
-  stageEnteredAt: string | Date; status: string;
-  tutor: { name: string }; pet: { name: string } | null; vet: { name: string } | null;
+  id: string;
+  scheduledAt: string | Date;
+  type: string;
+  pipelineStage: string;
+  stageEnteredAt: string | Date;
+  status: string;
+  tutor: { name: string };
+  pet: { name: string } | null;
+  vet: { name: string } | null;
   services: { service: { name: string } }[];
 };
 
-export function EsteiraBoard({ cards }: { cards: Card[] }) {
+export function EsteiraBoard({ cards, statuses }: { cards: Card[]; statuses: StatusOpt[] }) {
   const router = useRouter();
   const [items, setItems] = useState(cards);
 
@@ -34,42 +34,80 @@ export function EsteiraBoard({ cards }: { cards: Card[] }) {
     return `${Math.floor(min / 60)}h${min % 60}m`;
   }
 
-  async function move(id: string, to: string) {
-    setItems((p) => p.map((c) => c.id === id ? { ...c, pipelineStage: to, stageEnteredAt: new Date() } : c));
+  async function move(id: string, toStatus: string) {
+    // Atualiza localmente
+    setItems((p) =>
+      p.map((c) => (c.id === id ? { ...c, status: toStatus, pipelineStage: toStatus, stageEnteredAt: new Date() } : c))
+    );
+    // Envia patch para atualizar tanto status quanto pipelineStage
     await fetch(`/api/appointments/${id}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pipelineStage: to, ...(to === "FINALIZADO" ? { status: "FINALIZADO" } : {}) }),
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: toStatus, pipelineStage: toStatus }),
     });
     router.refresh();
   }
 
-  function onDrop(e: React.DragEvent, to: string) { e.preventDefault(); const id = e.dataTransfer.getData("text/plain"); if (id) move(id, to); }
+  function onDrop(e: React.DragEvent, to: string) {
+    e.preventDefault();
+    const id = e.dataTransfer.getData("text/plain");
+    if (id) move(id, to);
+  }
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2">
-      {STAGES.map((stage) => {
-        const list = items.filter((c) => c.pipelineStage === stage.key);
+    <div className="flex gap-4 overflow-x-auto pb-4 pt-1 items-start">
+      {statuses.map((stage) => {
+        // Filtra appointments por status
+        const list = items.filter((c) => c.status === stage.name || c.pipelineStage === stage.name);
         return (
-          <div key={stage.key} className="card card-pad min-w-[240px] w-72 flex-shrink-0"
-               onDragOver={(e) => e.preventDefault()} onDrop={(e) => onDrop(e, stage.key)}>
+          <div
+            key={stage.id}
+            className="card card-pad min-w-[260px] w-80 flex-shrink-0 bg-slate-50 border-t-4"
+            style={{ borderTopColor: stage.color }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => onDrop(e, stage.name)}
+          >
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold">{stage.label}</h3>
-              <span className="badge-gray">{list.length}</span>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                {stage.name.replace(/_/g, " ").toLowerCase()}
+              </h3>
+              <span
+                className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-soft"
+                style={{ backgroundColor: stage.color }}
+              >
+                {list.length}
+              </span>
             </div>
-            <div className="space-y-2 min-h-[60px]">
+
+            <div className="space-y-2 min-h-[150px] max-h-[60vh] overflow-y-auto pr-1">
               {list.map((c) => (
-                <Link href={`/atendimento/${c.id}`} key={c.id}
-                      draggable onDragStart={(e) => e.dataTransfer.setData("text/plain", c.id)}
-                      className="block rounded-lg border border-slate-200 bg-white p-2 hover:border-brand-300">
-                  <div className="text-xs text-slate-500 flex justify-between">
-                    <span>{new Date(c.scheduledAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
-                    <span className="badge-yellow">{elapsed(c.stageEnteredAt)}</span>
+                <Link
+                  href={`/atendimento/${c.id}`}
+                  key={c.id}
+                  draggable
+                  onDragStart={(e) => e.dataTransfer.setData("text/plain", c.id)}
+                  className="block rounded-xl border border-slate-200 bg-white p-3 hover:border-brand-300 transition-all hover:shadow-soft"
+                >
+                  <div className="text-[10px] text-slate-500 flex justify-between">
+                    <span className="font-semibold text-slate-700">
+                      {new Date(c.scheduledAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    <span className="bg-slate-100 px-1 rounded text-slate-600 font-medium text-[9px] scale-95 origin-right">
+                      {elapsed(c.stageEnteredAt)}
+                    </span>
                   </div>
-                  <div className="font-medium text-sm mt-0.5">{c.pet?.name ?? "Sem pet"}</div>
-                  <div className="text-xs text-slate-500">{c.tutor.name}</div>
-                  <div className="text-xs text-brand-600 mt-1 truncate">{c.services.map((s) => s.service.name).join(", ") || c.type}</div>
+                  <div className="font-bold text-sm text-slate-800 mt-1">{c.pet?.name ?? "Sem pet"}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">{c.tutor.name}</div>
+                  <div className="text-[10px] text-brand-600 font-medium mt-2 truncate bg-brand-50/50 px-1.5 py-0.5 rounded border border-brand-100/30">
+                    {c.services.map((s) => s.service.name).join(", ") || c.type}
+                  </div>
                 </Link>
               ))}
+              {list.length === 0 && (
+                <div className="text-center py-8 text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg bg-white">
+                  Sem agendamentos
+                </div>
+              )}
             </div>
           </div>
         );

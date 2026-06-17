@@ -14,7 +14,13 @@ export default async function PetsPage({ searchParams }: { searchParams: { q?: s
     where: {
       tutor: { tenantId },
       isActive: true,
-      ...(q ? { OR: [{ name: { contains: q } }, { breed: { contains: q } }, { species: { contains: q } }, { tutor: { name: { contains: q } } }] } : {}),
+      ...(q ? { OR: [
+        { name: { contains: q } },
+        { breed: { contains: q } },
+        { species: { contains: q } },
+        { tutor: { name: { contains: q } } },
+        { microchip: { contains: q } }
+      ] } : {}),
     },
     include: { tutor: true },
     orderBy: { name: "asc" }, take: 200,

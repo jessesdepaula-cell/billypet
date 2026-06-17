@@ -13,7 +13,12 @@ export async function GET(req: Request) {
       tutor: { tenantId: ctx.tenantId },
       isActive: true,
       ...(tutorId ? { tutorId } : {}),
-      ...(q ? { OR: [{ name: { contains: q } }, { breed: { contains: q } }, { species: { contains: q } }] } : {}),
+      ...(q ? { OR: [
+        { name: { contains: q } },
+        { breed: { contains: q } },
+        { species: { contains: q } },
+        { microchip: { contains: q } }
+      ] } : {}),
     },
     include: { tutor: true },
     orderBy: { name: "asc" }, take: 200,
@@ -34,7 +39,7 @@ export async function POST(req: Request) {
       neutered: typeof b.neutered === "boolean" ? b.neutered : null,
       birthDate: b.birthDate ? new Date(b.birthDate) : null,
       weightKg: b.weightKg ? Number(b.weightKg) : null,
-      color: b.color, notes: b.notes, medicalAlert: b.medicalAlert,
+      color: b.color, microchip: b.microchip, notes: b.notes, medicalAlert: b.medicalAlert,
       tutorId: b.tutorId,
     },
   });

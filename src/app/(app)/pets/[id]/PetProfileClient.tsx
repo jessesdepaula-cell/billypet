@@ -1,0 +1,706 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { PetForm } from "../PetForm";
+import { fmtDate, fmtDateTime, ageFromBirth } from "@/lib/utils";
+import {
+  Syringe,
+  FlaskConical,
+  BedDouble,
+  Stethoscope,
+  Paperclip,
+  Trash2,
+  Plus,
+  Calendar,
+  AlertTriangle,
+  FileText,
+  User,
+  HeartCrack,
+  Download,
+  Eye,
+  Check,
+  X,
+} from "lucide-react";
+
+type TutorOpt = { id: string; name: string };
+type ProtocolTemplate = {
+  id: string;
+  name: string;
+  type: string;
+  notes: string | null;
+  doses: { name: string; daysOffset: number }[];
+};
+
+type PetProfileClientProps = {
+  pet: any;
+  tutors: TutorOpt[];
+  protocolTemplates: ProtocolTemplate[];
+};
+
+export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates }: PetProfileClientProps) {
+  const router = useRouter();
+  const [pet, setPet] = useState(initialPet);
+  const [activeTab, setActiveTab] = useState("ficha");
+  const [obitoLoading, setObitoLoading] = useState(false);
+
+  // Attachments state
+  const [attachments, setAttachments] = useState<any[]>(initialPet.attachments || []);
+  const [uploading, setUploading] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Protocols state
+  const [protocols, setProtocols] = useState<any[]>(initialPet.protocols || []);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+  const [protocolStartDate, setProtocolStartDate] = useState(new Date().toISOString().slice(0, 10));
+  const [protocolNotes, setProtocolNotes] = useState("");
+  const [protocolLoading, setProtocolLoading] = useState(false);
+  const [protocolError, setProtocolError] = useState<string | null>(null);
+  const [showNewProtocol, setShowNewProtocol] = useState(false);
+
+  // Doses updating
+  const [doseActionLoading, setDoseActionLoading] = useState<string | null>(null);
+
+  async function handleRegisterObito() {
+    if (!confirm("ATENCAO: Registrar obito para este animal? Esta acao alterara o status do animal e impedira novos agendamentos sem confirmacao. Tem certeza?")) return;
+    setObitoLoading(true);
+    try {
+      const res = await fetch(`/api/pets/${pet.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deceased: true, deceasedAt: new Date().toISOString() }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setPet((p: any) => ({ ...p, deceased: true, deceasedAt: updated.deceasedAt }));
+        router.refresh();
+      }
+    } catch (err) {
+      alert("Erro ao registrar obito");
+    } finally {
+      setObitoLoading(false);
+    }
+  }
+
+  // Attachment upload
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Limite de 4MB (Vercel serverless payload limit é 4.5MB)
+    const MAX_SIZE = 4 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setUploadError("O arquivo é muito grande (máximo de 4MB). Por favor, comprima o PDF ou use um arquivo menor.");
+      e.target.value = "";
+      return;
+    }
+
+    setUploading(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("name", fileName || file.name);
+
+      const res = await fetch(`/api/pets/${pet.id}/attachments`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || "Erro ao enviar arquivo");
+      }
+
+      // Reload attachments
+      const attRes = await fetch(`/api/pets/${pet.id}/attachments`);
+      if (attRes.ok) {
+        const list = await attRes.json();
+        setAttachments(list);
+      }
+      setFileName("");
+      e.target.value = "";
+    } catch (err: any) {
+      setUploadError(err.message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleDeleteAttachment(attachmentId: string) {
+    if (!confirm("Excluir este anexo?")) return;
+    try {
+      const res = await fetch(`/api/pets/${pet.id}/attachments/${attachmentId}`, { method: "DELETE" });
+      if (res.ok) {
+        setAttachments((prev) => prev.filter((x) => x.id !== attachmentId));
+      }
+    } catch (err) {
+      alert("Erro ao excluir");
+    }
+  }
+
+  // Protocol creation
+  async function handleStartProtocol(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedTemplateId) return;
+    setProtocolLoading(true);
+    setProtocolError(null);
+
+    const template = protocolTemplates.find((t) => t.id === selectedTemplateId);
+    if (!template) return;
+
+    try {
+      const res = await fetch("/api/protocols", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          petId: pet.id,
+          templateId: selectedTemplateId,
+          name: template.name,
+          type: template.type,
+          startDate: protocolStartDate,
+          notes: protocolNotes,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Falha ao criar protocolo");
+
+      // Reload protocols
+      const pRes = await fetch(`/api/protocols?petId=${pet.id}`);
+      if (pRes.ok) {
+        const data = await pRes.json();
+        setProtocols(data);
+      }
+
+      setShowNewProtocol(false);
+      setSelectedTemplateId("");
+      setProtocolNotes("");
+    } catch (err: any) {
+      setProtocolError(err.message);
+    } finally {
+      setProtocolLoading(false);
+    }
+  }
+
+  // Dose application toggle
+  async function handleToggleDose(protocolId: string, doseId: string, currentlyApplied: boolean) {
+    setDoseActionLoading(doseId);
+    try {
+      const appliedAt = currentlyApplied ? null : new Date().toISOString();
+      const res = await fetch(`/api/protocols/${protocolId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_dose",
+          doseId,
+          appliedAt,
+        }),
+      });
+
+      if (res.ok) {
+        // Reload protocols
+        const pRes = await fetch(`/api/protocols?petId=${pet.id}`);
+        if (pRes.ok) {
+          const data = await pRes.json();
+          setProtocols(data);
+        }
+      }
+    } catch (err) {
+      alert("Erro ao atualizar dose");
+    } finally {
+      setDoseActionLoading(null);
+    }
+  }
+
+  const tabs = [
+    { id: "ficha", label: "Ficha Geral", icon: FileText },
+    { id: "prontuario", label: "Prontuario & Historico", icon: Stethoscope },
+    { id: "protocolos", label: "Vacinas & Protocolos", icon: Syringe },
+    { id: "exames", label: "Exames & Anexos", icon: FlaskConical },
+    { id: "internacoes", label: "Internacoes", icon: BedDouble },
+  ];
+
+  return (
+    <>
+      {/* Profile Header */}
+      <div className="card bg-white p-5 border border-slate-200 rounded-2xl flex flex-wrap items-center justify-between gap-4 mb-5 shadow-soft">
+        <div className="flex items-center gap-4">
+          <div className={`h-16 w-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold ${pet.deceased ? "bg-red-500" : "bg-brand-600"}`}>
+            {pet.name.slice(0, 2).toUpperCase()}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-800">{pet.name}</h1>
+              {pet.deceased ? (
+                <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
+                  <HeartCrack className="h-3 w-3" /> Obito
+                </span>
+              ) : (
+                <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                  Ativo
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-slate-500 mt-1">
+              {pet.species} {pet.breed ? ` - ${pet.breed}` : ""} • Sexo: {pet.sex || "-"} • Idade: {ageFromBirth(pet.birthDate)} {pet.microchip ? ` • Microchip: ${pet.microchip}` : ""}
+            </div>
+            <div className="text-xs text-slate-400 mt-1">
+              Tutor: <span className="text-brand-600 font-medium">{pet.tutor.name}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          {!pet.deceased && (
+            <button
+              onClick={handleRegisterObito}
+              disabled={obitoLoading}
+              className="btn-outline border-red-300 text-red-600 hover:bg-red-50 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors"
+            >
+              <HeartCrack className="h-4 w-4" />
+              {obitoLoading ? "Registrando..." : "Registrar Obito"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {pet.medicalAlert && (
+        <div className="card bg-red-50 border-red-200 px-4 py-3 mb-4 text-red-700 text-sm flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
+          <div>
+            <b>Alerta medico:</b> {pet.medicalAlert}
+          </div>
+        </div>
+      )}
+
+      {/* Tabs Navigation */}
+      <div className="flex border-b border-slate-200 mb-6 gap-2 overflow-x-auto pb-1">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap ${
+                active
+                  ? "border-b-2 border-brand-600 text-brand-600 bg-brand-50/50"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab contents */}
+      <div className="grid lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 space-y-5">
+          {activeTab === "ficha" && (
+            <PetForm initial={{ ...pet, birthDate: pet.birthDate ?? null }} tutors={tutors} />
+          )}
+
+          {activeTab === "prontuario" && (
+            <div className="space-y-4">
+              <div className="card card-pad bg-white">
+                <h2 className="font-semibold mb-4 text-slate-800 flex items-center gap-2">
+                  <Stethoscope className="h-4 w-4 text-brand-500" /> Prontuario Clinico Completo
+                </h2>
+                {pet.medicalRecords.length === 0 ? (
+                  <p className="text-sm text-slate-500 py-6 text-center">Sem fichas clinicas registradas.</p>
+                ) : (
+                  <div className="relative border-l-2 border-slate-200 pl-4 ml-2 space-y-6">
+                    {pet.medicalRecords.map((m: any) => (
+                      <div key={m.id} className="relative">
+                        <div className="absolute -left-[23px] top-1.5 h-3.5 w-3.5 rounded-full bg-brand-500 border-2 border-white shadow-soft" />
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+                          <div className="flex justify-between items-center text-xs text-slate-500 border-b border-slate-200 pb-1.5 mb-2">
+                            <span className="font-semibold flex items-center gap-1">
+                              <Calendar className="h-3 w-3" /> {fmtDateTime(m.createdAt)}
+                            </span>
+                            <span className="flex items-center gap-1 font-medium text-brand-600">
+                              <User className="h-3 w-3" /> Vet: {m.vet.name}
+                            </span>
+                          </div>
+                          {m.complaint && (
+                            <div className="text-sm text-slate-700">
+                              <b className="text-slate-800">Queixa principal:</b> {m.complaint}
+                            </div>
+                          )}
+                          {m.anamnesis && (
+                            <div className="text-sm text-slate-700">
+                              <b className="text-slate-800">Anamnese:</b> {m.anamnesis}
+                            </div>
+                          )}
+                          {m.physicalExam && (
+                            <div className="text-sm text-slate-700">
+                              <b className="text-slate-800">Exame Fisico:</b> {m.physicalExam}
+                            </div>
+                          )}
+                          {m.diagnosis && (
+                            <div className="text-sm text-slate-700 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
+                              <b className="text-emerald-900">Diagnostico:</b> {m.diagnosis}
+                            </div>
+                          )}
+                          {m.conduct && (
+                            <div className="text-sm text-slate-700">
+                              <b className="text-slate-800">Conduta:</b> {m.conduct}
+                            </div>
+                          )}
+                          {m.prescriptions.length > 0 && (
+                            <div className="bg-brand-50/50 p-3 rounded-lg border border-brand-100 mt-2">
+                              <b className="text-xs text-brand-800 block mb-1">Receita Medica:</b>
+                              <ul className="text-xs space-y-1 text-slate-700 list-disc list-inside">
+                                {m.prescriptions.map((r: any) => (
+                                  <li key={r.id}>
+                                    <strong className="text-slate-800">{r.medication}</strong> • {r.dosage} • {r.frequency} ({r.duration})
+                                    {r.guidelines && <span className="text-slate-500 block pl-4">Obs: {r.guidelines}</span>}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "protocolos" && (
+            <div className="space-y-4">
+              {/* Active Protocols list */}
+              <div className="card card-pad bg-white">
+                <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
+                  <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <Syringe className="h-4 w-4 text-brand-600" /> Protocolos Ativos e Previstos
+                  </h2>
+                  <button onClick={() => setShowNewProtocol(true)} className="btn-primary text-xs flex items-center gap-1">
+                    <Plus className="h-3.5 w-3.5" /> Iniciar Protocolo
+                  </button>
+                </div>
+
+                {showNewProtocol && (
+                  <form onSubmit={handleStartProtocol} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 mb-4">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                      <h4 className="font-medium text-sm text-slate-700">Iniciar Novo Protocolo</h4>
+                      <button type="button" onClick={() => setShowNewProtocol(false)} className="text-slate-400 hover:text-slate-600">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="label text-xs">Modelo de Protocolo *</label>
+                        <select className="input text-xs" required value={selectedTemplateId} onChange={(e) => setSelectedTemplateId(e.target.value)}>
+                          <option value="">Selecione um modelo...</option>
+                          {protocolTemplates.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.name} ({t.type})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="label text-xs">Data de Inicio *</label>
+                        <input className="input text-xs" type="date" required value={protocolStartDate} onChange={(e) => setProtocolStartDate(e.target.value)} />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="label text-xs">Observacoes Adicionais</label>
+                        <textarea className="input text-xs" rows={2} value={protocolNotes} onChange={(e) => setProtocolNotes(e.target.value)} />
+                      </div>
+                    </div>
+
+                    {protocolError && <div className="text-red-600 text-xs mt-1">{protocolError}</div>}
+
+                    <div className="flex gap-2 justify-end">
+                      <button className="btn-primary text-xs" disabled={protocolLoading}>
+                        {protocolLoading ? "Iniciando..." : "Confirmar e Iniciar"}
+                      </button>
+                      <button type="button" className="btn-outline text-xs" onClick={() => setShowNewProtocol(false)}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {protocols.length === 0 ? (
+                  <p className="text-sm text-slate-500 py-6 text-center">Nenhum protocolo ativo para este pet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {protocols.map((pr) => (
+                      <div key={pr.id} className="border border-slate-200 rounded-xl p-4 bg-slate-55">
+                        <div className="flex justify-between items-start border-b border-slate-200 pb-2 mb-3">
+                          <div>
+                            <span className="bg-brand-100 text-brand-800 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider mb-1 inline-block">
+                              {pr.type}
+                            </span>
+                            <h3 className="font-semibold text-slate-800 text-sm">{pr.name}</h3>
+                            <div className="text-[10px] text-slate-500">Inicio: {fmtDate(pr.startDate)}</div>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            pr.status === "CONCLUIDO" ? "bg-emerald-100 text-emerald-800" : "bg-blue-100 text-blue-800"
+                          }`}>
+                            {pr.status}
+                          </span>
+                        </div>
+
+                        {pr.notes && <p className="text-xs text-slate-500 mb-3 bg-white p-2 rounded border border-slate-100">Obs: {pr.notes}</p>}
+
+                        <div className="space-y-2">
+                          <h4 className="text-xs font-semibold text-slate-700">Doses / Aplicacoes:</h4>
+                          <div className="grid sm:grid-cols-2 gap-2">
+                            {pr.doses.map((dose: any) => {
+                              const isApplied = dose.status === "APLICADO";
+                              const isLate = !isApplied && new Date(dose.dueDate) < new Date();
+                              return (
+                                <div key={dose.id} className={`flex items-center justify-between border rounded-lg p-2 text-xs bg-white ${
+                                  isApplied ? "border-emerald-200 bg-emerald-50/20" : isLate ? "border-red-200 bg-red-50/20" : "border-slate-200"
+                                }`}>
+                                  <div>
+                                    <div className="font-semibold text-slate-800">{dose.notes || "Dose"}</div>
+                                    <div className="text-[10px] text-slate-500">Previsao: {fmtDate(dose.dueDate)}</div>
+                                    {isApplied && dose.appliedAt && (
+                                      <div className="text-[9px] text-emerald-700 font-semibold">Aplicado em: {fmtDate(dose.appliedAt)}</div>
+                                    )}
+                                    {isLate && (
+                                      <div className="text-[9px] text-red-600 font-semibold flex items-center gap-0.5">
+                                        <AlertTriangle className="h-2.5 w-2.5" /> Atrasada!
+                                      </div>
+                                    )}
+                                  </div>
+                                  <button
+                                    onClick={() => handleToggleDose(pr.id, dose.id, isApplied)}
+                                    disabled={doseActionLoading === dose.id}
+                                    className={`p-1.5 rounded-lg border transition-colors flex items-center gap-1 ${
+                                      isApplied
+                                        ? "bg-emerald-100 border-emerald-300 text-emerald-800 hover:bg-emerald-200"
+                                        : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                                    }`}
+                                  >
+                                    {isApplied ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+                                    <span>{isApplied ? "Aplicada" : "Aplicar"}</span>
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "exames" && (
+            <div className="space-y-4">
+              {/* Exames List */}
+              <div className="card card-pad bg-white">
+                <h2 className="font-semibold mb-4 text-slate-800 flex items-center gap-2">
+                  <FlaskConical className="h-4 w-4 text-brand-500" /> Solicitacoes de Exames
+                </h2>
+                <div className="overflow-x-auto">
+                  <table className="bp-table text-xs">
+                    <thead>
+                      <tr>
+                        <th>Data</th>
+                        <th>Exame</th>
+                        <th>Status</th>
+                        <th>Resultado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pet.exams.map((e: any) => (
+                        <tr key={e.id}>
+                          <td>{fmtDate(e.requestedAt)}</td>
+                          <td className="font-medium">{e.name}</td>
+                          <td>
+                            <span className="badge-gray">{e.status.toLowerCase().replace(/_/g, " ")}</span>
+                          </td>
+                          <td>
+                            {e.result ? (
+                              <span className="text-slate-600 truncate max-w-xs inline-block" title={e.result}>
+                                {e.result.slice(0, 50)}
+                                {e.result.length > 50 ? "..." : ""}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">Pendente</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                      {pet.exams.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="text-center py-4 text-slate-500">
+                            Nenhum exame solicitado.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Attachments Section */}
+              <div className="card card-pad bg-white">
+                <h2 className="font-semibold mb-3 text-slate-800 flex items-center gap-2">
+                  <Paperclip className="h-4 w-4 text-brand-600" /> Documentos e Anexos
+                </h2>
+                <p className="text-xs text-slate-500 mb-4">
+                  Anexe radiografias, laudos de exames externos, termos de internacao assinados, receitas ou fotos clinicas.
+                </p>
+
+                {/* Upload form */}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
+                  <h4 className="font-semibold text-xs text-slate-700 mb-2">Anexar Novo Arquivo</h4>
+                  <div className="grid sm:grid-cols-2 gap-3 items-end">
+                    <div>
+                      <label className="label text-[10px]">Apelido do Arquivo (opcional)</label>
+                      <input className="input text-xs" value={fileName} onChange={(e) => setFileName(e.target.value)} placeholder="Ex: Termo Internação" />
+                    </div>
+                    <div>
+                      <label className="label text-[10px]">Selecionar Arquivo</label>
+                      <input type="file" onChange={handleFileUpload} disabled={uploading} className="block w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 file:cursor-pointer hover:file:bg-brand-100" />
+                    </div>
+                  </div>
+                  {uploading && <p className="text-xs text-brand-600 font-semibold mt-2 animate-pulse">Enviando arquivo para o banco de dados...</p>}
+                  {uploadError && <p className="text-xs text-red-600 font-semibold mt-2">{uploadError}</p>}
+                </div>
+
+                {/* Attachments grid */}
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {attachments.map((att) => (
+                    <div key={att.id} className="border border-slate-200 rounded-xl p-3 bg-white flex items-center justify-between text-xs hover:border-brand-200 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <div className="h-9 w-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-slate-800 truncate max-w-[150px]" title={att.name}>
+                            {att.name}
+                          </div>
+                          <div className="text-[10px] text-slate-500">
+                            {(att.sizeBytes / 1024).toFixed(1)} KB • {fmtDate(att.createdAt)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <a
+                          href={`/api/pets/${pet.id}/attachments/${att.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-1.5 text-slate-500 hover:text-brand-600 bg-slate-50 hover:bg-brand-50 rounded-lg border border-slate-200 transition-colors"
+                          title="Visualizar"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </a>
+                        <button
+                          onClick={() => handleDeleteAttachment(att.id)}
+                          className="p-1.5 text-slate-500 hover:text-red-600 bg-slate-50 hover:bg-red-50 rounded-lg border border-slate-200 transition-colors"
+                          title="Excluir"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {attachments.length === 0 && <p className="text-xs text-slate-500 py-3 col-span-2 text-center bg-slate-50 rounded-lg">Nenhum anexo cadastrado.</p>}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "internacoes" && (
+            <div className="card card-pad bg-white">
+              <h2 className="font-semibold mb-4 text-slate-800 flex items-center gap-2">
+                <BedDouble className="h-4 w-4 text-brand-500" /> Historico de Internacao
+              </h2>
+              {pet.hospitalizations.length === 0 ? (
+                <p className="text-sm text-slate-500 py-6 text-center">Nunca internado.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="bp-table text-xs">
+                    <thead>
+                      <tr>
+                        <th>Admitido em</th>
+                        <th>Motivo</th>
+                        <th>Status</th>
+                        <th>Veterinario</th>
+                        <th>Notas</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pet.hospitalizations.map((h: any) => (
+                        <tr key={h.id}>
+                          <td>{fmtDateTime(h.admittedAt)}</td>
+                          <td className="font-medium">{h.reason}</td>
+                          <td>
+                            <span className={`badge-gray ${h.status === "ATIVA" ? "bg-orange-100 text-orange-800 font-bold" : ""}`}>
+                              {h.status.toLowerCase()}
+                            </span>
+                          </td>
+                          <td>{h.vet.name}</td>
+                          <td className="max-w-xs truncate">{h.notes || "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar Info Summary */}
+        <div className="space-y-5">
+          <div className="card card-pad bg-white">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Syringe className="h-4 w-4 text-accent-500" /> Vacinas Aplicadas
+            </h3>
+            {pet.vaccines.length === 0 ? (
+              <p className="text-xs text-slate-500">Sem vacinas registradas.</p>
+            ) : (
+              <ul className="space-y-1.5 text-xs">
+                {pet.vaccines.map((v: any) => (
+                  <li key={v.id} className="flex flex-col border-b border-slate-100 pb-1.5 last:border-0">
+                    <span className="font-semibold text-slate-700">{v.name}</span>
+                    <span className="text-[10px] text-slate-500 flex justify-between mt-0.5">
+                      <span>Aplicada: {fmtDate(v.appliedAt)}</span>
+                      {v.nextDose && <span className="font-medium text-brand-600">Proxima: {fmtDate(v.nextDose)}</span>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="card card-pad bg-white">
+            <h3 className="font-semibold mb-3">Atendimentos Agendados</h3>
+            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+              {pet.appointments.slice(0, 10).map((a: any) => (
+                <div key={a.id} className="border border-slate-100 rounded-lg p-2 text-xs hover:bg-slate-50 transition-colors">
+                  <div className="flex justify-between items-center font-medium">
+                    <span>{fmtDate(a.scheduledAt)} - {new Date(a.scheduledAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span className="text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-600 font-semibold">{a.status.replace(/_/g, " ").toLowerCase()}</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-1">
+                    Tipo: {a.type} • Vet: {a.vet?.name ?? "-"}
+                  </div>
+                </div>
+              ))}
+              {pet.appointments.length === 0 && <p className="text-xs text-slate-500">Sem registros.</p>}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

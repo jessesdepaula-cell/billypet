@@ -19,7 +19,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       neutered: typeof b.neutered === "boolean" ? b.neutered : null,
       birthDate: b.birthDate ? new Date(b.birthDate) : null,
       weightKg: b.weightKg !== undefined && b.weightKg !== "" ? Number(b.weightKg) : null,
-      color: b.color, notes: b.notes, medicalAlert: b.medicalAlert,
+      color: b.color, microchip: b.microchip, notes: b.notes, medicalAlert: b.medicalAlert,
+      deceased: b.deceased !== undefined ? !!b.deceased : undefined,
+      deceasedAt: b.deceasedAt !== undefined ? (b.deceasedAt ? new Date(b.deceasedAt) : null) : undefined,
     },
   });
   await prisma.auditLog.create({ data: { tenantId: ctx.tenantId, userId: ctx.session.id, action: "UPDATE", entity: "Pet", entityId: p.id, details: p.name } });
