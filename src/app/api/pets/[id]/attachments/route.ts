@@ -64,6 +64,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
               "image/gif",
             ],
             maximumSizeInBytes: 50 * 1024 * 1024,
+            addRandomSuffix: true,
             tokenPayload: JSON.stringify({
               petId: params.id,
               tenantId: ctx.tenantId,
