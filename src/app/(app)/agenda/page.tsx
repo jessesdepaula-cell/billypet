@@ -18,19 +18,36 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
   const end = view === "day" ? new Date(new Date(start).setHours(23,59,59,999)) : addDays(start, 7);
   const vetId = searchParams.vet || undefined;
 
-  const [appts, vets, statuses] = await Promise.all([
+  const [appts, vets, initialStatuses] = await Promise.all([
     prisma.appointment.findMany({
       where: {
         unit: { tenantId },
         scheduledAt: { gte: start, lt: end },
         ...(vetId ? { vetId } : {}),
       },
-      include: { tutor: true, pet: true, vet: true, services: { include: { service: true } } },
+      include: { tutor: true, pet: true, vet: true, services: { include: { service: true } }, collaborators: { include: { collaborator: true } } },
       orderBy: { scheduledAt: "asc" },
     }),
     prisma.user.findMany({ where: { tenantId, role: "VETERINARIO", isActive: true }, orderBy: { name: "asc" } }),
-    prisma.appointmentStatus.findMany({ where: { tenantId } }),
+    prisma.appointmentStatus.findMany({ where: { tenantId }, orderBy: { position: "asc" } }),
   ]);
+
+  let statuses = initialStatuses;
+  if (statuses.length === 0) {
+    const defaults = [
+      { tenantId, name: "AGENDADO", color: "#3b82f6", position: 0 },
+      { tenantId, name: "CONFIRMADO", color: "#10b981", position: 1 },
+      { tenantId, name: "EM_ATENDIMENTO", color: "#f59e0b", position: 2 },
+      { tenantId, name: "FINALIZADO", color: "#22c55e", position: 3 },
+      { tenantId, name: "CANCELADO", color: "#ef4444", position: 4 },
+      { tenantId, name: "NAO_COMPARECEU", color: "#64748b", position: 5 },
+    ];
+    await prisma.appointmentStatus.createMany({ data: defaults });
+    statuses = await prisma.appointmentStatus.findMany({
+      where: { tenantId },
+      orderBy: { position: "asc" },
+    });
+  }
 
   const days = view === "day" ? [start] : Array.from({ length: 7 }, (_, i) => addDays(start, i));
   const isoDate = (d: Date) => d.toISOString().slice(0, 10);
@@ -71,7 +88,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
                     const statusColor = statuses.find((s) => s.name === a.status)?.color ?? "#94a3b8";
                     return (
                       <li key={a.id} className="rounded-xl border border-slate-200 bg-white p-3 hover:border-brand-300 cursor-pointer shadow-soft transition-all">
-                        <Link href={`/atendimento/${a.id}`}>
+                        <Link href={`/atendimento/${a.id}`} className="block">
                           <div className="flex items-center justify-between gap-1 mb-1">
                             <span className="font-bold text-xs text-slate-800">{fmtTime(a.scheduledAt)}</span>
                             <span
@@ -82,7 +99,9 @@ export default async function AgendaPage({ searchParams }: { searchParams: { dat
                             </span>
                           </div>
                           <div className="text-xs font-bold text-slate-800">{a.pet?.name ?? "Sem pet"}</div>
-                          <div className="text-[10px] text-slate-500">{a.tutor.name}</div>
+                          <div className="text-[10px] text-slate-500 truncate">
+                            {a.collaborators.map((c) => c.collaborator.name).join(", ") || a.vet?.name || "Sem profissional"}
+                          </div>
                           <div className="text-[9px] text-brand-600 font-medium mt-1 truncate bg-brand-50/50 px-1 py-0.5 rounded border border-brand-100/35">
                             {a.services.map((s) => s.service.name).join(", ") || a.type}
                           </div>

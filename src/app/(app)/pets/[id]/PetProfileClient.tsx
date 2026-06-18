@@ -46,9 +46,10 @@ type PetProfileClientProps = {
   pet: any;
   tutors: TutorOpt[];
   protocolTemplates: ProtocolTemplate[];
+  statuses: any[];
 };
 
-export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates }: PetProfileClientProps) {
+export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, statuses }: PetProfileClientProps) {
   const router = useRouter();
   const [pet, setPet] = useState(initialPet);
   const [activeTab, setActiveTab] = useState("ficha");
@@ -846,7 +847,12 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates }:
                 <div key={a.id} className="border border-slate-100 rounded-lg p-2 text-xs hover:bg-slate-50 transition-colors">
                   <div className="flex justify-between items-center font-medium">
                     <span>{fmtDate(a.scheduledAt)} - {new Date(a.scheduledAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
-                    <span className="text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-600 font-semibold">{a.status.replace(/_/g, " ").toLowerCase()}</span>
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[9px] text-white font-bold uppercase shrink-0"
+                      style={{ backgroundColor: statuses.find((s) => s.name === a.status)?.color ?? "#94a3b8" }}
+                    >
+                      {a.status.replace(/_/g, " ").toLowerCase()}
+                    </span>
                   </div>
                   <div className="text-[10px] text-slate-500 mt-1">
                     Tipo: {a.type} • Vet: {a.vet?.name ?? "-"}

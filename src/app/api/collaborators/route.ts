@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireTenantApi, isTenantError } from "@/lib/tenant";
+import { syncCollaborators } from "@/lib/collaborator-sync";
 
 export async function GET(req: Request) {
   const ctx = await requireTenantApi();
   if (isTenantError(ctx)) return NextResponse.json({ error: ctx.error }, { status: ctx.status });
+
+  // Sync users to collaborators first
+  await syncCollaborators(ctx.tenantId);
 
   const list = await prisma.collaborator.findMany({
     where: { tenantId: ctx.tenantId },

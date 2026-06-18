@@ -2,11 +2,15 @@ import { prisma } from "@/lib/db";
 import { requireModule } from "@/lib/tenant";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AppointmentForm } from "./AppointmentForm";
+import { syncCollaborators } from "@/lib/collaborator-sync";
 
 export const dynamic = "force-dynamic";
 
 export default async function NovoAgendamentoPage({ searchParams }: { searchParams: { date?: string } }) {
   const { tenantId } = await requireModule("agenda");
+  
+  // Sync users to collaborators first
+  await syncCollaborators(tenantId);
   
   const [tutors, pets, collaborators, services, initialStatuses] = await Promise.all([
     prisma.tutor.findMany({ where: { tenantId, isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),

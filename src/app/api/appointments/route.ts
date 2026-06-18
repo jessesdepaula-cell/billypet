@@ -59,6 +59,8 @@ export async function POST(req: Request) {
       scheduledAt: new Date(b.scheduledAt),
       type: b.type || "CONSULTA",
       status: b.status || "AGENDADO",
+      pipelineStage: b.status || "AGENDADO",
+      stageEnteredAt: new Date(),
       notes: b.notes || null,
       services: b.serviceIds?.length ? { create: b.serviceIds.map((id: string) => ({ serviceId: id, price: 0 })) } : undefined,
       collaborators: b.collaboratorIds?.length ? {

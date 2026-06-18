@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function AtendimentoPage() {
   const { tenantId } = await requireModule("atendimento");
 
-  const [list, statuses] = await Promise.all([
+  const [list, initialStatuses] = await Promise.all([
     prisma.appointment.findMany({
       where: {
         unit: { tenantId },
@@ -18,8 +18,25 @@ export default async function AtendimentoPage() {
       include: { tutor: true, pet: true, vet: true, services: { include: { service: true } } },
       orderBy: { scheduledAt: "asc" }, take: 100,
     }),
-    prisma.appointmentStatus.findMany({ where: { tenantId } }),
+    prisma.appointmentStatus.findMany({ where: { tenantId }, orderBy: { position: "asc" } }),
   ]);
+
+  let statuses = initialStatuses;
+  if (statuses.length === 0) {
+    const defaults = [
+      { tenantId, name: "AGENDADO", color: "#3b82f6", position: 0 },
+      { tenantId, name: "CONFIRMADO", color: "#10b981", position: 1 },
+      { tenantId, name: "EM_ATENDIMENTO", color: "#f59e0b", position: 2 },
+      { tenantId, name: "FINALIZADO", color: "#22c55e", position: 3 },
+      { tenantId, name: "CANCELADO", color: "#ef4444", position: 4 },
+      { tenantId, name: "NAO_COMPARECEU", color: "#64748b", position: 5 },
+    ];
+    await prisma.appointmentStatus.createMany({ data: defaults });
+    statuses = await prisma.appointmentStatus.findMany({
+      where: { tenantId },
+      orderBy: { position: "asc" },
+    });
+  }
 
   return (
     <>

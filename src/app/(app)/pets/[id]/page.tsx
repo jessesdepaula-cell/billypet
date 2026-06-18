@@ -24,16 +24,34 @@ export default async function PetDetailPage({ params }: { params: { id: string }
   
   if (!p) return notFound();
   
-  const [tutors, protocolTemplates] = await Promise.all([
+  const [tutors, protocolTemplates, initialStatuses] = await Promise.all([
     prisma.tutor.findMany({ where: { tenantId, isActive: true }, select: { id: true, name: true } }),
     prisma.protocolTemplate.findMany({
       where: { tenantId, isActive: true },
       include: { doses: { orderBy: { daysOffset: "asc" } } },
       orderBy: { name: "asc" },
     }),
+    prisma.appointmentStatus.findMany({ where: { tenantId }, orderBy: { position: "asc" } }),
   ]);
 
+  let statuses = initialStatuses;
+  if (statuses.length === 0) {
+    const defaults = [
+      { tenantId, name: "AGENDADO", color: "#3b82f6", position: 0 },
+      { tenantId, name: "CONFIRMADO", color: "#10b981", position: 1 },
+      { tenantId, name: "EM_ATENDIMENTO", color: "#f59e0b", position: 2 },
+      { tenantId, name: "FINALIZADO", color: "#22c55e", position: 3 },
+      { tenantId, name: "CANCELADO", color: "#ef4444", position: 4 },
+      { tenantId, name: "NAO_COMPARECEU", color: "#64748b", position: 5 },
+    ];
+    await prisma.appointmentStatus.createMany({ data: defaults });
+    statuses = await prisma.appointmentStatus.findMany({
+      where: { tenantId },
+      orderBy: { position: "asc" },
+    });
+  }
+
   return (
-    <PetProfileClient pet={p} tutors={tutors} protocolTemplates={protocolTemplates as any} />
+    <PetProfileClient pet={p} tutors={tutors} protocolTemplates={protocolTemplates as any} statuses={statuses} />
   );
 }

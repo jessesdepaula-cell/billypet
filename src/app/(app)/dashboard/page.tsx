@@ -33,6 +33,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
     paymentMix,
     topServices,
     protocolDoses, // Nova query para lembretes de protocolos
+    initialStatuses, // Query para status de agendamento
   ] = await Promise.all([
     prisma.appointment.findMany({
       where: { ...unitFilter, scheduledAt: { gte: start, lte: end } },
@@ -76,7 +77,25 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
       include: { protocol: { include: { pet: { include: { tutor: true } } } } },
       orderBy: { dueDate: "asc" },
     }),
+    prisma.appointmentStatus.findMany({ where: { tenantId }, orderBy: { position: "asc" } }),
   ]);
+
+  let statuses = initialStatuses;
+  if (statuses.length === 0) {
+    const defaults = [
+      { tenantId, name: "AGENDADO", color: "#3b82f6", position: 0 },
+      { tenantId, name: "CONFIRMADO", color: "#10b981", position: 1 },
+      { tenantId, name: "EM_ATENDIMENTO", color: "#f59e0b", position: 2 },
+      { tenantId, name: "FINALIZADO", color: "#22c55e", position: 3 },
+      { tenantId, name: "CANCELADO", color: "#ef4444", position: 4 },
+      { tenantId, name: "NAO_COMPARECEU", color: "#64748b", position: 5 },
+    ];
+    await prisma.appointmentStatus.createMany({ data: defaults });
+    statuses = await prisma.appointmentStatus.findMany({
+      where: { tenantId },
+      orderBy: { position: "asc" },
+    });
+  }
 
   const totalSalesToday = todaySales.reduce((s, x) => s + x.total, 0);
   const totalPayable = payable.reduce((s, x) => s + x.amount, 0);
@@ -192,7 +211,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
                         </td>
                         <td>{a.services.map((s) => s.service.name).join(", ") || a.type}</td>
                         <td>{a.vet?.name ?? "-"}</td>
-                        <td><StatusBadge value={a.status} /></td>
+                        <td><StatusBadge value={a.status} statuses={statuses} /></td>
                       </tr>
                     ))}
                   </tbody>
@@ -362,14 +381,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   );
 }
 
-function StatusBadge({ value }: { value: string }) {
-  const map: Record<string, string> = {
-    AGENDADO: "badge-gray",
-    CONFIRMADO: "badge-blue",
-    EM_ATENDIMENTO: "badge-orange",
-    FINALIZADO: "badge-green",
-    CANCELADO: "badge-red",
-    NAO_COMPARECEU: "badge-yellow",
-  };
-  return <span className={map[value] ?? "badge-gray"}>{value.replace(/_/g, " ").toLowerCase()}</span>;
+function StatusBadge({ value, statuses }: { value: string; statuses: any[] }) {
+  const statusObj = statuses.find((s) => s.name === value);
+  const color = statusObj?.color ?? "#94a3b8";
+  return (
+    <span
+      className="px-2 py-0.5 rounded text-[10px] text-white font-bold uppercase shrink-0"
+      style={{ backgroundColor: color }}
+    >
+      {value.replace(/_/g, " ").toLowerCase()}
+    </span>
+  );
 }

@@ -11,17 +11,37 @@ export const dynamic = "force-dynamic";
 
 export default async function TutorDetailPage({ params }: { params: { id: string } }) {
   const { tenantId } = await requireModule("tutores");
-  const t = await prisma.tutor.findFirst({
-    where: { id: params.id, tenantId },
-    include: {
-      pets: { orderBy: { name: "asc" } },
-      loyaltyTransactions: { orderBy: { createdAt: "desc" } },
-      sales: { orderBy: { createdAt: "desc" }, take: 10, include: { items: true } },
-      appointments: { orderBy: { scheduledAt: "desc" }, take: 10, include: { pet: true, services: { include: { service: true } } } },
-      accountsReceivable: { orderBy: { dueDate: "desc" }, take: 10 },
-    },
-  });
+  const [t, initialStatuses] = await Promise.all([
+    prisma.tutor.findFirst({
+      where: { id: params.id, tenantId },
+      include: {
+        pets: { orderBy: { name: "asc" } },
+        loyaltyTransactions: { orderBy: { createdAt: "desc" } },
+        sales: { orderBy: { createdAt: "desc" }, take: 10, include: { items: true } },
+        appointments: { orderBy: { scheduledAt: "desc" }, take: 10, include: { pet: true, services: { include: { service: true } } } },
+        accountsReceivable: { orderBy: { dueDate: "desc" }, take: 10 },
+      },
+    }),
+    prisma.appointmentStatus.findMany({ where: { tenantId }, orderBy: { position: "asc" } }),
+  ]);
   if (!t) return notFound();
+
+  let statuses = initialStatuses;
+  if (statuses.length === 0) {
+    const defaults = [
+      { tenantId, name: "AGENDADO", color: "#3b82f6", position: 0 },
+      { tenantId, name: "CONFIRMADO", color: "#10b981", position: 1 },
+      { tenantId, name: "EM_ATENDIMENTO", color: "#f59e0b", position: 2 },
+      { tenantId, name: "FINALIZADO", color: "#22c55e", position: 3 },
+      { tenantId, name: "CANCELADO", color: "#ef4444", position: 4 },
+      { tenantId, name: "NAO_COMPARECEU", color: "#64748b", position: 5 },
+    ];
+    await prisma.appointmentStatus.createMany({ data: defaults });
+    statuses = await prisma.appointmentStatus.findMany({
+      where: { tenantId },
+      orderBy: { position: "asc" },
+    });
+  }
 
   const totalGasto = t.sales.reduce((s, x) => s + x.total, 0);
 
@@ -58,7 +78,12 @@ export default async function TutorDetailPage({ params }: { params: { id: string
               <ul className="space-y-2">{t.appointments.map((a) => (
                 <li key={a.id} className="text-sm flex justify-between border-b border-slate-100 pb-2 last:border-0">
                   <span>{fmtDateTime(a.scheduledAt)} - <b>{a.pet?.name}</b> - {a.services.map((s) => s.service.name).join(", ") || a.type}</span>
-                  <span className="badge-gray">{a.status.toLowerCase().replace(/_/g, " ")}</span>
+                  <span
+                    className="px-2 py-0.5 rounded text-[10px] text-white font-bold uppercase shrink-0"
+                    style={{ backgroundColor: statuses.find((s) => s.name === a.status)?.color ?? "#94a3b8" }}
+                  >
+                    {a.status.toLowerCase().replace(/_/g, " ")}
+                  </span>
                 </li>
               ))}</ul>
             )}
