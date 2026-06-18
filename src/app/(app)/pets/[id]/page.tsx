@@ -52,6 +52,12 @@ export default async function PetDetailPage({ params }: { params: { id: string }
   }
 
   return (
-    <PetProfileClient pet={p} tutors={tutors} protocolTemplates={protocolTemplates as any} statuses={statuses} />
+    <PetProfileClient
+      pet={p}
+      tutors={tutors}
+      protocolTemplates={protocolTemplates as any}
+      statuses={statuses}
+      isBlobConfigured={!!process.env.BLOB_READ_WRITE_TOKEN}
+    />
   );
 }

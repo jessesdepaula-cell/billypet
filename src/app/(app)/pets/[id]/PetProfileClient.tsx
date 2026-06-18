@@ -47,9 +47,10 @@ type PetProfileClientProps = {
   tutors: TutorOpt[];
   protocolTemplates: ProtocolTemplate[];
   statuses: any[];
+  isBlobConfigured?: boolean;
 };
 
-export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, statuses }: PetProfileClientProps) {
+export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, statuses, isBlobConfigured = false }: PetProfileClientProps) {
   const router = useRouter();
   const [pet, setPet] = useState(initialPet);
   const [activeTab, setActiveTab] = useState("ficha");
@@ -157,9 +158,9 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
 
     try {
       const displayName = (fileName || file.name).trim();
-      let isBlob = true;
 
-      try {
+      if (isBlobConfigured) {
+        // Fluxo Vercel Blob (direct client upload)
         await upload(file.name, file, {
           access: "public",
           handleUploadUrl: `/api/pets/${pet.id}/attachments`,
@@ -169,10 +170,17 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
             sizeBytes: file.size,
           }),
         });
-      } catch (blobErr: any) {
-        console.warn("Vercel Blob failed/not configured, falling back to base64 FormData upload:", blobErr);
-        isBlob = false;
 
+        // onUploadCompleted no servidor persiste o anexo de forma assincrona.
+        // Aguarda + 2 retries pra cobrir a janela de propagacao.
+        await new Promise((r) => setTimeout(r, 800));
+        await reloadAttachments();
+        for (let i = 0; i < 3; i++) {
+          await new Promise((r) => setTimeout(r, 1200));
+          await reloadAttachments();
+        }
+      } else {
+        // Fallback: POST multipart/form-data direto pro banco (base64)
         const formData = new FormData();
         formData.append("file", file);
         formData.append("name", displayName);
@@ -186,19 +194,7 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
           const data = await res.json();
           throw new Error(data.error || "Falha ao enviar arquivo no servidor");
         }
-      }
 
-      if (isBlob) {
-        // onUploadCompleted no servidor persiste o anexo de forma assincrona.
-        // Aguarda + 2 retries pra cobrir a janela de propagacao.
-        await new Promise((r) => setTimeout(r, 800));
-        await reloadAttachments();
-        // Retry se ainda nao chegou (callback assincrono do Vercel Blob)
-        for (let i = 0; i < 3; i++) {
-          await new Promise((r) => setTimeout(r, 1200));
-          await reloadAttachments();
-        }
-      } else {
         // O salvamento no banco e sincrono, recarrega imediatamente
         await reloadAttachments();
       }
