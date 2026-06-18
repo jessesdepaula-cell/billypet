@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 import { PetForm } from "../PetForm";
-import { fmtDate, fmtDateTime, ageFromBirth } from "@/lib/utils";
+import { fmtDate, fmtDateTime, ageFromBirth, cn } from "@/lib/utils";
 import {
   Syringe,
   FlaskConical,
@@ -22,6 +22,15 @@ import {
   Eye,
   Check,
   X,
+  Cross,
+  Weight,
+  Activity,
+  FileCheck,
+  Camera,
+  Droplets,
+  FileSignature,
+  MessageCircle,
+  Hospital,
 } from "lucide-react";
 
 type TutorOpt = { id: string; name: string };
@@ -62,6 +71,44 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates }:
 
   // Doses updating
   const [doseActionLoading, setDoseActionLoading] = useState<string | null>(null);
+
+  // Acoes rapidas (cards coloridos)
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [showWeightModal, setShowWeightModal] = useState(false);
+  const [weightValue, setWeightValue] = useState(pet.weightKg?.toString() ?? "");
+  const [savingWeight, setSavingWeight] = useState(false);
+
+  useEffect(() => {
+    if (!pendingAction) return;
+    if (pendingAction === "open-upload" && activeTab === "exames") {
+      const t = setTimeout(() => fileInputRef.current?.click(), 200);
+      return () => { clearTimeout(t); setPendingAction(null); };
+    }
+    setPendingAction(null);
+  }, [pendingAction, activeTab]);
+
+  async function handleSaveWeight() {
+    if (!weightValue.trim()) return;
+    setSavingWeight(true);
+    try {
+      const res = await fetch(`/api/pets/${pet.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weightKg: parseFloat(weightValue) }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setPet((p: any) => ({ ...p, weightKg: updated.weightKg }));
+        setShowWeightModal(false);
+        router.refresh();
+      }
+    } catch (err) {
+      alert("Erro ao salvar peso");
+    } finally {
+      setSavingWeight(false);
+    }
+  }
 
   async function handleRegisterObito() {
     if (!confirm("ATENCAO: Registrar obito para este animal? Esta acao alterara o status do animal e impedira novos agendamentos sem confirmacao. Tem certeza?")) return;
@@ -284,6 +331,105 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates }:
           </div>
         </div>
       )}
+
+      {/* Acoes rapidas - cards coloridos */}
+      <div className="space-y-3 mb-5">
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Adicionar</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {[
+            { label: "Atendimento", icon: Cross,         color: "bg-blue-500",    hover: "hover:bg-blue-600",    actionKey: "atendimento" },
+            { label: "Peso",        icon: Weight,        color: "bg-yellow-600",  hover: "hover:bg-yellow-700",  actionKey: "peso" },
+            { label: "Patologia",   icon: Activity,      color: "bg-purple-700",  hover: "hover:bg-purple-800",  actionKey: "prontuario" },
+            { label: "Documento",   icon: FileCheck,     color: "bg-green-500",   hover: "hover:bg-green-600",   actionKey: "upload" },
+            { label: "Exame",       icon: FlaskConical,  color: "bg-rose-400",    hover: "hover:bg-rose-500",    actionKey: "upload" },
+            { label: "Fotos",       icon: Camera,        color: "bg-teal-600",    hover: "hover:bg-teal-700",    actionKey: "upload" },
+            { label: "Vacina",      icon: Droplets,      color: "bg-amber-500",   hover: "hover:bg-amber-600",   actionKey: "vacina" },
+            { label: "Receita",     icon: FileSignature, color: "bg-purple-500",  hover: "hover:bg-purple-600",  actionKey: "prontuario" },
+            { label: "Observacoes", icon: MessageCircle, color: "bg-gray-500",    hover: "hover:bg-gray-600",    actionKey: "cadastro" },
+            { label: "Internacao",  icon: Hospital,      color: "bg-emerald-600", hover: "hover:bg-emerald-700", actionKey: "internacao" },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => {
+                  switch (item.actionKey) {
+                    case "atendimento":
+                      router.push(`/agenda/novo?date=${new Date().toISOString().slice(0, 10)}&petId=${pet.id}&tutorId=${pet.tutorId}`);
+                      break;
+                    case "peso":
+                      setShowWeightModal(true);
+                      break;
+                    case "prontuario":
+                      setActiveTab("prontuario");
+                      break;
+                    case "upload":
+                      setActiveTab("exames");
+                      setPendingAction("open-upload");
+                      break;
+                    case "vacina":
+                      setActiveTab("protocolos");
+                      setShowNewProtocol(true);
+                      break;
+                    case "cadastro":
+                      setActiveTab("ficha");
+                      break;
+                    case "internacao":
+                      router.push(`/internacao/nova?petId=${pet.id}`);
+                      break;
+                  }
+                }}
+                className={cn(
+                  item.color,
+                  item.hover,
+                  "text-white rounded-xl px-4 py-5 flex flex-col items-center justify-center gap-2.5",
+                  "shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5",
+                  "focus:outline-none focus:ring-2 focus:ring-white/40 focus:ring-offset-2 focus:ring-offset-slate-50",
+                  "active:scale-95"
+                )}
+              >
+                <Icon className="h-7 w-7 drop-shadow" />
+                <span className="text-sm font-semibold tracking-wide">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Modal de Registro de Peso */}
+      {showWeightModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowWeightModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+              <Weight className="h-5 w-5 text-yellow-600" /> Registrar Peso
+            </h3>
+            <p className="text-xs text-slate-500">Registre o peso atual de <strong>{pet.name}</strong>.</p>
+            <div>
+              <label className="label">Peso (kg)</label>
+              <input
+                className="input text-lg font-semibold"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Ex: 8.5"
+                value={weightValue}
+                onChange={(e) => setWeightValue(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleSaveWeight} disabled={savingWeight || !weightValue.trim()} className="btn-primary flex-1">
+                {savingWeight ? "Salvando..." : "Salvar Peso"}
+              </button>
+              <button onClick={() => setShowWeightModal(false)} className="btn-outline">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Input file invisivel usado pelos cards Documento/Exame/Fotos */}
+      <input ref={fileInputRef} type="file" accept="application/pdf,image/*" className="hidden" onChange={handleFileUpload} />
 
       {/* Tabs Navigation */}
       <div className="flex border-b border-slate-200 mb-6 gap-2 overflow-x-auto pb-1">
