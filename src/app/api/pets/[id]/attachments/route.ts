@@ -81,28 +81,49 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           };
         },
         onUploadCompleted: async ({ blob, tokenPayload }) => {
-          // O webhook e chamado pela Vercel (sincronizacao em segundo plano, sem cookies de sessao)
-          // Usamos os metadados validados do tokenPayload
+          console.log("onUploadCompleted iniciado", { blob, tokenPayload });
           const meta = tokenPayload ? JSON.parse(tokenPayload) : {};
-          await prisma.petAttachment.create({
-            data: {
-              petId: meta.petId,
-              name: meta.name || blob.pathname,
-              mimeType: meta.mimeType || blob.contentType || "application/octet-stream",
-              sizeBytes: meta.sizeBytes || 0,
-              url: blob.url,
-            },
-          });
-          await prisma.auditLog.create({
-            data: {
-              tenantId: meta.tenantId,
-              userId: meta.userId,
-              action: "ATTACH_FILE",
-              entity: "Pet",
-              entityId: meta.petId,
-              details: meta.name || blob.pathname,
-            },
-          });
+          try {
+            await prisma.petAttachment.create({
+              data: {
+                petId: meta.petId,
+                name: meta.name || blob.pathname,
+                mimeType: meta.mimeType || blob.contentType || "application/octet-stream",
+                sizeBytes: meta.sizeBytes || 0,
+                url: blob.url,
+              },
+            });
+            console.log("petAttachment criado no banco com sucesso");
+
+            await prisma.auditLog.create({
+              data: {
+                tenantId: meta.tenantId || null,
+                userId: meta.userId || null,
+                action: "ATTACH_FILE",
+                entity: "Pet",
+                entityId: meta.petId,
+                details: meta.name || blob.pathname,
+              },
+            });
+          } catch (err: any) {
+            console.error("Erro interno no onUploadCompleted do Vercel Blob:", err);
+            try {
+              await prisma.auditLog.create({
+                data: {
+                  tenantId: meta.tenantId || null,
+                  userId: meta.userId || null,
+                  action: "ATTACH_FILE_ERROR",
+                  entity: "Pet",
+                  entityId: meta.petId || "desconhecido",
+                  details: `Erro: ${err.message || String(err)}. Pathname: ${blob.pathname}. URL: ${blob.url}`,
+                },
+              });
+              console.log("AuditLog de erro registrado com sucesso");
+            } catch (err2: any) {
+              console.error("Nao foi possivel registrar o erro no AuditLog:", err2);
+            }
+            throw err;
+          }
         },
       });
       return NextResponse.json(jsonResponse);
