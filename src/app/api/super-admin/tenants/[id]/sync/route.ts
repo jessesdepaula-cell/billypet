@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/permissions";
-import { asaasIsConfigured, getSubscription, listSubscriptionPayments } from "@/lib/asaas";
+import { asaasIsConfigured, getSubscription, listSubscriptionPayments, updateSubscription, nextDueDateFromPayment } from "@/lib/asaas";
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const s = await getSession();
@@ -55,6 +55,25 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
             invoiceUrl: p.invoiceUrl,
             bankSlipUrl: p.bankSlipUrl,
           },
+        });
+      }
+
+      // Regra: proximo vencimento = 1 mes apos o ultimo pagamento efetivado.
+      // Corrige assinaturas cujo nextDueDate ainda segue o ciclo antigo (dia fixo).
+      const paidPayments = data
+        .filter((p) => p.paymentDate && ["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"].includes((p.status || "").toUpperCase()))
+        .sort((a, b) => new Date(b.paymentDate!).getTime() - new Date(a.paymentDate!).getTime());
+      const lastPaid = paidPayments[0];
+      if (lastPaid?.paymentDate) {
+        const newDueDate = nextDueDateFromPayment(new Date(lastPaid.paymentDate));
+        try {
+          await updateSubscription(sub.asaasSubscriptionId, { nextDueDate: newDueDate, updatePendingPayments: true });
+        } catch {
+          // se o Asaas recusar, mantem ao menos o valor local coerente
+        }
+        await prisma.subscription.update({
+          where: { id: sub.id },
+          data: { nextDueDate: new Date(`${newDueDate}T00:00:00.000Z`) },
         });
       }
       updated++;

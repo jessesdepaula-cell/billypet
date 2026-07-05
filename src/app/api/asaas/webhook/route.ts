@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { asaasIsConfigured, updateSubscription, nextDueDateFromPayment } from "@/lib/asaas";
 
 // Webhook do Asaas - recebe eventos de pagamento/assinatura.
 // Configure em https://www.asaas.com/customerWebhook
@@ -78,6 +79,31 @@ export async function POST(req: Request) {
         if (event === "PAYMENT_RECEIVED" || event === "PAYMENT_CONFIRMED") {
           await prisma.tenant.update({ where: { id: tenant.id }, data: { status: "ACTIVE" } });
           if (sub) await prisma.subscription.update({ where: { id: sub.id }, data: { status: "ACTIVE" } });
+
+          // Regra: proximo vencimento = 1 mes apos a data do pagamento.
+          // Reagenda a assinatura no Asaas (movendo a fatura pendente) e localmente.
+          const paidAt = payment.paymentDate ? new Date(payment.paymentDate) : null;
+          if (sub && sub.asaasSubscriptionId && paidAt && !Number.isNaN(paidAt.getTime())) {
+            const newDueDate = nextDueDateFromPayment(paidAt);
+            try {
+              if (asaasIsConfigured()) {
+                await updateSubscription(sub.asaasSubscriptionId, {
+                  nextDueDate: newDueDate,
+                  updatePendingPayments: true,
+                });
+              }
+              await prisma.subscription.update({
+                where: { id: sub.id },
+                data: { nextDueDate: new Date(`${newDueDate}T00:00:00.000Z`) },
+              });
+            } catch (reErr: any) {
+              // Nao interrompe o processamento do pagamento se o reagendamento falhar
+              await prisma.asaasWebhookEvent.update({
+                where: { id: evt.id },
+                data: { error: `reschedule falhou: ${String(reErr?.message || reErr)}` },
+              });
+            }
+          }
         } else if (event === "PAYMENT_OVERDUE") {
           await prisma.tenant.update({ where: { id: tenant.id }, data: { status: "PAST_DUE" } });
           if (sub) await prisma.subscription.update({ where: { id: sub.id }, data: { status: "OVERDUE" } });
