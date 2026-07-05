@@ -49,10 +49,11 @@ type PetProfileClientProps = {
   tutors: TutorOpt[];
   protocolTemplates: ProtocolTemplate[];
   statuses: any[];
+  auditLogs?: any[];
   isBlobConfigured?: boolean;
 };
 
-export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, statuses, isBlobConfigured = false }: PetProfileClientProps) {
+export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, statuses, auditLogs = [], isBlobConfigured = false }: PetProfileClientProps) {
   const router = useRouter();
   const [pet, setPet] = useState(initialPet);
   const [activeTab, setActiveTab] = useState("ficha");
@@ -315,6 +316,7 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
       title: string;
       badge?: string;
       details?: string;
+      href?: string;
     }[] = [];
 
     const apptTypeLabel: Record<string, string> = {
@@ -340,6 +342,7 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
           a.vet?.name ? `Profissional: ${a.vet.name}` : "",
           a.notes ? `Obs: ${a.notes}` : "",
         ].filter(Boolean).join(" • "),
+        href: `/atendimento/${a.id}`,
       });
     }
 
@@ -357,6 +360,7 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
           m.conduct ? `Conduta: ${m.conduct}` : "",
           m.vet?.name ? `Vet: ${m.vet.name}` : "",
         ].filter(Boolean).join(" • "),
+        href: m.appointmentId ? `/atendimento/${m.appointmentId}` : undefined,
       });
     }
 
@@ -380,6 +384,7 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
         title: `Exame: ${e.name}`,
         badge: e.status?.toLowerCase().replace(/_/g, " "),
         details: e.result ? `Resultado: ${e.result}` : "",
+        href: "/exames",
       });
     }
 
@@ -392,6 +397,7 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
         title: "Internacao",
         badge: h.status?.toLowerCase(),
         details: [h.reason ? `Motivo: ${h.reason}` : "", h.vet?.name ? `Vet: ${h.vet.name}` : ""].filter(Boolean).join(" • "),
+        href: `/internacao/${h.id}`,
       });
     }
 
@@ -406,8 +412,26 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
       });
     }
 
+    // Alteracoes na ficha do animal (cadastro/edicoes registradas no audit log)
+    const auditActionLabel: Record<string, string> = {
+      UPDATE: "Ficha do animal atualizada",
+      CREATE: "Animal cadastrado",
+      DELETE_LOGIC: "Animal desativado",
+      DELETE: "Registro removido",
+    };
+    for (const l of auditLogs ?? []) {
+      events.push({
+        key: `audit-${l.id}`,
+        date: new Date(l.createdAt),
+        icon: FileText,
+        color: "bg-slate-400",
+        title: auditActionLabel[l.action] ?? "Alteracao na ficha",
+        details: l.user?.name ? `Por: ${l.user.name}` : undefined,
+      });
+    }
+
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [pet]);
+  }, [pet, auditLogs]);
 
   return (
     <>
@@ -607,14 +631,24 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
                 <div className="relative border-l-2 border-slate-200 pl-4 ml-2 space-y-4">
                   {timeline.map((ev) => {
                     const Icon = ev.icon;
+                    const clickable = !!ev.href;
                     return (
                       <div key={ev.key} className="relative">
                         <div className={cn("absolute -left-[26px] top-1 h-5 w-5 rounded-full flex items-center justify-center border-2 border-white shadow-soft text-white", ev.color)}>
                           <Icon className="h-3 w-3" />
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                        <div
+                          onClick={clickable ? () => router.push(ev.href!) : undefined}
+                          className={cn(
+                            "bg-slate-50 border border-slate-200 rounded-xl p-3 transition-colors",
+                            clickable && "cursor-pointer hover:bg-brand-50/40 hover:border-brand-200"
+                          )}
+                        >
                           <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <span className="text-sm font-semibold text-slate-800">{ev.title}</span>
+                            <span className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+                              {ev.title}
+                              {clickable && <Eye className="h-3 w-3 text-brand-500" />}
+                            </span>
                             <div className="flex items-center gap-2 shrink-0">
                               {ev.badge && (
                                 <span className="badge-gray text-[9px] uppercase font-bold">{ev.badge}</span>
@@ -625,6 +659,7 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
                             </div>
                           </div>
                           {ev.details && <p className="text-xs text-slate-600 mt-1">{ev.details}</p>}
+                          {clickable && <p className="text-[10px] text-brand-600 font-medium mt-1.5">Clique para ver detalhes →</p>}
                         </div>
                       </div>
                     );

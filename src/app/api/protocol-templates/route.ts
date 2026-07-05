@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireTenantApi, isTenantError } from "@/lib/tenant";
+import { ensureDefaultProtocolTemplates } from "@/lib/defaultProtocols";
 
 export async function GET(req: Request) {
   const ctx = await requireTenantApi();
   if (isTenantError(ctx)) return NextResponse.json({ error: ctx.error }, { status: ctx.status });
+
+  await ensureDefaultProtocolTemplates(ctx.tenantId);
 
   const list = await prisma.protocolTemplate.findMany({
     where: { tenantId: ctx.tenantId, isActive: true },

@@ -1,13 +1,16 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireModule } from "@/lib/tenant";
+import { ensureDefaultProtocolTemplates } from "@/lib/defaultProtocols";
 import { PetProfileClient } from "./PetProfileClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function PetDetailPage({ params }: { params: { id: string } }) {
   const { tenantId } = await requireModule("pets");
-  
+
+  await ensureDefaultProtocolTemplates(tenantId);
+
   const p = await prisma.pet.findFirst({
     where: { id: params.id, tutor: { tenantId } },
     include: {
@@ -25,7 +28,7 @@ export default async function PetDetailPage({ params }: { params: { id: string }
   
   if (!p) return notFound();
   
-  const [tutors, protocolTemplates, initialStatuses] = await Promise.all([
+  const [tutors, protocolTemplates, initialStatuses, auditLogs] = await Promise.all([
     prisma.tutor.findMany({ where: { tenantId, isActive: true }, select: { id: true, name: true } }),
     prisma.protocolTemplate.findMany({
       where: { tenantId, isActive: true },
@@ -33,6 +36,13 @@ export default async function PetDetailPage({ params }: { params: { id: string }
       orderBy: { name: "asc" },
     }),
     prisma.appointmentStatus.findMany({ where: { tenantId }, orderBy: { position: "asc" } }),
+    // Alteracoes na ficha do animal (cadastro/edicoes) para o historico
+    prisma.auditLog.findMany({
+      where: { tenantId, entity: "Pet", entityId: p.id },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      include: { user: { select: { name: true } } },
+    }),
   ]);
 
   let statuses = initialStatuses;
@@ -58,6 +68,7 @@ export default async function PetDetailPage({ params }: { params: { id: string }
       tutors={tutors}
       protocolTemplates={protocolTemplates as any}
       statuses={statuses}
+      auditLogs={auditLogs as any}
       isBlobConfigured={!!process.env.BLOB_READ_WRITE_TOKEN}
     />
   );
