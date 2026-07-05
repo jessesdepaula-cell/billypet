@@ -16,9 +16,10 @@ export default async function PetDetailPage({ params }: { params: { id: string }
       exams: { orderBy: { requestedAt: "desc" } },
       hospitalizations: { orderBy: { admittedAt: "desc" }, include: { vet: true } },
       medicalRecords: { orderBy: { createdAt: "desc" }, include: { vet: true, prescriptions: true } },
-      appointments: { orderBy: { scheduledAt: "desc" }, take: 20, include: { services: { include: { service: true } }, vet: true } },
+      appointments: { orderBy: { scheduledAt: "desc" }, take: 50, include: { services: { include: { service: true } }, vet: true } },
       protocols: { orderBy: { createdAt: "desc" }, include: { doses: { orderBy: { dueDate: "asc" } } } },
       attachments: { orderBy: { createdAt: "desc" }, select: { id: true, name: true, mimeType: true, sizeBytes: true, createdAt: true } },
+      weightRecords: { orderBy: { createdAt: "desc" } },
     },
   });
   

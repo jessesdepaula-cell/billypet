@@ -8,6 +8,7 @@ type Prescription = { medication: string; dosage: string; frequency: string; dur
 type MR = {
   id?: string;
   complaint?: string | null; anamnesis?: string | null; physicalExam?: string | null;
+  weightKg?: number | string | null;
   diagnosis?: string | null; conduct?: string | null; procedures?: string | null;
   observations?: string | null; recommendReturn?: Date | string | null;
   prescriptions?: Prescription[];
@@ -62,6 +63,7 @@ export function MedicalRecordForm({ appointmentId, initial }: { appointmentId: s
         <div className="sm:col-span-2"><label className="label">Queixa principal</label><textarea className="input" rows={2} value={m.complaint ?? ""} onChange={(e) => u("complaint", e.target.value)} /></div>
         <div><label className="label">Anamnese</label><textarea className="input" rows={3} value={m.anamnesis ?? ""} onChange={(e) => u("anamnesis", e.target.value)} /></div>
         <div><label className="label">Exame fisico</label><textarea className="input" rows={3} value={m.physicalExam ?? ""} onChange={(e) => u("physicalExam", e.target.value)} /></div>
+        <div className="sm:col-span-2"><label className="label">Peso (kg)</label><input className="input" type="number" step="0.01" min="0" placeholder="Ex: 8.5 — atualiza o peso na ficha do animal" value={m.weightKg ?? ""} onChange={(e) => u("weightKg", e.target.value)} /></div>
         <div><label className="label">Diagnostico</label><textarea className="input" rows={2} value={m.diagnosis ?? ""} onChange={(e) => u("diagnosis", e.target.value)} /></div>
         <div><label className="label">Conduta</label><textarea className="input" rows={2} value={m.conduct ?? ""} onChange={(e) => u("conduct", e.target.value)} /></div>
         <div><label className="label">Procedimentos realizados</label><textarea className="input" rows={2} value={m.procedures ?? ""} onChange={(e) => u("procedures", e.target.value)} /></div>

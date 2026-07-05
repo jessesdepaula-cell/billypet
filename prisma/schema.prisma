@@ -223,6 +223,20 @@ model Pet {
   deceasedAt       DateTime?
   attachments      PetAttachment[]
   protocols        Protocol[]
+  weightRecords    WeightRecord[]
+}
+
+model WeightRecord {
+  id            String       @id @default(cuid())
+  petId         String
+  pet           Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
+  weightKg      Float
+  source        String       @default("MANUAL") // MANUAL, ATENDIMENTO
+  appointmentId String?
+  note          String?
+  createdAt     DateTime     @default(now())
+
+  @@index([petId])
 }
 
 // ============================================================
@@ -463,6 +477,7 @@ model MedicalRecord {
   complaint       String?
   anamnesis       String?
   physicalExam    String?
+  weightKg        Float?
   diagnosis       String?
   conduct         String?
   procedures      String?

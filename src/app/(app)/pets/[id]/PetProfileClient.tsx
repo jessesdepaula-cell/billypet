@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 import { PetForm } from "../PetForm";
@@ -31,6 +31,8 @@ import {
   FileSignature,
   MessageCircle,
   Hospital,
+  History,
+  Scissors,
 } from "lucide-react";
 
 type TutorOpt = { id: string; name: string };
@@ -295,11 +297,117 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
 
   const tabs = [
     { id: "ficha", label: "Ficha Geral", icon: FileText },
-    { id: "prontuario", label: "Prontuario & Historico", icon: Stethoscope },
+    { id: "historico", label: "Historico", icon: History },
+    { id: "prontuario", label: "Prontuario", icon: Stethoscope },
     { id: "protocolos", label: "Vacinas & Protocolos", icon: Syringe },
     { id: "exames", label: "Exames & Anexos", icon: FlaskConical },
     { id: "internacoes", label: "Internacoes", icon: BedDouble },
   ];
+
+  // Historico unificado: agrega tudo que aconteceu com o animal (agendamentos,
+  // banho & tosa, consultas, vacinas, exames, internacoes e registros de peso).
+  const timeline = useMemo(() => {
+    const events: {
+      key: string;
+      date: Date;
+      icon: any;
+      color: string;
+      title: string;
+      badge?: string;
+      details?: string;
+    }[] = [];
+
+    const apptTypeLabel: Record<string, string> = {
+      CONSULTA: "Consulta",
+      RETORNO: "Retorno",
+      BANHO_TOSA: "Banho & Tosa",
+      EXAME: "Exame",
+      PROCEDIMENTO: "Procedimento",
+    };
+
+    for (const a of pet.appointments ?? []) {
+      const isGrooming = a.type === "BANHO_TOSA";
+      const services = (a.services ?? []).map((s: any) => s.service?.name).filter(Boolean);
+      events.push({
+        key: `appt-${a.id}`,
+        date: new Date(a.scheduledAt),
+        icon: isGrooming ? Scissors : Calendar,
+        color: isGrooming ? "bg-teal-500" : "bg-blue-500",
+        title: `Agendamento — ${apptTypeLabel[a.type] ?? a.type}`,
+        badge: a.status?.replace(/_/g, " ").toLowerCase(),
+        details: [
+          services.length ? `Servicos: ${services.join(", ")}` : "",
+          a.vet?.name ? `Profissional: ${a.vet.name}` : "",
+          a.notes ? `Obs: ${a.notes}` : "",
+        ].filter(Boolean).join(" • "),
+      });
+    }
+
+    for (const m of pet.medicalRecords ?? []) {
+      events.push({
+        key: `mr-${m.id}`,
+        date: new Date(m.createdAt),
+        icon: Stethoscope,
+        color: "bg-brand-500",
+        title: "Prontuario clinico registrado",
+        details: [
+          m.weightKg ? `Peso: ${m.weightKg} kg` : "",
+          m.complaint ? `Queixa: ${m.complaint}` : "",
+          m.diagnosis ? `Diagnostico: ${m.diagnosis}` : "",
+          m.conduct ? `Conduta: ${m.conduct}` : "",
+          m.vet?.name ? `Vet: ${m.vet.name}` : "",
+        ].filter(Boolean).join(" • "),
+      });
+    }
+
+    for (const v of pet.vaccines ?? []) {
+      events.push({
+        key: `vac-${v.id}`,
+        date: new Date(v.appliedAt),
+        icon: Syringe,
+        color: "bg-amber-500",
+        title: `Vacina aplicada: ${v.name}`,
+        details: [v.batch ? `Lote: ${v.batch}` : "", v.nextDose ? `Proxima dose: ${fmtDate(v.nextDose)}` : ""].filter(Boolean).join(" • "),
+      });
+    }
+
+    for (const e of pet.exams ?? []) {
+      events.push({
+        key: `exam-${e.id}`,
+        date: new Date(e.requestedAt),
+        icon: FlaskConical,
+        color: "bg-rose-500",
+        title: `Exame: ${e.name}`,
+        badge: e.status?.toLowerCase().replace(/_/g, " "),
+        details: e.result ? `Resultado: ${e.result}` : "",
+      });
+    }
+
+    for (const h of pet.hospitalizations ?? []) {
+      events.push({
+        key: `hosp-${h.id}`,
+        date: new Date(h.admittedAt),
+        icon: BedDouble,
+        color: "bg-emerald-600",
+        title: "Internacao",
+        badge: h.status?.toLowerCase(),
+        details: [h.reason ? `Motivo: ${h.reason}` : "", h.vet?.name ? `Vet: ${h.vet.name}` : ""].filter(Boolean).join(" • "),
+      });
+    }
+
+    for (const w of pet.weightRecords ?? []) {
+      events.push({
+        key: `weight-${w.id}`,
+        date: new Date(w.createdAt),
+        icon: Weight,
+        color: "bg-yellow-600",
+        title: `Peso registrado: ${w.weightKg} kg`,
+        details: w.source === "ATENDIMENTO" ? "Registrado durante atendimento" : "Registro manual",
+      });
+    }
+
+    return events.sort((a, b) => b.date.getTime() - a.date.getTime());
+  }, [pet]);
 
   return (
     <>
@@ -480,6 +588,50 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
         <div className="lg:col-span-2 space-y-5">
           {activeTab === "ficha" && (
             <PetForm initial={{ ...pet, birthDate: pet.birthDate ?? null }} tutors={tutors} />
+          )}
+
+          {activeTab === "historico" && (
+            <div className="card card-pad bg-white">
+              <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
+                <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                  <History className="h-4 w-4 text-brand-500" /> Historico Completo do Animal
+                </h2>
+                <span className="text-[10px] text-slate-400 font-medium">{timeline.length} registro(s)</span>
+              </div>
+              <p className="text-xs text-slate-500 mb-4">
+                Tudo que aconteceu com {pet.name}: agendamentos, banho &amp; tosa, consultas, vacinas, exames, internacoes e pesos — em ordem cronologica.
+              </p>
+              {timeline.length === 0 ? (
+                <p className="text-sm text-slate-500 py-6 text-center">Nenhum registro no historico ainda.</p>
+              ) : (
+                <div className="relative border-l-2 border-slate-200 pl-4 ml-2 space-y-4">
+                  {timeline.map((ev) => {
+                    const Icon = ev.icon;
+                    return (
+                      <div key={ev.key} className="relative">
+                        <div className={cn("absolute -left-[26px] top-1 h-5 w-5 rounded-full flex items-center justify-center border-2 border-white shadow-soft text-white", ev.color)}>
+                          <Icon className="h-3 w-3" />
+                        </div>
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <span className="text-sm font-semibold text-slate-800">{ev.title}</span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {ev.badge && (
+                                <span className="badge-gray text-[9px] uppercase font-bold">{ev.badge}</span>
+                              )}
+                              <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                                <Calendar className="h-3 w-3" /> {fmtDateTime(ev.date)}
+                              </span>
+                            </div>
+                          </div>
+                          {ev.details && <p className="text-xs text-slate-600 mt-1">{ev.details}</p>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
 
           {activeTab === "prontuario" && (
