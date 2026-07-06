@@ -420,13 +420,21 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
       DELETE: "Registro removido",
     };
     for (const l of auditLogs ?? []) {
+      const isOldLog = l.details === pet.name;
+      const detailsParts = [];
+      if (l.user?.name) {
+        detailsParts.push(`Por: ${l.user.name}`);
+      }
+      if (l.details && !isOldLog) {
+        detailsParts.push(l.details);
+      }
       events.push({
         key: `audit-${l.id}`,
         date: new Date(l.createdAt),
         icon: FileText,
         color: "bg-slate-400",
         title: auditActionLabel[l.action] ?? "Alteracao na ficha",
-        details: l.user?.name ? `Por: ${l.user.name}` : undefined,
+        details: detailsParts.join(" • ") || undefined,
       });
     }
 

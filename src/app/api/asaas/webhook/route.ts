@@ -7,7 +7,10 @@ import { asaasIsConfigured, updateSubscription, nextDueDateFromPayment } from "@
 //   URL: https://SEU_DOMINIO/api/asaas/webhook
 //   Token de autenticacao: defina ASAAS_WEBHOOK_TOKEN no env (opcional mas recomendado)
 
-const WEBHOOK_TOKEN = process.env.ASAAS_WEBHOOK_TOKEN || "";
+const WEBHOOK_TOKEN = (process.env.ASAAS_WEBHOOK_TOKEN || "")
+  .replace(/[^\x20-\x7E]/g, "") // Remove non-printable ASCII (BOM, CR/LF, etc)
+  .replace(/^["']|["']$/g, "")   // Remove wrapping quotes
+  .trim();
 
 function mapPaymentStatus(s?: string) {
   // Asaas usa: PENDING, RECEIVED, CONFIRMED, OVERDUE, REFUNDED, RECEIVED_IN_CASH,
