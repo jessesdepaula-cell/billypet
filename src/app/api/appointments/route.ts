@@ -50,32 +50,70 @@ export async function POST(req: Request) {
     if (firstCollab?.userId) primaryVetId = firstCollab.userId;
   }
 
-  const a = await prisma.appointment.create({
-    data: {
-      unitId: b.unitId || ctx.unitId,
-      tutorId: b.tutorId,
-      petId: b.petId || null,
-      vetId: primaryVetId,
-      scheduledAt: new Date(b.scheduledAt),
-      type: b.type || "CONSULTA",
-      status: b.status || "AGENDADO",
-      pipelineStage: b.status || "AGENDADO",
-      stageEnteredAt: new Date(),
-      notes: b.notes || null,
-      services: b.serviceIds?.length ? { create: b.serviceIds.map((id: string) => ({ serviceId: id, price: 0 })) } : undefined,
-      collaborators: b.collaboratorIds?.length ? {
-        create: b.collaboratorIds.map((cid: string) => ({ collaboratorId: cid }))
-      } : undefined,
-    },
-  });
-  
-  if (b.serviceIds?.length) {
-    const services = await prisma.service.findMany({ where: { id: { in: b.serviceIds }, tenantId: ctx.tenantId } });
-    for (const sv of services) {
-      await prisma.appointmentService.updateMany({ where: { appointmentId: a.id, serviceId: sv.id }, data: { price: sv.price } });
+  const scheduledAtDate = new Date(b.scheduledAt);
+  const dates: Date[] = [];
+
+  if (b.isRecurring && b.recurrenceDayOfWeek !== undefined && b.recurrenceTime && b.recurrenceCount) {
+    const [hours, minutes] = b.recurrenceTime.split(":").map(Number);
+    const targetDay = Number(b.recurrenceDayOfWeek);
+    const count = Math.min(Math.max(Number(b.recurrenceCount), 1), 24); // Limite de segurança de 24 semanas
+
+    let current = new Date(scheduledAtDate);
+    let matchedCount = 0;
+    const maxSearchDays = 365;
+    let searchDay = 0;
+
+    while (matchedCount < count && searchDay < maxSearchDays) {
+      if (current.getDay() === targetDay) {
+        const occDate = new Date(current);
+        occDate.setHours(hours, minutes, 0, 0);
+        if (occDate >= scheduledAtDate) {
+          dates.push(occDate);
+          matchedCount++;
+        }
+      }
+      current.setDate(current.getDate() + 1);
+      searchDay++;
+    }
+  } else {
+    dates.push(scheduledAtDate);
+  }
+
+  let firstCreated: any = null;
+
+  for (const occDate of dates) {
+    const a = await prisma.appointment.create({
+      data: {
+        unitId: b.unitId || ctx.unitId,
+        tutorId: b.tutorId,
+        petId: b.petId || null,
+        vetId: primaryVetId,
+        scheduledAt: occDate,
+        type: b.type || "CONSULTA",
+        status: b.status || "AGENDADO",
+        pipelineStage: b.status || "AGENDADO",
+        stageEnteredAt: new Date(),
+        notes: b.notes || null,
+        services: b.serviceIds?.length ? { create: b.serviceIds.map((id: string) => ({ serviceId: id, price: 0 })) } : undefined,
+        collaborators: b.collaboratorIds?.length ? {
+          create: b.collaboratorIds.map((cid: string) => ({ collaboratorId: cid }))
+        } : undefined,
+      },
+    });
+
+    if (b.serviceIds?.length) {
+      const services = await prisma.service.findMany({ where: { id: { in: b.serviceIds }, tenantId: ctx.tenantId } });
+      for (const sv of services) {
+        await prisma.appointmentService.updateMany({ where: { appointmentId: a.id, serviceId: sv.id }, data: { price: sv.price } });
+      }
+    }
+
+    await prisma.auditLog.create({ data: { tenantId: ctx.tenantId, userId: ctx.session.id, action: "CREATE", entity: "Appointment", entityId: a.id } });
+    
+    if (!firstCreated) {
+      firstCreated = a;
     }
   }
-  
-  await prisma.auditLog.create({ data: { tenantId: ctx.tenantId, userId: ctx.session.id, action: "CREATE", entity: "Appointment", entityId: a.id } });
-  return NextResponse.json(a);
+
+  return NextResponse.json(firstCreated);
 }

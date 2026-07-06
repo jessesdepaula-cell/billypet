@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Search, User, PawPrint, CheckSquare, Square, AlertTriangle } from "lucide-react";
 
@@ -39,6 +39,38 @@ export function AppointmentForm({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Recurrence States
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceDayOfWeek, setRecurrenceDayOfWeek] = useState("1");
+  const [recurrenceTime, setRecurrenceTime] = useState("09:00");
+  const [recurrenceCount, setRecurrenceCount] = useState("4");
+
+  // Keep recurrence values in sync with the primary date-time selection
+  const useEffectTriggered = typeof window !== "undefined";
+  useState(() => {
+    if (initialDate) {
+      const d = new Date(`${initialDate}T09:00`);
+      if (!isNaN(d.getTime())) {
+        setRecurrenceDayOfWeek(d.getDay().toString());
+      }
+    }
+  });
+
+  useEffect(() => {
+    if (scheduledAt) {
+      try {
+        const dateObj = new Date(scheduledAt);
+        if (!isNaN(dateObj.getTime())) {
+          setRecurrenceDayOfWeek(dateObj.getDay().toString());
+          const timePart = scheduledAt.split("T")[1] || "09:00";
+          setRecurrenceTime(timePart);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [scheduledAt]);
 
   // Search & Autocomplete States
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,6 +162,10 @@ export function AppointmentForm({
           serviceIds,
           notes,
           confirmDeceased,
+          isRecurring,
+          recurrenceDayOfWeek: isRecurring ? parseInt(recurrenceDayOfWeek) : undefined,
+          recurrenceTime: isRecurring ? recurrenceTime : undefined,
+          recurrenceCount: isRecurring ? parseInt(recurrenceCount) : undefined,
         }),
       });
 
@@ -270,6 +306,62 @@ export function AppointmentForm({
             ))}
           </select>
         </div>
+
+        <div className="sm:col-span-2 flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-xl">
+          <label className="flex items-center gap-2 font-semibold text-xs text-slate-700 cursor-pointer w-full py-1">
+            <input
+              type="checkbox"
+              className="rounded text-brand-600 focus:ring-brand-500"
+              checked={isRecurring}
+              onChange={(e) => setIsRecurring(e.target.checked)}
+            />
+            <span>Agendar de forma recorrente (semanal)</span>
+          </label>
+        </div>
+
+        {isRecurring && (
+          <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50/50">
+            <div>
+              <label className="label">Dia da semana *</label>
+              <select
+                className="input"
+                value={recurrenceDayOfWeek}
+                onChange={(e) => setRecurrenceDayOfWeek(e.target.value)}
+              >
+                <option value="0">Domingo</option>
+                <option value="1">Segunda-feira</option>
+                <option value="2">Terça-feira</option>
+                <option value="3">Quarta-feira</option>
+                <option value="4">Quinta-feira</option>
+                <option value="5">Sexta-feira</option>
+                <option value="6">Sábado</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">Horário *</label>
+              <input
+                className="input"
+                type="time"
+                required
+                value={recurrenceTime}
+                onChange={(e) => setRecurrenceTime(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="label">Repetições (semanas) *</label>
+              <input
+                className="input"
+                type="number"
+                min="1"
+                max="24"
+                required
+                value={recurrenceCount}
+                onChange={(e) => setRecurrenceCount(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
 
         {/* Collaborators (multiple selection) */}
         <div className="sm:col-span-2">
