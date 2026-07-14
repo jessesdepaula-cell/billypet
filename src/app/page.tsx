@@ -636,7 +636,7 @@ export default async function LandingPage() {
           <div className="text-center max-w-2xl mx-auto">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
               <ShieldCheck className="h-3.5 w-3.5" />
-              7 dias grátis • Cancela quando quiser • Sem fidelidade
+              Sem taxa de instalação • Sem fidelidade • Cancela quando quiser
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-slate-900">
               Um plano. Um preço. Tudo incluso.
@@ -680,10 +680,10 @@ export default async function LandingPage() {
                 href="/login"
                 className="mt-7 w-full btn-primary bp-glow-blue px-5 py-3 text-base justify-center"
               >
-                Começar grátis
+                Assinar agora
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <div className="mt-3 text-center text-xs text-slate-500">7 dias grátis • Cancela quando quiser</div>
+              <div className="mt-3 text-center text-xs text-slate-500">Sem fidelidade • Cancela quando quiser</div>
             </div>
           </div>
 
