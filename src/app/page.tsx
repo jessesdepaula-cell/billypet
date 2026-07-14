@@ -639,91 +639,56 @@ export default async function LandingPage() {
               7 dias grátis • Cancela quando quiser • Sem fidelidade
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-slate-900">
-              Um plano pra cada tamanho de operação.
+              Um plano. Um preço. Tudo incluso.
             </h2>
-            <p className="mt-3 text-slate-600">Tudo incluso. Sem taxa de instalação. Sem surpresa na fatura.</p>
+            <p className="mt-3 text-slate-600">Sem taxa de instalação. Sem fidelidade. Sem surpresa na fatura.</p>
           </div>
 
-          <div className="mt-14 grid md:grid-cols-3 gap-6 bp-perspective">
-            {[
-              {
-                name: "Essencial",
-                price: "R$ 149",
-                desc: "Pra clínica que está começando.",
-                feats: ["1 unidade", "Até 3 usuários", "Atendimento + agenda", "PDV + estoque", "Suporte por e-mail"],
-                cta: "Começar grátis",
-                highlight: false,
-              },
-              {
-                name: "Profissional",
-                price: "R$ 299",
-                desc: "O mais escolhido. Operação completa.",
-                feats: [
-                  "Até 2 unidades",
-                  "Usuários ilimitados",
-                  "Internação completa",
-                  "Fidelidade + Pacotes",
-                  "Relatórios + CSV",
-                  "Suporte por WhatsApp",
-                ],
-                cta: "Quero esse plano",
-                highlight: true,
-              },
-              {
-                name: "Hospital",
-                price: "Sob consulta",
-                desc: "Hospitais e redes com múltiplas filiais.",
-                feats: [
-                  "Unidades ilimitadas",
-                  "BI avançado",
-                  "Auditoria por usuário",
-                  "Onboarding dedicado",
-                  "SLA prioritário",
-                ],
-                cta: "Falar com vendas",
-                highlight: false,
-              },
-            ].map((p) => (
-              <div
-                key={p.name}
-                className={`relative rounded-3xl border p-7 shadow-card bg-white ${
-                  p.highlight ? "border-brand-500 lg:scale-105 bp-glow-blue bp-tilt-soft" : "border-slate-200"
-                }`}
-              >
-                {p.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-brand-600 to-accent-500 text-white text-xs font-bold px-3 py-1 shadow-lg">
-                    <Sparkles className="h-3 w-3" /> Mais escolhido
-                  </div>
-                )}
-                <div className="text-sm font-bold uppercase tracking-widest text-slate-500">{p.name}</div>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <div className="text-4xl font-extrabold text-slate-900">{p.price}</div>
-                  {p.price.startsWith("R$") && <div className="text-sm text-slate-500">/mês</div>}
-                </div>
-                <div className="mt-1 text-sm text-slate-600">{p.desc}</div>
-
-                <ul className="mt-6 space-y-2 text-sm">
-                  {p.feats.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-slate-700">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  href="/login"
-                  className={`mt-7 w-full ${p.highlight ? "btn-primary bp-glow-blue" : "btn-outline"} px-5 py-3 text-base justify-center`}
-                >
-                  {p.cta}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
+          <div className="mt-14 flex justify-center bp-perspective">
+            <div className="relative w-full max-w-md rounded-3xl border border-brand-500 p-8 shadow-card bg-white bp-glow-blue bp-tilt-soft">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-brand-600 to-accent-500 text-white text-xs font-bold px-3 py-1 shadow-lg">
+                <Sparkles className="h-3 w-3" /> Tudo incluso
               </div>
-            ))}
+              <div className="text-sm font-bold uppercase tracking-widest text-slate-500">BilyVet</div>
+              <div className="mt-2 flex items-baseline gap-1">
+                <div className="text-5xl font-extrabold text-slate-900">R$ 197</div>
+                <div className="text-sm text-slate-500">/mês</div>
+              </div>
+              <div className="mt-1 text-sm text-slate-600">Plano único. Toda a plataforma, sem pacote extra.</div>
+
+              <ul className="mt-6 grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                {[
+                  "Multiunidades (matriz + filiais)",
+                  "Usuários por perfil",
+                  "Atendimento + receituário PDF",
+                  "Agenda + esteira kanban",
+                  "Internação completa",
+                  "Financeiro + DRE",
+                  "Estoque + PDV + fidelidade",
+                  "BI + relatórios (CSV)",
+                  "Backup + atualizações grátis",
+                  "Suporte humano em português",
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-slate-700">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href="/login"
+                className="mt-7 w-full btn-primary bp-glow-blue px-5 py-3 text-base justify-center"
+              >
+                Começar grátis
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <div className="mt-3 text-center text-xs text-slate-500">7 dias grátis • Cancela quando quiser</div>
+            </div>
           </div>
 
           <div className="mt-10 text-center text-xs text-slate-500">
-            Todos os planos incluem: backup automático, atualizações grátis, multiusuário, permissões e logs de auditoria.
+            O plano inclui: backup automático, atualizações grátis, multiusuário, permissões e logs de auditoria.
           </div>
         </div>
       </section>
