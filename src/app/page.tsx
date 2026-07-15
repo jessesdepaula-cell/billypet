@@ -280,6 +280,24 @@ export default async function LandingPage() {
           </div>
         </div>
 
+        {/* Vídeo de vendas */}
+        <div className="mt-16 mx-auto max-w-4xl px-4 sm:px-6">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">Veja a BilyVet em 1 minuto</h2>
+            <p className="mt-2 text-slate-600">Do problema à solução — como a plataforma organiza a sua clínica.</p>
+          </div>
+          <div className="mt-6 rounded-3xl overflow-hidden border border-slate-200 shadow-2xl bg-slate-900 bp-glow-blue">
+            <video
+              className="w-full aspect-video"
+              src="https://cdn.jsdelivr.net/gh/jessesdepaula-cell/bilyvet-assets@27efe555a98452f0e3b0d1a19f83cbe621ae2f81/reels/video-vendas-16x9.mp4"
+              poster="https://cdn.jsdelivr.net/gh/jessesdepaula-cell/bilyvet-assets@27efe555a98452f0e3b0d1a19f83cbe621ae2f81/reels/video-vendas-poster.jpg"
+              controls
+              playsInline
+              preload="none"
+            />
+          </div>
+        </div>
+
         {/* Logos / marquee */}
         <div className="mt-20 mx-auto max-w-7xl px-4 sm:px-6">
           <div className="text-center text-xs uppercase tracking-widest text-slate-400 font-semibold">
@@ -644,8 +662,8 @@ export default async function LandingPage() {
             <p className="mt-3 text-slate-600">Sem taxa de instalação. Sem fidelidade. Sem surpresa na fatura.</p>
           </div>
 
-          <div className="mt-14 flex justify-center bp-perspective">
-            <div className="relative w-full max-w-md rounded-3xl border border-brand-500 p-8 shadow-card bg-white bp-glow-blue bp-tilt-soft">
+          <div className="mt-14 flex justify-center">
+            <div className="relative w-full max-w-md rounded-3xl border border-brand-500 p-8 shadow-card bg-white bp-glow-blue">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-brand-600 to-accent-500 text-white text-xs font-bold px-3 py-1 shadow-lg">
                 <Sparkles className="h-3 w-3" /> Tudo incluso
               </div>
