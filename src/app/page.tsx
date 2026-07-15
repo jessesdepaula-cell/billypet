@@ -34,6 +34,28 @@ export const metadata = {
     "Plataforma completa para clínicas, hospitais veterinários, pet shops e banho e tosa. Atendimento, financeiro, agenda, estoque, internação, fidelidade e dashboards estratégicos em um só lugar.",
 };
 
+function PawMark({ className = "h-10 w-10" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 120 120" className={className} aria-hidden>
+      <defs>
+        <linearGradient id="bvpaw" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#3B82F6" />
+          <stop offset="1" stopColor="#1D4ED8" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="28" fill="url(#bvpaw)" />
+      <g fill="#fff">
+        <ellipse cx="41" cy="52" rx="7.5" ry="10" transform="rotate(-20 41 52)" />
+        <ellipse cx="54" cy="43" rx="8" ry="11.5" />
+        <ellipse cx="69" cy="43" rx="8" ry="11.5" />
+        <ellipse cx="82" cy="52" rx="7.5" ry="10" transform="rotate(20 82 52)" />
+        <path d="M61 59 C44 59 34 72 39 85 C43 96 55 98 61 92 C67 98 79 96 83 85 C88 72 78 59 61 59 Z" />
+      </g>
+      <path d="M39 80 H50 l4 -9 l6 18 l5 -12 l3 3 H83" fill="none" stroke="#F97316" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default async function LandingPage() {
   const session = await getSession();
   if (session) redirect("/dashboard");
@@ -44,9 +66,7 @@ export default async function LandingPage() {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-slate-200/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 grid place-items-center text-white font-bold text-lg shadow-card bp-ring-glow">
-              <PawPrint className="h-5 w-5" />
-            </div>
+            <PawMark className="h-10 w-10 rounded-xl bp-ring-glow" />
             <div className="leading-tight">
               <div className="text-lg font-extrabold text-slate-900">BilyVet</div>
               <div className="text-[10px] uppercase tracking-widest text-brand-600 font-semibold">Gestão Veterinária</div>
@@ -140,7 +160,7 @@ export default async function LandingPage() {
               {[
                 "Sem instalação. Funciona no navegador.",
                 "Receituário interno em PDF — sem depender de terceiros.",
-                "Multiunidades (matriz + filiais) inclusas.",
+                "Suporte a multiunidades (matriz + filiais).",
                 "Suporte humano em português.",
               ].map((t) => (
                 <li key={t} className="flex items-start gap-2 text-slate-700">
@@ -151,13 +171,28 @@ export default async function LandingPage() {
             </ul>
           </div>
 
-          {/* 3D mockup */}
-          <div className="lg:col-span-6 relative bp-perspective">
-            <div className="relative bp-tilt-r bp-3d">
-              {/* Glow */}
-              <div className="absolute -inset-6 rounded-3xl bg-gradient-to-tr from-brand-400/30 via-transparent to-accent-400/40 blur-2xl" />
+          {/* Vídeo de vendas (hero) */}
+          <div className="lg:col-span-6 relative">
+            <div className="absolute -inset-6 rounded-3xl bg-gradient-to-tr from-brand-400/30 via-transparent to-accent-400/40 blur-2xl" />
+            <div className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-2xl bg-slate-900 bp-glow-blue">
+              <video
+                className="w-full aspect-video"
+                src="/video-vendas.mp4"
+                poster="/video-vendas-poster.jpg"
+                controls
+                playsInline
+                preload="metadata"
+              />
+            </div>
+            <div className="mt-3 flex items-center justify-center gap-2 text-sm text-slate-500">
+              <PlayCircle className="h-4 w-4 text-brand-600" />
+              Veja a BilyVet em 1 minuto
+            </div>
+          </div>
 
-              {/* Main dashboard card */}
+          {/* mockup antigo (oculto) */}
+          <div className="hidden">
+            <div className="relative">
               <div className="relative rounded-3xl bg-white border border-slate-200 shadow-2xl overflow-hidden bp-glow-blue">
                 {/* Top bar */}
                 <div className="flex items-center justify-between px-5 py-3 border-b bg-slate-50/80">
@@ -277,24 +312,6 @@ export default async function LandingPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Vídeo de vendas */}
-        <div className="mt-16 mx-auto max-w-4xl px-4 sm:px-6">
-          <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">Veja a BilyVet em 1 minuto</h2>
-            <p className="mt-2 text-slate-600">Do problema à solução — como a plataforma organiza a sua clínica.</p>
-          </div>
-          <div className="mt-6 rounded-3xl overflow-hidden border border-slate-200 shadow-2xl bg-slate-900 bp-glow-blue">
-            <video
-              className="w-full aspect-video"
-              src="https://cdn.jsdelivr.net/gh/jessesdepaula-cell/bilyvet-assets@27efe555a98452f0e3b0d1a19f83cbe621ae2f81/reels/video-vendas-16x9.mp4"
-              poster="https://cdn.jsdelivr.net/gh/jessesdepaula-cell/bilyvet-assets@27efe555a98452f0e3b0d1a19f83cbe621ae2f81/reels/video-vendas-poster.jpg"
-              controls
-              playsInline
-              preload="none"
-            />
           </div>
         </div>
 
@@ -670,13 +687,13 @@ export default async function LandingPage() {
               <div className="text-sm font-bold uppercase tracking-widest text-slate-500">BilyVet</div>
               <div className="mt-2 flex items-baseline gap-1">
                 <div className="text-5xl font-extrabold text-slate-900">R$ 197</div>
-                <div className="text-sm text-slate-500">/mês</div>
+                <div className="text-sm text-slate-500">/mês por unidade</div>
               </div>
-              <div className="mt-1 text-sm text-slate-600">Plano único. Toda a plataforma, sem pacote extra.</div>
+              <div className="mt-1 text-sm text-slate-600">Preço por unidade — matriz e cada filial pelo mesmo valor. Toda a plataforma inclusa.</div>
 
               <ul className="mt-6 grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 {[
-                  "Multiunidades (matriz + filiais)",
+                  "Logs de auditoria",
                   "Usuários por perfil",
                   "Atendimento + receituário PDF",
                   "Agenda + esteira kanban",
@@ -802,9 +819,7 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 text-white">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 grid place-items-center">
-                <PawPrint className="h-4 w-4 text-white" />
-              </div>
+              <PawMark className="h-9 w-9 rounded-xl" />
               <span className="font-extrabold text-lg">BilyVet</span>
             </div>
             <p className="mt-3 text-xs">

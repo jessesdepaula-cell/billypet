@@ -15,6 +15,7 @@ export async function middleware(req: NextRequest) {
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
+    /\.[a-zA-Z0-9]+$/.test(pathname) ||
     PUBLIC_API_PREFIXES.some((p) => pathname.startsWith(p)) ||
     PUBLIC.includes(pathname) ||
     (pathname.startsWith("/api/pets/") && pathname.endsWith("/attachments"))
