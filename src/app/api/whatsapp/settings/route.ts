@@ -20,6 +20,8 @@ export async function GET() {
       aiOperatorEnabled: conn?.aiOperatorEnabled ?? true,
       operatorPrompt: conn?.operatorPrompt ?? "",
       clientPrompt: conn?.clientPrompt ?? "",
+      aiTestMode: conn?.aiTestMode ?? false,
+      testPhone: conn?.testPhone ?? "",
     });
   } catch (err) {
     return NextResponse.json(
@@ -39,7 +41,9 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { aiClientEnabled, aiOperatorEnabled, operatorPrompt, clientPrompt } = body;
+    const { aiClientEnabled, aiOperatorEnabled, operatorPrompt, clientPrompt, aiTestMode, testPhone } = body;
+
+    const cleanTestPhone = typeof testPhone === "string" ? testPhone.replace(/\D/g, "") : null;
 
     const updated = await prisma.whatsappConnection.upsert({
       where: { tenantId },
@@ -50,12 +54,16 @@ export async function POST(req: Request) {
         aiOperatorEnabled: Boolean(aiOperatorEnabled),
         operatorPrompt: typeof operatorPrompt === "string" ? operatorPrompt : null,
         clientPrompt: typeof clientPrompt === "string" ? clientPrompt : null,
+        aiTestMode: Boolean(aiTestMode),
+        testPhone: cleanTestPhone,
       },
       update: {
         ...(typeof aiClientEnabled === "boolean" ? { aiClientEnabled } : {}),
         ...(typeof aiOperatorEnabled === "boolean" ? { aiOperatorEnabled } : {}),
         ...(typeof operatorPrompt === "string" ? { operatorPrompt } : {}),
         ...(typeof clientPrompt === "string" ? { clientPrompt } : {}),
+        ...(typeof aiTestMode === "boolean" ? { aiTestMode } : {}),
+        ...(typeof testPhone === "string" ? { testPhone: cleanTestPhone } : {}),
       },
     });
 

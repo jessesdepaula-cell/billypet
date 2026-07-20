@@ -137,6 +137,19 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true, aiStatus: "disabled", msgId: incomingMsg.id });
       }
 
+      // MODO DE TESTES: se ativado, responde SOMENTE ao numero de teste configurado
+      if (connection.aiTestMode && connection.testPhone) {
+        const cleanTestPhone = connection.testPhone.replace(/\D/g, "");
+        if (cleanTestPhone && fromPhone !== cleanTestPhone) {
+          return NextResponse.json({
+            ok: true,
+            ignored: "modo_de_teste_restrito",
+            msgId: incomingMsg.id,
+            allowedTestPhone: cleanTestPhone,
+          });
+        }
+      }
+
       // Busca a unidade principal do tenant para contexto
       const unit = await prisma.unit.findFirst({
         where: { tenantId, isActive: true },

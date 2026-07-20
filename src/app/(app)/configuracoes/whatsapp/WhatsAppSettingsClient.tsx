@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserPlus, Trash2, Bot, Shield, Save, Check, MessageSquare } from "lucide-react";
+import { UserPlus, Trash2, Bot, Shield, Save, Check, MessageSquare, PhoneCall } from "lucide-react";
 
 type OperatorContact = {
   id: string;
@@ -24,6 +24,8 @@ export function WhatsAppSettingsClient() {
   const [aiOperatorEnabled, setAiOperatorEnabled] = useState(true);
   const [operatorPrompt, setOperatorPrompt] = useState("");
   const [clientPrompt, setClientPrompt] = useState("");
+  const [aiTestMode, setAiTestMode] = useState(false);
+  const [testPhone, setTestPhone] = useState("");
   const [isSavingAi, setIsSavingAi] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -51,6 +53,8 @@ export function WhatsAppSettingsClient() {
         setAiOperatorEnabled(data.aiOperatorEnabled ?? true);
         setOperatorPrompt(data.operatorPrompt ?? "");
         setClientPrompt(data.clientPrompt ?? "");
+        setAiTestMode(data.aiTestMode ?? false);
+        setTestPhone(data.testPhone ?? "");
       }
     } catch (e) {
       console.error("Erro ao carregar IA settings:", e);
@@ -98,6 +102,11 @@ export function WhatsAppSettingsClient() {
 
   async function handleSaveAiSettings(e: React.FormEvent) {
     e.preventDefault();
+    if (aiTestMode && !testPhone.trim()) {
+      alert("Por favor, informe o número de WhatsApp de teste.");
+      return;
+    }
+
     setIsSavingAi(true);
     setSavedSuccess(false);
 
@@ -110,6 +119,8 @@ export function WhatsAppSettingsClient() {
           aiOperatorEnabled,
           operatorPrompt,
           clientPrompt,
+          aiTestMode,
+          testPhone,
         }),
       });
       if (res.ok) {
@@ -231,12 +242,12 @@ export function WhatsAppSettingsClient() {
           <div>
             <h3 className="font-semibold text-slate-800 text-lg">Personalização do Agente de IA</h3>
             <p className="text-sm text-slate-500">
-              Configure as instruções de comportamento e ative/desative a IA para equipe e clientes.
+              Configure as instruções de comportamento, limite de número de testes e ative/desative a IA.
             </p>
           </div>
         </div>
 
-        {/* Toggles */}
+        {/* Toggles e Modo de Testes */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
             <div>
@@ -268,6 +279,40 @@ export function WhatsAppSettingsClient() {
               />
               <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
             </label>
+          </div>
+
+          {/* MODO DE TESTES RESTRITO */}
+          <div className="p-4 bg-amber-50/80 rounded-xl border border-amber-200 flex flex-col md:flex-row md:items-center justify-between gap-4 md:col-span-2">
+            <div>
+              <span className="font-semibold text-amber-900 text-sm flex items-center gap-1.5">
+                <PhoneCall className="w-4 h-4 text-amber-600" />
+                Modo de Testes Restrito (Conversar Apenas com 1 Número Específico)
+              </span>
+              <span className="text-xs text-amber-700 mt-0.5 block">
+                Quando ativado, a IA responderá **SOMENTE ao WhatsApp informado**. Todas as outras conversas ignoram a IA, ideal para você testar com o seu número antes de liberar ao público.
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <input
+                type="text"
+                placeholder="Ex: 5521997267809"
+                value={testPhone}
+                onChange={(e) => setTestPhone(e.target.value)}
+                disabled={!aiTestMode}
+                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white w-44 disabled:opacity-50"
+              />
+
+              <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                <input
+                  type="checkbox"
+                  checked={aiTestMode}
+                  onChange={(e) => setAiTestMode(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+              </label>
+            </div>
           </div>
         </div>
 

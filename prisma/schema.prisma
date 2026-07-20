@@ -899,6 +899,9 @@ model WhatsappConnection {
   operatorPrompt    String?
   // Prompt de ATENDIMENTO ao cliente (numeros nao cadastrados).
   clientPrompt      String?
+  // Modo de TESTE: restringe a IA a conversar APENAS com este numero especifico
+  aiTestMode        Boolean   @default(false)
+  testPhone         String?
   lastConnectedAt   DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
