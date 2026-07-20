@@ -282,26 +282,17 @@ export function WhatsAppSettingsClient() {
           </div>
 
           {/* MODO DE TESTES RESTRITO */}
-          <div className="p-4 bg-amber-50/80 rounded-xl border border-amber-200 flex flex-col md:flex-row md:items-center justify-between gap-4 md:col-span-2">
-            <div>
-              <span className="font-semibold text-amber-900 text-sm flex items-center gap-1.5">
-                <PhoneCall className="w-4 h-4 text-amber-600" />
-                Modo de Testes Restrito (Conversar Apenas com 1 Número Específico)
-              </span>
-              <span className="text-xs text-amber-700 mt-0.5 block">
-                Quando ativado, a IA responderá **SOMENTE ao WhatsApp informado**. Todas as outras conversas ignoram a IA, ideal para você testar com o seu número antes de liberar ao público.
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <input
-                type="text"
-                placeholder="Ex: 5521997267809"
-                value={testPhone}
-                onChange={(e) => setTestPhone(e.target.value)}
-                disabled={!aiTestMode}
-                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white w-44 disabled:opacity-50"
-              />
+          <div className="p-4 bg-amber-50/80 rounded-xl border border-amber-200 flex flex-col justify-between gap-3 md:col-span-2">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <span className="font-semibold text-amber-900 text-sm flex items-center gap-1.5">
+                  <PhoneCall className="w-4 h-4 text-amber-600" />
+                  Modo de Testes Restrito (Permitir Múltiplos Números de Teste)
+                </span>
+                <span className="text-xs text-amber-700 mt-0.5 block">
+                  Quando ativado, a IA responderá **SOMENTE aos números de WhatsApp autorizados** abaixo. Todas as outras conversas ignoram a IA, ideal para você e a equipe testarem com segurança antes de abrir ao público.
+                </span>
+              </div>
 
               <label className="relative inline-flex items-center cursor-pointer shrink-0">
                 <input
@@ -313,6 +304,24 @@ export function WhatsAppSettingsClient() {
                 <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
               </label>
             </div>
+
+            {aiTestMode && (
+              <div className="mt-2 pt-3 border-t border-amber-200/80">
+                <label className="block text-xs font-semibold text-amber-900 mb-1">
+                  Números Autorizados para Testes (separados por vírgula ou linha)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Ex: 5521997267809, 5521982788508"
+                  value={testPhone}
+                  onChange={(e) => setTestPhone(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+                />
+                <p className="text-[11px] text-amber-800 mt-1">
+                  💡 Insira o DDI + DDD + Número para cada pessoa autorizada a testar (ex: 55 + 21 + 997267809).
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

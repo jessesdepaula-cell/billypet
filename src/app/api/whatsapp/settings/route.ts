@@ -43,7 +43,16 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { aiClientEnabled, aiOperatorEnabled, operatorPrompt, clientPrompt, aiTestMode, testPhone } = body;
 
-    const cleanTestPhone = typeof testPhone === "string" ? testPhone.replace(/\D/g, "") : null;
+    // Normaliza multiplos numeros separados por virgula, espaco ou nova linha
+    let formattedTestPhones: string | null = null;
+    if (typeof testPhone === "string" && testPhone.trim()) {
+      const phones = testPhone
+        .split(/[\n,;\s]+/)
+        .map((p) => p.replace(/\D/g, ""))
+        .filter((p) => p.length >= 10);
+
+      formattedTestPhones = Array.from(new Set(phones)).join(",");
+    }
 
     const updated = await prisma.whatsappConnection.upsert({
       where: { tenantId },
@@ -55,7 +64,7 @@ export async function POST(req: Request) {
         operatorPrompt: typeof operatorPrompt === "string" ? operatorPrompt : null,
         clientPrompt: typeof clientPrompt === "string" ? clientPrompt : null,
         aiTestMode: Boolean(aiTestMode),
-        testPhone: cleanTestPhone,
+        testPhone: formattedTestPhones,
       },
       update: {
         ...(typeof aiClientEnabled === "boolean" ? { aiClientEnabled } : {}),
@@ -63,7 +72,7 @@ export async function POST(req: Request) {
         ...(typeof operatorPrompt === "string" ? { operatorPrompt } : {}),
         ...(typeof clientPrompt === "string" ? { clientPrompt } : {}),
         ...(typeof aiTestMode === "boolean" ? { aiTestMode } : {}),
-        ...(typeof testPhone === "string" ? { testPhone: cleanTestPhone } : {}),
+        testPhone: formattedTestPhones,
       },
     });
 

@@ -137,15 +137,19 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true, aiStatus: "disabled", msgId: incomingMsg.id });
       }
 
-      // MODO DE TESTES: se ativado, responde SOMENTE ao numero de teste configurado
+      // MODO DE TESTES: se ativado, responde SOMENTE aos numeros de teste autorizados
       if (connection.aiTestMode && connection.testPhone) {
-        const cleanTestPhone = connection.testPhone.replace(/\D/g, "");
-        if (cleanTestPhone && fromPhone !== cleanTestPhone) {
+        const allowedTestPhones = connection.testPhone
+          .split(/[\n,;\s]+/)
+          .map((p) => p.replace(/\D/g, ""))
+          .filter(Boolean);
+
+        if (allowedTestPhones.length > 0 && !allowedTestPhones.includes(fromPhone)) {
           return NextResponse.json({
             ok: true,
             ignored: "modo_de_teste_restrito",
             msgId: incomingMsg.id,
-            allowedTestPhone: cleanTestPhone,
+            allowedTestPhones,
           });
         }
       }
