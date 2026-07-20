@@ -1,30 +1,37 @@
 /**
  * Integracao com a Evolution API (WhatsApp) — reaproveita o servidor Evolution
- * que ja roda na Railway (o mesmo da Clara / Conecta+). Uma instancia isolada
- * por ASSINATURA (tenant): `bp-<tenantId>`. Sem SDK — apenas fetch.
+ * que roda na Railway. Uma instancia isolada por ASSINATURA (tenant): `bp-<tenantId>`.
+ * Sem SDK — apenas fetch.
  *
- * O servidor e a chave sao da PLATAFORMA. O assinante nao configura nada:
- * ele so escaneia o QR Code dentro do painel dele.
- *
- * Envs necessarias:
+ * Envs ou banco (SystemSetting):
  *   EVOLUTION_API_URL        ex.: https://evolution-api-production-xxxx.up.railway.app
  *   EVOLUTION_API_KEY        AUTHENTICATION_API_KEY do servidor Evolution
  *   WHATSAPP_WEBHOOK_SECRET  segredo anexado como ?secret= na URL do webhook
  *   APP_URL                  URL publica desta app (para a Evolution alcancar o webhook)
  */
 
+import { prisma } from "@/lib/db";
+
 const EVENTS = ["MESSAGES_UPSERT", "CONNECTION_UPDATE"] as const;
 
-function baseUrl() {
-  const url = process.env.EVOLUTION_API_URL;
-  if (!url) throw new Error("EVOLUTION_API_URL ausente");
-  return url.replace(/\/$/, "");
-}
+export async function getEvolutionConfig() {
+  let url = process.env.EVOLUTION_API_URL;
+  let key = process.env.EVOLUTION_API_KEY;
 
-function apiKey() {
-  const key = process.env.EVOLUTION_API_KEY;
-  if (!key) throw new Error("EVOLUTION_API_KEY ausente");
-  return key;
+  if (!url || !key) {
+    const setting = await prisma.systemSetting.findUnique({
+      where: { id: "global" },
+    });
+    if (setting) {
+      if (!url && setting.evolutionUrl) url = setting.evolutionUrl;
+      if (!key && setting.evolutionApiKey) key = setting.evolutionApiKey;
+    }
+  }
+
+  if (!url) throw new Error("EVOLUTION_API_URL ausente. Informe a URL da Evolution API da sua Railway nas configuracoes.");
+  if (!key) throw new Error("EVOLUTION_API_KEY ausente. Informe a chave apikey da Evolution API.");
+
+  return { baseUrl: url.replace(/\/$/, ""), apiKey: key };
 }
 
 /** Nome da instancia Evolution desta assinatura. Isolamento por tenant. */
@@ -37,7 +44,7 @@ export function webhookUrl() {
   if (process.env.WHATSAPP_WEBHOOK_URL) return process.env.WHATSAPP_WEBHOOK_URL;
   const appUrl = (
     process.env.APP_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "")
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://bilyvet.com.br")
   ).replace(/\/$/, "");
   const secret = process.env.WHATSAPP_WEBHOOK_SECRET;
   const qs = secret ? `?secret=${encodeURIComponent(secret)}` : "";
@@ -51,9 +58,10 @@ async function evoFetch(
   method: "GET" | "POST" | "DELETE" | "PUT" = "GET",
   body?: unknown,
 ): Promise<EvoResponse> {
-  const res = await fetch(`${baseUrl()}${path}`, {
+  const cfg = await getEvolutionConfig();
+  const res = await fetch(`${cfg.baseUrl}${path}`, {
     method,
-    headers: { "Content-Type": "application/json", apikey: apiKey() },
+    headers: { "Content-Type": "application/json", apikey: cfg.apiKey },
     body: body ? JSON.stringify(body) : undefined,
     cache: "no-store",
   });
@@ -71,7 +79,6 @@ async function evoFetch(
 
 /** Configura (ou reconfigura) o webhook da instancia apontando para esta app. */
 export async function setWebhook(instance: string) {
-  // Evolution v2.2+ espera { webhook: { ... } }; toleramos falha silenciosa.
   return evoFetch(`/webhook/set/${instance}`, "POST", {
     webhook: {
       enabled: true,
@@ -106,7 +113,6 @@ export async function ensureInstance(instance: string) {
     },
   });
 
-  // Alguns builds ignoram o webhook no create — reforca via /webhook/set.
   await setWebhook(instance);
 
   if (!created.ok) {
@@ -122,7 +128,6 @@ export async function connect(instance: string) {
   await ensureInstance(instance);
   const res = await evoFetch(`/instance/connect/${instance}`, "GET");
   const data = (res.data ?? {}) as Record<string, unknown>;
-  // Normaliza os diferentes formatos de resposta do Evolution.
   const qrObj = (data.qrcode ?? data) as Record<string, unknown>;
   const base64 =
     (qrObj.base64 as string | undefined) ?? (data.base64 as string | undefined) ?? null;
@@ -136,9 +141,7 @@ export async function connect(instance: string) {
 
 type ConnState = {
   exists: boolean;
-  /** "open" (conectado), "connecting", "close", ou null se nao existe. */
   state: "open" | "connecting" | "close" | null;
-  /** Numero conectado (quando a Evolution informa). */
   number: string | null;
 };
 
@@ -156,23 +159,19 @@ export async function getConnectionState(instance: string): Promise<ConnState> {
   };
 }
 
-/** Desconecta (logout) a instancia — mantem a instancia criada para reconectar. */
 export async function logout(instance: string) {
   return evoFetch(`/instance/logout/${instance}`, "DELETE");
 }
 
-/** Remove a instancia por completo. */
 export async function deleteInstance(instance: string) {
   return evoFetch(`/instance/delete/${instance}`, "DELETE");
 }
 
-/** Envia uma mensagem de texto. `number` = telefone com DDI (so digitos). */
 export async function sendText(instance: string, number: string, text: string) {
   const digits = number.replace(/\D/g, "");
   return evoFetch(`/message/sendText/${instance}`, "POST", { number: digits, text });
 }
 
-/** Baixa o base64 de uma midia (ex.: audio) a partir da mensagem recebida. */
 export async function getBase64FromMediaMessage(
   instance: string,
   message: unknown,

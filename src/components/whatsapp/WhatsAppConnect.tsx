@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { QrCode, Wifi, WifiOff, RefreshCw, LogOut, CheckCircle2, AlertCircle } from "lucide-react";
+import { QrCode, Wifi, WifiOff, RefreshCw, LogOut, CheckCircle2, AlertCircle, Settings, Save } from "lucide-react";
 
 type ConnectionState = "CONNECTED" | "CONNECTING" | "DISCONNECTED" | "LOADING";
 
@@ -13,6 +13,12 @@ export function WhatsAppConnect() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
 
+  // Configuracao do servidor Evolution (Railway)
+  const [showConfig, setShowConfig] = useState(false);
+  const [evolutionUrl, setEvolutionUrl] = useState("");
+  const [evolutionApiKey, setEvolutionApiKey] = useState("");
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
+
   async function checkStatus() {
     try {
       const res = await fetch("/api/whatsapp/status");
@@ -22,12 +28,18 @@ export function WhatsAppConnect() {
           setStatus("CONNECTED");
           setConnectedNumber(data.number);
           setQrCode(null);
+          setErrorMsg(null);
         } else if (data.status === "CONNECTING") {
           setStatus("CONNECTING");
+          setErrorMsg(null);
         } else {
           setStatus("DISCONNECTED");
           setConnectedNumber(null);
+          setErrorMsg(null);
         }
+      } else if (data.error && data.error.includes("EVOLUTION_API_URL ausente")) {
+        setErrorMsg("EVOLUTION_API_URL ausente. Informe a URL e chave da sua Railway abaixo.");
+        setShowConfig(true);
       }
     } catch (err) {
       console.error("Erro ao verificar status:", err);
@@ -54,6 +66,9 @@ export function WhatsAppConnect() {
       const res = await fetch("/api/whatsapp/connect", { method: "POST" });
       const data = await res.json();
       if (!res.ok) {
+        if (data.error?.includes("EVOLUTION_API_URL ausente")) {
+          setShowConfig(true);
+        }
         throw new Error(data.error || "Falha ao solicitar QR Code");
       }
       if (data.base64) {
@@ -93,6 +108,32 @@ export function WhatsAppConnect() {
     }
   }
 
+  async function handleSaveConfig(e: React.FormEvent) {
+    e.preventDefault();
+    if (!evolutionUrl.trim() || !evolutionApiKey.trim()) return;
+
+    setIsSavingConfig(true);
+    try {
+      const res = await fetch("/api/whatsapp/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ evolutionUrl, evolutionApiKey }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setShowConfig(false);
+        setErrorMsg(null);
+        await handleConnect();
+      } else {
+        alert(data.error || "Erro ao salvar configuracoes");
+      }
+    } catch (err) {
+      alert("Erro ao salvar configuracoes");
+    } finally {
+      setIsSavingConfig(false);
+    }
+  }
+
   return (
     <div className="card p-6 bg-white rounded-xl shadow-sm border border-slate-200">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
@@ -128,10 +169,69 @@ export function WhatsAppConnect() {
       </div>
 
       {errorMsg && (
-        <div className="mt-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm flex items-center gap-2 border border-red-200">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{errorMsg}</span>
+        <div className="mt-4 p-3.5 rounded-lg bg-red-50 text-red-700 text-sm flex items-center justify-between gap-3 border border-red-200">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+            <span>{errorMsg}</span>
+          </div>
+          <button
+            onClick={() => setShowConfig((v) => !v)}
+            className="px-3 py-1 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-md shrink-0 transition-colors"
+          >
+            {showConfig ? "Ocultar Formulário" : "Configurar Servidor Railway"}
+          </button>
         </div>
+      )}
+
+      {/* FORMULARIO DE CONFIGURACAO DA RAILWAY (APARECE SE TIVER SEM URL OU QUANDO CLICAR EM CONFIGURAR) */}
+      {showConfig && (
+        <form onSubmit={handleSaveConfig} className="mt-5 p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+            <Settings className="w-5 h-5 text-purple-600" />
+            <h4 className="font-semibold text-slate-800 text-sm">Configuração da Evolution API (Sua conta Railway)</h4>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                URL da Evolution API na Railway
+              </label>
+              <input
+                type="url"
+                placeholder="https://evolution-production-xxxx.up.railway.app"
+                value={evolutionUrl}
+                onChange={(e) => setEvolutionUrl(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Chave apikey da Evolution (AUTHENTICATION_API_KEY)
+              </label>
+              <input
+                type="password"
+                placeholder="Sua AUTHENTICATION_API_KEY"
+                value={evolutionApiKey}
+                onChange={(e) => setEvolutionApiKey(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="submit"
+              disabled={isSavingConfig}
+              className="btn-primary px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" />
+              {isSavingConfig ? "Salvando..." : "Salvar e Conectar"}
+            </button>
+          </div>
+        </form>
       )}
 
       {/* QR Code Container */}
@@ -178,6 +278,15 @@ export function WhatsAppConnect() {
         >
           <RefreshCw className="w-4 h-4" /> Atualizar Status
         </button>
+
+        {!showConfig && (
+          <button
+            onClick={() => setShowConfig(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-500 hover:text-slate-700 rounded-lg transition-colors ml-auto"
+          >
+            <Settings className="w-3.5 h-3.5" /> Servidor Railway
+          </button>
+        )}
       </div>
     </div>
   );

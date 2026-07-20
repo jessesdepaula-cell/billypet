@@ -945,3 +945,11 @@ model WhatsappMessage {
   @@index([tenantId, phone, createdAt])
   @@index([tenantId, createdAt])
 }
+
+model SystemSetting {
+  id              String   @id @default("global")
+  evolutionUrl    String?
+  evolutionApiKey String?
+  openaiApiKey    String?
+  updatedAt       DateTime @default(now()) @updatedAt
+}
