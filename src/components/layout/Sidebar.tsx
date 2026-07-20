@@ -42,12 +42,13 @@ const groups: Group[] = [
   {
     title: "Atendimento",
     items: [
-      { href: "/agenda",           label: "Agenda",            module: "agenda",      icon: CalendarDays },
-      { href: "/atendimento",      label: "Atendimento",       module: "atendimento", icon: Stethoscope },
-      { href: "/atendimento/chat", label: "Bate-papo WhatsApp", module: "atendimento", icon: MessageSquare },
-      { href: "/esteira",          label: "Esteira",           module: "esteira",     icon: KanbanSquare },
-      { href: "/internacao",       label: "Internacao",        module: "internacao",  icon: BedDouble },
-      { href: "/exames",           label: "Exames",            module: "exames",      icon: FlaskConical },
+      { href: "/agenda",                 label: "Agenda",               module: "agenda",      icon: CalendarDays },
+      { href: "/atendimento",            label: "Atendimento",          module: "atendimento", icon: Stethoscope },
+      { href: "/atendimento/chat",       label: "Bate-papo WhatsApp",    module: "atendimento", icon: MessageSquare },
+      { href: "/configuracoes/whatsapp", label: "Conexão WhatsApp & IA", module: "atendimento", icon: Bot },
+      { href: "/esteira",                label: "Esteira",              module: "esteira",     icon: KanbanSquare },
+      { href: "/internacao",             label: "Internacao",           module: "internacao",  icon: BedDouble },
+      { href: "/exames",                 label: "Exames",               module: "exames",      icon: FlaskConical },
     ],
   },
   {
@@ -78,13 +79,12 @@ const groups: Group[] = [
   {
     title: "Gestao",
     items: [
-      { href: "/relatorios",             label: "Relatorios",          module: "relatorios",             icon: BarChart3 },
-      { href: "/unidades",               label: "Unidades",            module: "unidades",               icon: Building2 },
-      { href: "/usuarios",               label: "Usuarios",            module: "usuarios",               icon: UserCog },
-      { href: "/configuracoes",          label: "Cadastros",           module: "configuracoes",          icon: Settings },
-      { href: "/configuracoes/whatsapp", label: "WhatsApp & IA",       module: "configuracoes",          icon: Bot },
-      { href: "/assinatura",             label: "Assinatura",          module: "assinatura",             icon: CreditCard },
-      { href: "/suporte",                label: "Suporte",             module: "suporte",                icon: LifeBuoy },
+      { href: "/relatorios",    label: "Relatorios", module: "relatorios",    icon: BarChart3 },
+      { href: "/unidades",      label: "Unidades",   module: "unidades",      icon: Building2 },
+      { href: "/usuarios",      label: "Usuarios",   module: "usuarios",      icon: UserCog },
+      { href: "/configuracoes", label: "Cadastros",  module: "configuracoes", icon: Settings },
+      { href: "/assinatura",    label: "Assinatura", module: "assinatura",    icon: CreditCard },
+      { href: "/suporte",       label: "Suporte",    module: "suporte",       icon: LifeBuoy },
     ],
   },
 ];

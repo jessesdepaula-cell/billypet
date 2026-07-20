@@ -14,14 +14,22 @@ export async function requireTenant(): Promise<TenantContext> {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  if (session.role === "SUPER_ADMIN") {
-    // SUPER_ADMIN nao tem dados operacionais proprios - vai pro painel super-admin
-    redirect("/super-admin");
+  let tenantId = session.tenantId;
+
+  // Se for SUPER_ADMIN sem tenant especifico na sessao, utiliza o primeiro tenant cadastrado para teste/operacao
+  if (!tenantId && session.role === "SUPER_ADMIN") {
+    const firstTenant = await prisma.tenant.findFirst({
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+    if (firstTenant) {
+      tenantId = firstTenant.id;
+    } else {
+      redirect("/super-admin");
+    }
   }
 
-  const tenantId = session.tenantId;
   if (!tenantId) {
-    // Usuario sem tenant - desloga
     redirect("/login");
   }
 
@@ -43,8 +51,21 @@ export async function requireTenant(): Promise<TenantContext> {
 export async function requireTenantApi(): Promise<TenantContext | { error: string; status: number }> {
   const session = await getSession();
   if (!session) return { error: "Nao autenticado", status: 401 };
-  if (session.role === "SUPER_ADMIN") return { error: "Acao indisponivel para SUPER_ADMIN", status: 403 };
-  const tenantId = session.tenantId;
+
+  let tenantId = session.tenantId;
+
+  if (!tenantId && session.role === "SUPER_ADMIN") {
+    const firstTenant = await prisma.tenant.findFirst({
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+    if (firstTenant) {
+      tenantId = firstTenant.id;
+    } else {
+      return { error: "Nenhum cliente cadastrado no sistema", status: 404 };
+    }
+  }
+
   if (!tenantId) return { error: "Usuario sem tenant", status: 403 };
 
   let unit = await prisma.unit.findFirst({
