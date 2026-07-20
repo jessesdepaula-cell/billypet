@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Users, PawPrint, CalendarDays, Stethoscope, KanbanSquare, BedDouble,
   FlaskConical, ShoppingCart, PackageOpen, Wallet, ArrowRightLeft, ClipboardList,
   PiggyBank, FileText, Receipt, ListChecks, GiftIcon, ScrollText, LifeBuoy, Settings,
-  Building2, UserCog, BarChart3, Boxes, Crown, GraduationCap, CreditCard,
+  Building2, UserCog, BarChart3, Boxes, Crown, GraduationCap, CreditCard, MessageSquare, Bot,
 } from "lucide-react";
 
 type Item = { href: string; label: string; module: string; icon: React.ComponentType<{ className?: string }> };
@@ -42,11 +42,12 @@ const groups: Group[] = [
   {
     title: "Atendimento",
     items: [
-      { href: "/agenda",      label: "Agenda",       module: "agenda",      icon: CalendarDays },
-      { href: "/atendimento", label: "Atendimento",  module: "atendimento", icon: Stethoscope },
-      { href: "/esteira",     label: "Esteira",      module: "esteira",     icon: KanbanSquare },
-      { href: "/internacao",  label: "Internacao",   module: "internacao",  icon: BedDouble },
-      { href: "/exames",      label: "Exames",       module: "exames",      icon: FlaskConical },
+      { href: "/agenda",           label: "Agenda",            module: "agenda",      icon: CalendarDays },
+      { href: "/atendimento",      label: "Atendimento",       module: "atendimento", icon: Stethoscope },
+      { href: "/atendimento/chat", label: "Bate-papo WhatsApp", module: "atendimento", icon: MessageSquare },
+      { href: "/esteira",          label: "Esteira",           module: "esteira",     icon: KanbanSquare },
+      { href: "/internacao",       label: "Internacao",        module: "internacao",  icon: BedDouble },
+      { href: "/exames",           label: "Exames",            module: "exames",      icon: FlaskConical },
     ],
   },
   {
@@ -77,12 +78,13 @@ const groups: Group[] = [
   {
     title: "Gestao",
     items: [
-      { href: "/relatorios",    label: "Relatorios",  module: "relatorios",   icon: BarChart3 },
-      { href: "/unidades",      label: "Unidades",    module: "unidades",     icon: Building2 },
-      { href: "/usuarios",      label: "Usuarios",    module: "usuarios",     icon: UserCog },
-      { href: "/configuracoes", label: "Cadastros",   module: "configuracoes", icon: Settings },
-      { href: "/assinatura",    label: "Assinatura",  module: "assinatura",   icon: CreditCard },
-      { href: "/suporte",       label: "Suporte",     module: "suporte",      icon: LifeBuoy },
+      { href: "/relatorios",             label: "Relatorios",          module: "relatorios",             icon: BarChart3 },
+      { href: "/unidades",               label: "Unidades",            module: "unidades",               icon: Building2 },
+      { href: "/usuarios",               label: "Usuarios",            module: "usuarios",               icon: UserCog },
+      { href: "/configuracoes",          label: "Cadastros",           module: "configuracoes",          icon: Settings },
+      { href: "/configuracoes/whatsapp", label: "WhatsApp & IA",       module: "configuracoes",          icon: Bot },
+      { href: "/assinatura",             label: "Assinatura",          module: "assinatura",             icon: CreditCard },
+      { href: "/suporte",                label: "Suporte",             module: "suporte",                icon: LifeBuoy },
     ],
   },
 ];
@@ -121,11 +123,8 @@ export function Sidebar({ role, permissions }: { role: Role; permissions?: strin
   return (
     <aside className="hidden md:flex md:w-64 shrink-0 flex-col bg-white border-r border-slate-200 min-h-screen">
       <div className="p-4 border-b border-slate-100 flex items-center gap-2">
-        <div className="h-9 w-9 rounded-xl bg-brand-600 grid place-items-center text-white font-bold shadow-soft">B</div>
-        <div>
-          <div className="text-base font-bold text-slate-800 leading-tight">BilyVet</div>
-          <div className="text-[10px] uppercase tracking-wider text-slate-400">Gestao Veterinaria</div>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.svg" alt="BilyVet" className="h-9 w-auto" />
       </div>
       <nav className="p-3 overflow-y-auto flex-1">
         {/* Seção de favoritos / itens fixados no topo */}

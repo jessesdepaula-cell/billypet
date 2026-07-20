@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 import {
   Stethoscope,
   CalendarDays,
@@ -66,11 +67,8 @@ export default async function LandingPage() {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-slate-200/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <PawMark className="h-10 w-10 rounded-xl bp-ring-glow" />
-            <div className="leading-tight">
-              <div className="text-lg font-extrabold text-slate-900">BilyVet</div>
-              <div className="text-[10px] uppercase tracking-widest text-brand-600 font-semibold">Gestão Veterinária</div>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="BilyVet Gestão Veterinária" className="h-11 w-auto" />
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
             <a href="#beneficios" className="hover:text-brand-600 transition">Benefícios</a>
@@ -818,9 +816,9 @@ export default async function LandingPage() {
       <footer className="bg-slate-950 text-slate-400 text-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center gap-2 text-white">
-              <PawMark className="h-9 w-9 rounded-xl" />
-              <span className="font-extrabold text-lg">BilyVet</span>
+            <div className="flex items-center gap-2 text-white mb-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.svg" alt="BilyVet" className="h-10 w-auto bg-white/10 p-1.5 rounded-lg" />
             </div>
             <p className="mt-3 text-xs">
               Plataforma de gestão para clínicas, hospitais veterinários, pet shops e banho e tosa.
@@ -860,6 +858,8 @@ export default async function LandingPage() {
           © {new Date().getFullYear()} BilyVet — Todos os direitos reservados.
         </div>
       </footer>
+
+      <WhatsAppFloat />
     </main>
   );
 }

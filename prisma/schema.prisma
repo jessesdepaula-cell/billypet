@@ -89,18 +89,21 @@ model Tenant {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  users             User[]
-  subscriptions     Subscription[]
-  payments          SubscriptionPayment[]
-  units             Unit[]
-  tutors            Tutor[]
-  products          Product[]
-  productCategories ProductCategory[]
-  suppliers         Supplier[]
-  services          Service[]
-  kits              Kit[]
-  paymentMethods    PaymentMethod[]
-  cardMachines      CardMachine[]
+  users              User[]
+  subscriptions      Subscription[]
+  payments           SubscriptionPayment[]
+  units              Unit[]
+  tutors             Tutor[]
+  products           Product[]
+  productCategories  ProductCategory[]
+  suppliers          Supplier[]
+  services           Service[]
+  kits               Kit[]
+  paymentMethods     PaymentMethod[]
+  cardMachines       CardMachine[]
+  whatsappConnection WhatsappConnection?
+  whatsappContacts   WhatsappContact[]
+  whatsappMessages   WhatsappMessage[]
 }
 
 model Subscription {
@@ -227,14 +230,14 @@ model Pet {
 }
 
 model WeightRecord {
-  id            String       @id @default(cuid())
+  id            String   @id @default(cuid())
   petId         String
-  pet           Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
+  pet           Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
   weightKg      Float
-  source        String       @default("MANUAL") // MANUAL, ATENDIMENTO
+  source        String   @default("MANUAL") // MANUAL, ATENDIMENTO
   appointmentId String?
   note          String?
-  createdAt     DateTime     @default(now())
+  createdAt     DateTime @default(now())
 
   @@index([petId])
 }
@@ -869,7 +872,76 @@ model PetAttachment {
   name      String
   mimeType  String
   sizeBytes Int
-  fileData  String?  // legado: base64 (anexos antigos pre-Vercel-Blob)
-  url       String?  // novo: URL publica do Vercel Blob
+  fileData  String? // legado: base64 (anexos antigos pre-Vercel-Blob)
+  url       String? // novo: URL publica do Vercel Blob
   createdAt DateTime @default(now())
+}
+
+// ============================================================
+// WHATSAPP + IA (assistente por WhatsApp + inbox interno)
+// Uma instancia Evolution isolada por assinatura (tenant): `bp-<tenantId>`.
+// ============================================================
+
+// Conexao WhatsApp da assinatura. Servidor/chave Evolution sao da plataforma;
+// o assinante so escaneia o QR. Guarda os prompts editaveis da IA.
+model WhatsappConnection {
+  id                String    @id @default(cuid())
+  tenantId          String    @unique
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  instanceName      String    @unique // bp-<tenantId>
+  status            String    @default("DISCONNECTED") // DISCONNECTED, CONNECTING, CONNECTED
+  connectedNumber   String?
+  // IA ligada para mensagens de CLIENTES (numeros nao cadastrados).
+  aiClientEnabled   Boolean   @default(true)
+  // IA ligada para OPERADORES (numeros cadastrados que alimentam o sistema).
+  aiOperatorEnabled Boolean   @default(true)
+  // Prompt extra do modo OPERADOR (dono/equipe alimentando o sistema).
+  operatorPrompt    String?
+  // Prompt de ATENDIMENTO ao cliente (numeros nao cadastrados).
+  clientPrompt      String?
+  lastConnectedAt   DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status])
+}
+
+// Numeros autorizados a ALIMENTAR o sistema desta assinatura pela IA (operadores).
+model WhatsappContact {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId    String? // vinculo opcional com um User (vet responsavel dos registros)
+  name      String
+  phone     String // apenas digitos, com DDI
+  role      String   @default("WORKER") // OWNER, VET, WORKER
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages WhatsappMessage[]
+
+  @@unique([tenantId, phone])
+  @@index([tenantId, active])
+}
+
+// Log de mensagens (auditoria + memoria curta por telefone + inbox humano).
+model WhatsappMessage {
+  id        String           @id @default(cuid())
+  tenantId  String
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contactId String?
+  contact   WhatsappContact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  phone     String // apenas digitos
+  pushName  String? // nome do perfil WhatsApp (para clientes nao cadastrados)
+  direction String // IN, OUT
+  actor     String           @default("CONTACT") // CONTACT, AI, HUMAN, SYSTEM
+  kind      String           @default("TEXT") // TEXT, AUDIO, SYSTEM
+  content   String
+  toolCalls Json?
+  readAt    DateTime? // controle de nao-lidas no inbox
+  createdAt DateTime         @default(now())
+
+  @@index([tenantId, phone, createdAt])
+  @@index([tenantId, createdAt])
 }

@@ -40,26 +40,26 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 via-white to-accent-50 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <div className="h-10 w-10 rounded-xl bg-brand-600 grid place-items-center text-white font-bold text-lg shadow-card">B</div>
-            <span className="text-2xl font-bold text-slate-800">BilyVet</span>
-          </div>
-          <p className="text-slate-500 text-sm">Plataforma de gestao para clinicas, hospitais e pet shops</p>
+          <Link href="/" className="inline-block hover:opacity-90 transition-opacity" title="Ir para a página de vendas">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="BilyVet Gestão Veterinária" className="h-16 w-auto mx-auto object-contain" />
+          </Link>
+          <p className="text-slate-500 text-sm mt-3">Plataforma de gestão para clínicas, hospitais e pet shops</p>
         </div>
 
-        <form onSubmit={onSubmit} className="card card-pad space-y-4">
+        <form onSubmit={onSubmit} className="card card-pad space-y-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <h1 className="text-lg font-semibold text-slate-800">Acesse sua conta</h1>
 
           <div>
-            <label className="label">E-mail</label>
-            <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <label className="label text-xs font-medium text-slate-700 block mb-1">E-mail</label>
+            <input className="input w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
 
           <div>
-            <label className="label">Senha</label>
+            <label className="label text-xs font-medium text-slate-700 block mb-1">Senha</label>
             <div className="relative">
               <input
-                className="input pr-10"
+                className="input w-full px-3 py-2 text-sm border border-slate-300 rounded-lg pr-10 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -78,7 +78,7 @@ export default function LoginPage() {
 
           {error && <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">{error}</div>}
 
-          <button className="btn-primary w-full" disabled={loading}>
+          <button className="btn-primary w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg text-sm shadow-sm transition-all" disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}
           </button>
 

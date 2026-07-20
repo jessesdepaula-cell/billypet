@@ -1,0 +1,21 @@
+<svg width="880" height="240" viewBox="0 0 440 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bvgrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(8,10) scale(0.833)">
+    <rect x="0" y="0" width="120" height="120" rx="28" fill="url(#bvgrad)"/>
+    <g fill="#FFFFFF">
+      <ellipse cx="41" cy="52" rx="7.5" ry="10" transform="rotate(-20 41 52)"/>
+      <ellipse cx="54" cy="43" rx="8" ry="11.5"/>
+      <ellipse cx="69" cy="43" rx="8" ry="11.5"/>
+      <ellipse cx="82" cy="52" rx="7.5" ry="10" transform="rotate(20 82 52)"/>
+      <path d="M61 59 C44 59 34 72 39 85 C43 96 55 98 61 92 C67 98 79 96 83 85 C88 72 78 59 61 59 Z"/>
+    </g>
+    <path d="M39 80 H50 l4 -9 l6 18 l5 -12 l3 3 H83" fill="none" stroke="#F97316" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="126" y="66" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="46" font-weight="700" fill="#0F172A" letter-spacing="-1">Bily<tspan fill="#2563EB">Vet</tspan></text>
+  <text x="130" y="90" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="12" font-weight="600" fill="#64748B" letter-spacing="3">GESTÃO VETERINÁRIA</text>
+</svg>
