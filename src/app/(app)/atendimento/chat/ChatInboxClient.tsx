@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Send, Search, Bot, User, Phone, CheckCheck, RefreshCw, MessageSquare } from "lucide-react";
+import { Send, Search, Bot, User, Phone, CheckCheck, RefreshCw, MessageSquare, Volume2 } from "lucide-react";
 
 type Conversation = {
   phone: string;
@@ -310,7 +310,20 @@ export function ChatInboxClient() {
                           )}
                         </div>
 
-                        <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
+                        {/* Conteudo de Audio vs Texto */}
+                        {m.kind === "AUDIO" || m.content.startsWith("[Áudio") ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 font-medium text-xs opacity-90 py-0.5">
+                              <Volume2 className="w-4 h-4 shrink-0 animate-pulse" />
+                              <span>Mensagem de Áudio</span>
+                            </div>
+                            <p className="whitespace-pre-wrap leading-relaxed text-sm bg-black/10 p-2 rounded-lg italic">
+                              {m.content.replace(/^\[Áudio transcrito\]:\s*/i, "")}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
+                        )}
 
                         <div className="text-[10px] opacity-75 text-right mt-1">
                           {timeStr}

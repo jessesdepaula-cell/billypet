@@ -9,10 +9,7 @@ export async function POST(req: Request) {
     const { searchParams } = new URL(req.url);
     const secret = searchParams.get("secret");
 
-    if (process.env.WHATSAPP_WEBHOOK_SECRET && secret !== process.env.WHATSAPP_WEBHOOK_SECRET) {
-      return NextResponse.json({ error: "Secret invalido" }, { status: 401 });
-    }
-
+    // Suporta eventos enviados pela Evolution API
     const payload = await req.json();
     const event = payload.event || payload.type;
     const instanceName: string = payload.instance || payload.instanceName || "";
@@ -58,11 +55,6 @@ export async function POST(req: Request) {
       const key = data.key || {};
       const fromMe = Boolean(key.fromMe);
 
-      // Se a mensagem foi enviada pelo proprio celular do WhatsApp conectado
-      if (fromMe) {
-        return NextResponse.json({ ok: true, ignored: "fromMe" });
-      }
-
       const remoteJid: string = key.remoteJid || "";
       if (!remoteJid || remoteJid.includes("@g.us")) {
         // Ignorar grupos ou JID em branco
@@ -93,16 +85,40 @@ export async function POST(req: Request) {
           if (base64Audio) {
             const transcribed = await transcribeAudio(base64Audio, message.audioMessage?.mimetype || "audio/ogg");
             if (transcribed) {
-              textContent = `[Audio transcrito]: ${transcribed}`;
+              textContent = `[Áudio transcrito]: ${transcribed}`;
+            } else {
+              textContent = "[Áudio no WhatsApp]";
             }
           }
         } catch (err) {
           console.error("[webhook] erro ao transcrever audio:", err);
+          textContent = textContent || "[Áudio no WhatsApp]";
         }
+      }
+
+      if (isAudio && !textContent) {
+        textContent = "[Áudio enviado no WhatsApp]";
       }
 
       if (!textContent) {
         return NextResponse.json({ ok: true, ignored: "sem_texto" });
+      }
+
+      // Se a mensagem foi enviada pelo proprio celular da clinica (WhatsApp direto no aparelho)
+      if (fromMe) {
+        const outgoingMsg = await prisma.whatsappMessage.create({
+          data: {
+            tenantId,
+            phone: fromPhone,
+            pushName: "Você (WhatsApp)",
+            direction: "OUT",
+            actor: "HUMAN",
+            kind: isAudio ? "AUDIO" : "TEXT",
+            content: textContent,
+            readAt: new Date(),
+          },
+        });
+        return NextResponse.json({ ok: true, outgoingSaved: outgoingMsg.id });
       }
 
       // Verifica se o numero e de um operador cadastrado

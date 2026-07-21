@@ -1,7 +1,9 @@
 /**
- * Cliente OpenAI minimo via fetch (sem SDK): chat com function-calling e
- * transcricao de audio (Whisper). Usa OPENAI_API_KEY do ambiente.
+ * Cliente OpenAI minimo via fetch (sem SDK): chat com function-calling (modelo gpt-4o-mini) e
+ * transcricao de audio (Whisper). Usa OPENAI_API_KEY do ambiente ou banco (SystemSetting).
  */
+
+import { prisma } from "@/lib/db";
 
 const OPENAI_BASE = "https://api.openai.com/v1";
 
@@ -9,8 +11,12 @@ export function chatModel() {
   return process.env.OPENAI_MODEL || "gpt-4o-mini";
 }
 
-function apiKey() {
-  const key = process.env.OPENAI_API_KEY;
+export async function getOpenAiApiKey(): Promise<string> {
+  let key = process.env.OPENAI_API_KEY;
+  if (!key) {
+    const setting = await prisma.systemSetting.findUnique({ where: { id: "global" } });
+    if (setting?.openaiApiKey) key = setting.openaiApiKey;
+  }
   if (!key) throw new Error("OPENAI_API_KEY ausente");
   return key;
 }
@@ -40,11 +46,13 @@ type ChatResult = {
 };
 
 export async function chat(messages: ChatMessage[], tools?: ToolDef[]): Promise<ChatResult> {
+  const apiKey = await getOpenAiApiKey();
+
   const res = await fetch(`${OPENAI_BASE}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey()}`,
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       model: chatModel(),
@@ -72,6 +80,8 @@ export async function chat(messages: ChatMessage[], tools?: ToolDef[]): Promise<
 
 /** Transcreve um audio (base64) via Whisper. Retorna o texto em pt-BR. */
 export async function transcribeAudio(base64: string, mimeType = "audio/ogg"): Promise<string> {
+  const apiKey = await getOpenAiApiKey();
+
   const bytes = Buffer.from(base64, "base64");
   const blob = new Blob([new Uint8Array(bytes)], { type: mimeType });
   const form = new FormData();
@@ -81,7 +91,7 @@ export async function transcribeAudio(base64: string, mimeType = "audio/ogg"): P
 
   const res = await fetch(`${OPENAI_BASE}/audio/transcriptions`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey()}` },
+    headers: { Authorization: `Bearer ${apiKey}` },
     body: form,
     cache: "no-store",
   });

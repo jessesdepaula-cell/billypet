@@ -120,6 +120,18 @@ export function Sidebar({ role, permissions }: { role: Role; permissions?: strin
     (it) => favorites.includes(it.href) && canAccess(it.module, role, permissions)
   );
 
+  function isItemActive(itemHref: string) {
+    if (pathname === itemHref) return true;
+    if (!pathname.startsWith(itemHref + "/")) return false;
+    const hasMoreSpecificMatch = allItems.some(
+      (other) =>
+        other.href !== itemHref &&
+        other.href.startsWith(itemHref + "/") &&
+        (pathname === other.href || pathname.startsWith(other.href + "/"))
+    );
+    return !hasMoreSpecificMatch;
+  }
+
   return (
     <aside className="hidden md:flex md:w-64 shrink-0 flex-col bg-white border-r border-slate-200 min-h-screen">
       <div className="p-4 border-b border-slate-100 flex items-center gap-2">
@@ -135,7 +147,7 @@ export function Sidebar({ role, permissions }: { role: Role; permissions?: strin
             </div>
             <ul className="space-y-0.5">
               {visibleFavs.map((it) => {
-                const active = pathname === it.href || pathname.startsWith(it.href + "/");
+                const active = isItemActive(it.href);
                 const Icon = it.icon;
                 return (
                   <li key={it.href} className="group/item relative">
@@ -172,7 +184,7 @@ export function Sidebar({ role, permissions }: { role: Role; permissions?: strin
               <div className="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">{g.title}</div>
               <ul className="space-y-0.5">
                 {visibleItems.map((it) => {
-                  const active = pathname === it.href || pathname.startsWith(it.href + "/");
+                  const active = isItemActive(it.href);
                   const Icon = it.icon;
                   const isFav = favorites.includes(it.href);
                   return (
