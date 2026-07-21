@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getBase64FromMediaMessage, sendText } from "@/lib/whatsapp/evolution";
-import { transcribeAudio } from "@/lib/whatsapp/openai";
+import { transcribeAudio, getOpenAiApiKey } from "@/lib/whatsapp/openai";
 import { runAgent } from "@/lib/whatsapp/ai/engine";
 
 export async function POST(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const secret = searchParams.get("secret");
-
-    // Suporta eventos enviados pela Evolution API
     const payload = await req.json();
-    const event = payload.event || payload.type;
+    console.log("[webhook payload]", JSON.stringify(payload).slice(0, 500));
+
+    const rawEvent = String(payload.event || payload.type || "").toUpperCase().replace(/\./g, "_");
     const instanceName: string = payload.instance || payload.instanceName || "";
 
     if (!instanceName) {
@@ -30,8 +28,8 @@ export async function POST(req: Request) {
 
     const tenantId = connection.tenantId;
 
-    // 1. Atualizacao de estado da conexao (CONNECTION_UPDATE)
-    if (event === "CONNECTION_UPDATE") {
+    // 1. Atualizacao de estado da conexao (CONNECTION_UPDATE / connection.update)
+    if (rawEvent === "CONNECTION_UPDATE") {
       const state = payload.data?.state || payload.state;
       let newStatus = connection.status;
       if (state === "open") newStatus = "CONNECTED";
@@ -46,13 +44,13 @@ export async function POST(req: Request) {
         },
       });
 
-      return NextResponse.json({ ok: true, event });
+      return NextResponse.json({ ok: true, event: rawEvent });
     }
 
-    // 2. Recebimento de mensagens (MESSAGES_UPSERT)
-    if (event === "MESSAGES_UPSERT") {
+    // 2. Recebimento de mensagens (MESSAGES_UPSERT / messages.upsert)
+    if (rawEvent === "MESSAGES_UPSERT") {
       const data = payload.data || payload;
-      const key = data.key || {};
+      const key = data.key || payload.key || {};
       const fromMe = Boolean(key.fromMe);
 
       const remoteJid: string = key.remoteJid || "";
@@ -67,7 +65,7 @@ export async function POST(req: Request) {
       }
 
       const pushName: string | undefined = data.pushName || payload.pushName;
-      const message = data.message || {};
+      const message = data.message || payload.message || {};
 
       let textContent: string | null =
         message.conversation ||
@@ -79,7 +77,7 @@ export async function POST(req: Request) {
       let isAudio = Boolean(message.audioMessage);
 
       // Transcricao de audio se recebido
-      if (isAudio && process.env.OPENAI_API_KEY) {
+      if (isAudio) {
         try {
           const base64Audio = await getBase64FromMediaMessage(instanceName, message);
           if (base64Audio) {
@@ -149,7 +147,15 @@ export async function POST(req: Request) {
       const isAiEnabled =
         mode === "OPERATOR" ? connection.aiOperatorEnabled : connection.aiClientEnabled;
 
-      if (!isAiEnabled || !process.env.OPENAI_API_KEY) {
+      let hasOpenAiKey = false;
+      try {
+        await getOpenAiApiKey();
+        hasOpenAiKey = true;
+      } catch {
+        hasOpenAiKey = false;
+      }
+
+      if (!isAiEnabled || !hasOpenAiKey) {
         return NextResponse.json({ ok: true, aiStatus: "disabled", msgId: incomingMsg.id });
       }
 
@@ -220,7 +226,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, processed: true, reply: agentRes.reply });
     }
 
-    return NextResponse.json({ ok: true, unhandledEvent: event });
+    return NextResponse.json({ ok: true, unhandledEvent: rawEvent });
   } catch (err) {
     console.error("[whatsapp/webhook] erro:", err);
     return NextResponse.json(
