@@ -98,38 +98,57 @@ export default async function LandingPage() {
           <div className="absolute bottom-0 left-1/3 w-[420px] h-[420px] rounded-full bg-brand-200/40 bp-blob" style={{ animationDelay: "-12s" }} />
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 grid lg:grid-cols-12 gap-10 lg:gap-6 items-center">
-          {/* Copy */}
-          <div className="lg:col-span-6 relative">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/70 backdrop-blur border border-brand-100 px-3 py-1 text-xs font-semibold text-brand-700 shadow-soft">
-              <Sparkles className="h-3.5 w-3.5 text-accent-500" />
-              Novo • Plataforma 100% nacional para clínicas e pet shops
-            </div>
-            <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.05]">
-              O sistema que faz a sua{" "}
-              <span className="bp-text-gradient">clínica veterinária</span> render{" "}
-              <span className="relative inline-block">
-                <span className="relative z-10">3× mais</span>
-                <span className="absolute inset-x-0 bottom-1 h-3 bg-accent-200/70 -z-0 rounded-sm" />
-              </span>
-              .
-            </h1>
-            <p className="mt-5 text-lg text-slate-600 max-w-xl">
-              <strong className="text-slate-900">BilyVet</strong> é a plataforma completa que une <strong>atendimento clínico, agenda, internação, financeiro, vendas, estoque, fidelidade e BI estratégico</strong> em um único lugar — pensado pra quem vive a rotina de uma clínica, hospital veterinário, pet shop ou banho e tosa.
-            </p>
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 text-center relative">
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.08] max-w-4xl mx-auto">
+            O sistema que faz a sua{" "}
+            <span className="bp-text-gradient">clínica veterinária</span> render{" "}
+            <span className="relative inline-block">
+              <span className="relative z-10">3× mais</span>
+              <span className="absolute inset-x-0 bottom-1 h-3 bg-accent-200/70 -z-0 rounded-sm" />
+            </span>
+            .
+          </h1>
 
-            <div className="mt-7 flex flex-col sm:flex-row gap-3">
-              <Link href="/login" className="btn-primary px-5 py-3 text-base shadow-card bp-glow-blue group">
-                Entrar na minha conta
-                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-              </Link>
-              <a href="#planos" className="btn-outline px-5 py-3 text-base">
-                <PlayCircle className="h-4 w-4 text-brand-600" />
-                Quero conhecer os planos
-              </a>
-            </div>
+          {/* Subheadline abaixo da Headline */}
+          <p className="mt-5 text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+            <strong className="text-slate-900">BilyVet</strong> é a plataforma completa que une <strong>atendimento clínico, agenda, internação, financeiro, vendas, estoque, fidelidade e BI estratégico</strong> em um único lugar — pensado pra quem vive a rotina de uma clínica, hospital veterinário, pet shop ou banho e tosa.
+          </p>
 
-            <div className="mt-6 flex items-center gap-4 text-sm text-slate-500">
+          {/* Vídeo de vendas no meio */}
+          <div className="mt-10 relative max-w-3xl mx-auto">
+            <div className="absolute -inset-6 rounded-3xl bg-gradient-to-tr from-brand-400/30 via-transparent to-accent-400/40 blur-2xl" />
+            <div className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-2xl bg-slate-900 bp-glow-blue">
+              <video
+                className="w-full aspect-video"
+                src="/video-vendas.mp4"
+                poster="/video-vendas-poster.jpg"
+                controls
+                playsInline
+                preload="metadata"
+              />
+            </div>
+            <div className="mt-3 flex items-center justify-center gap-2 text-sm text-slate-500 font-medium">
+              <PlayCircle className="h-4 w-4 text-brand-600" />
+              Veja a BilyVet em 1 minuto
+            </div>
+          </div>
+
+          {/* Botões abaixo do vídeo */}
+          <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/login" className="btn-primary px-7 py-3.5 text-base font-bold shadow-card bp-glow-blue group">
+              Entrar na minha conta
+              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+            </Link>
+            <a href="#planos" className="btn-outline px-7 py-3.5 text-base font-semibold">
+              <PlayCircle className="h-4 w-4 text-brand-600" />
+              Quero conhecer os planos
+            </a>
+          </div>
+
+          {/* Avaliações e diferenciais abaixo dos botões */}
+          <div className="mt-8 flex flex-col items-center justify-center gap-3">
+            <div className="flex items-center gap-3 text-sm text-slate-600">
               <div className="flex -space-x-2">
                 {["A", "L", "M", "P"].map((c, i) => (
                   <div
@@ -142,174 +161,28 @@ export default async function LandingPage() {
                   </div>
                 ))}
               </div>
-              <div>
-                <div className="flex items-center gap-1 text-amber-500">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-400" />
-                  ))}
-                  <span className="ml-1 font-semibold text-slate-800">4.9/5</span>
-                </div>
-                <div className="text-xs">+1.200 clínicas e pet shops já usam o BilyVet</div>
+              <div className="flex items-center gap-1.5 text-amber-500">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-4 w-4 fill-amber-400" />
+                ))}
+                <span className="font-semibold text-slate-800">4.9/5</span>
+                <span className="text-slate-500 font-normal">&middot; +1.200 clínicas e pet shops já usam</span>
               </div>
             </div>
 
-            {/* Mini bullets */}
-            <ul className="mt-7 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <ul className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-700">
               {[
                 "Sem instalação. Funciona no navegador.",
-                "Receituário interno em PDF — sem depender de terceiros.",
-                "Suporte a multiunidades (matriz + filiais).",
+                "Receituário interno em PDF.",
+                "Suporte a multiunidades.",
                 "Suporte humano em português.",
               ].map((t) => (
-                <li key={t} className="flex items-start gap-2 text-slate-700">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                <li key={t} className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                   {t}
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* Vídeo de vendas (hero) */}
-          <div className="lg:col-span-6 relative">
-            <div className="absolute -inset-6 rounded-3xl bg-gradient-to-tr from-brand-400/30 via-transparent to-accent-400/40 blur-2xl" />
-            <div className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-2xl bg-slate-900 bp-glow-blue">
-              <video
-                className="w-full aspect-video"
-                src="/video-vendas.mp4"
-                poster="/video-vendas-poster.jpg"
-                controls
-                playsInline
-                preload="metadata"
-              />
-            </div>
-            <div className="mt-3 flex items-center justify-center gap-2 text-sm text-slate-500">
-              <PlayCircle className="h-4 w-4 text-brand-600" />
-              Veja a BilyVet em 1 minuto
-            </div>
-          </div>
-
-          {/* mockup antigo (oculto) */}
-          <div className="hidden">
-            <div className="relative">
-              <div className="relative rounded-3xl bg-white border border-slate-200 shadow-2xl overflow-hidden bp-glow-blue">
-                {/* Top bar */}
-                <div className="flex items-center justify-between px-5 py-3 border-b bg-slate-50/80">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                    <div className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                    <div className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                  </div>
-                  <div className="text-xs font-medium text-slate-500">app.bilyvet.com / dashboard</div>
-                  <div className="text-[10px] text-slate-400">v1.0</div>
-                </div>
-
-                {/* Content */}
-                <div className="p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-xs text-slate-500">Bem-vindo de volta</div>
-                      <div className="text-lg font-bold text-slate-900">Dra. Marina • Hoje</div>
-                    </div>
-                    <div className="badge-orange">8 atendimentos hoje</div>
-                  </div>
-
-                  {/* KPI cards */}
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { label: "Receita do dia", value: "R$ 4.820", trend: "+18%", icon: Wallet, color: "from-brand-500 to-brand-700" },
-                      { label: "Atendimentos", value: "37", trend: "+9", icon: HeartPulse, color: "from-emerald-500 to-emerald-700" },
-                      { label: "Ticket médio", value: "R$ 130", trend: "+12%", icon: TrendingUp, color: "from-accent-500 to-accent-700" },
-                    ].map((k) => (
-                      <div key={k.label} className="rounded-xl border border-slate-200 p-3 bg-white shadow-soft">
-                        <div className={`h-7 w-7 rounded-lg bg-gradient-to-br ${k.color} grid place-items-center text-white mb-2`}>
-                          <k.icon className="h-3.5 w-3.5" />
-                        </div>
-                        <div className="text-[10px] uppercase tracking-wide text-slate-500">{k.label}</div>
-                        <div className="text-base font-bold text-slate-900 leading-tight">{k.value}</div>
-                        <div className="text-[10px] text-emerald-600 font-semibold">{k.trend}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Chart mock */}
-                  <div className="rounded-xl border border-slate-200 p-3 bg-white">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-xs font-semibold text-slate-800">Faturamento últimos 7 dias</div>
-                      <div className="text-[10px] text-slate-500">vs. semana anterior</div>
-                    </div>
-                    <div className="h-24 flex items-end gap-1.5">
-                      {[40, 65, 52, 78, 60, 90, 100].map((h, i) => (
-                        <div key={i} className="flex-1 flex flex-col gap-0.5 items-stretch">
-                          <div
-                            className="rounded-t-md bg-gradient-to-t from-brand-600 to-brand-400"
-                            style={{ height: `${h}%` }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Kanban mock */}
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { t: "Recepção", c: 5, color: "bg-brand-50 border-brand-200 text-brand-700" },
-                      { t: "Triagem", c: 3, color: "bg-amber-50 border-amber-200 text-amber-700" },
-                      { t: "Consulta", c: 4, color: "bg-emerald-50 border-emerald-200 text-emerald-700" },
-                      { t: "Pagamento", c: 2, color: "bg-accent-50 border-accent-200 text-accent-700" },
-                    ].map((s) => (
-                      <div key={s.t} className={`rounded-lg border px-2 py-2 ${s.color}`}>
-                        <div className="text-[10px] font-semibold">{s.t}</div>
-                        <div className="text-base font-bold">{s.c}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Floating cards */}
-              <div className="hidden md:block absolute -left-10 top-24 bp-float">
-                <div className="rounded-2xl bg-white shadow-2xl border border-slate-200 p-3 w-56 bp-glow-orange">
-                  <div className="flex items-center gap-2">
-                    <div className="h-9 w-9 rounded-xl bg-accent-100 grid place-items-center">
-                      <PawPrint className="h-4 w-4 text-accent-600" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-slate-900">Thor • Labrador</div>
-                      <div className="text-[10px] text-slate-500">Tutor: João Silva</div>
-                    </div>
-                  </div>
-                  <div className="mt-2 text-[11px] text-slate-600">Vacina V10 — vence em 12 dias</div>
-                  <div className="mt-2 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                    <div className="h-full w-3/4 bg-accent-500" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="hidden md:block absolute -right-6 bottom-10 bp-float-delay">
-                <div className="rounded-2xl bg-white shadow-2xl border border-slate-200 p-3 w-60">
-                  <div className="flex items-center justify-between">
-                    <div className="text-[10px] uppercase tracking-wide text-slate-500 font-bold">Receituário PDF</div>
-                    <FileText className="h-3.5 w-3.5 text-brand-600" />
-                  </div>
-                  <div className="mt-2 text-xs font-semibold text-slate-900">Dipirona 500mg</div>
-                  <div className="text-[11px] text-slate-500">1 cp a cada 8h por 5 dias</div>
-                  <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                    <CheckCircle2 className="h-3 w-3" /> Gerado em 0.8s
-                  </div>
-                </div>
-              </div>
-
-              <div className="hidden lg:block absolute -left-4 -bottom-8 bp-float-slow">
-                <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 text-white shadow-2xl p-3 w-52">
-                  <div className="text-[10px] uppercase tracking-widest text-brand-200">Estoque crítico</div>
-                  <div className="mt-1 text-sm font-bold">Antipulgas Bravecto</div>
-                  <div className="text-[11px] text-brand-100">3 unidades restantes</div>
-                  <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold bg-white/15 rounded-full px-2 py-0.5">
-                    <Zap className="h-3 w-3" /> Alerta automático
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
