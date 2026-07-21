@@ -100,6 +100,12 @@ export async function getCustomer(id: string): Promise<AsaasCustomer> {
   return asaasFetch<AsaasCustomer>(`/customers/${id}`);
 }
 
+export type AsaasPixQrCode = {
+  encodedImage: string;
+  payload: string;
+  expirationDate: string;
+};
+
 export async function createSubscription(input: {
   customer: string;
   value: number;
@@ -108,6 +114,21 @@ export async function createSubscription(input: {
   billingType?: "BOLETO" | "CREDIT_CARD" | "PIX" | "UNDEFINED";
   description?: string;
   externalReference?: string;
+  creditCard?: {
+    holderName: string;
+    number: string;
+    expiryMonth: string;
+    expiryYear: string;
+    ccv: string;
+  };
+  creditCardHolderInfo?: {
+    name: string;
+    email: string;
+    cpfCnpj: string;
+    postalCode?: string;
+    addressNumber?: string;
+    phone?: string;
+  };
 }): Promise<AsaasSubscription> {
   return asaasFetch<AsaasSubscription>("/subscriptions", {
     method: "POST",
@@ -131,6 +152,10 @@ export async function updateSubscription(
     method: "PUT",
     body: JSON.stringify(input),
   });
+}
+
+export async function getPixQrCode(paymentId: string): Promise<AsaasPixQrCode> {
+  return asaasFetch<AsaasPixQrCode>(`/payments/${paymentId}/pixQrCode`);
 }
 
 /**

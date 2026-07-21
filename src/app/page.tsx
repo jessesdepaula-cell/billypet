@@ -82,9 +82,9 @@ export default async function LandingPage() {
             <a href="#faq" className="hover:text-brand-600 transition">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Link href="/login" className="hidden sm:inline-flex btn-ghost text-slate-700">Entrar</Link>
-            <Link href="/login" className="btn-primary shadow-card">
-              Acessar área de membros
+            <Link href="/login" className="hidden sm:inline-flex btn-ghost text-slate-700 font-semibold">Entrar</Link>
+            <Link href="/checkout" className="btn-primary shadow-card bg-emerald-600 hover:bg-emerald-700 text-white font-bold border-none">
+              Assinar agora — R$ 197/mês
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -139,15 +139,13 @@ export default async function LandingPage() {
 
           {/* Botões abaixo do vídeo */}
           <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href={process.env.NEXT_PUBLIC_ASAAS_PAYMENT_URL || "https://www.asaas.com/c/6ly4n7j68yr5m3nu"}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/checkout"
               className="btn-primary px-8 py-4 text-base font-bold shadow-card bp-glow-blue group bg-emerald-600 hover:bg-emerald-700 text-white border-none"
             >
               Assinar agora — R$ 197/mês
               <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
-            </a>
+            </Link>
             <Link href="/login" className="btn-outline px-6 py-4 text-base font-semibold">
               Entrar na minha conta
             </Link>
@@ -482,8 +480,8 @@ export default async function LandingPage() {
               </ul>
 
               <div className="mt-8 flex gap-3">
-                <Link href="/login" className="btn-primary px-5 py-3">
-                  Quero acessar agora
+                <Link href="/checkout" className="btn-primary px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold border-none">
+                  Assinar agora — R$ 197/mês
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a href="#planos" className="btn-outline px-5 py-3">Ver planos</a>
@@ -569,15 +567,13 @@ export default async function LandingPage() {
                 ))}
               </ul>
 
-              <a
-                href={process.env.NEXT_PUBLIC_ASAAS_PAYMENT_URL || "https://www.asaas.com/c/6ly4n7j68yr5m3nu"}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/checkout"
                 className="mt-7 w-full btn-primary bp-glow-blue px-5 py-3 text-base justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
               >
                 Assinar agora
                 <ArrowRight className="h-4 w-4" />
-              </a>
+              </Link>
               <div className="mt-3 text-center text-xs text-slate-500">Sem fidelidade • Cancela quando quiser</div>
             </div>
           </div>
@@ -637,39 +633,41 @@ export default async function LandingPage() {
       </section>
 
       {/* ====================== CTA FINAL ====================== */}
-      <section className="py-24 relative overflow-hidden">
-        <div aria-hidden className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-700 via-brand-800 to-slate-900" />
-          <div className="absolute -top-20 -left-20 w-[500px] h-[500px] rounded-full bg-accent-500/30 bp-blob" />
-          <div className="absolute -bottom-20 -right-20 w-[500px] h-[500px] rounded-full bg-brand-400/30 bp-blob" style={{ animationDelay: "-5s" }} />
+      <section className="py-24 relative overflow-hidden bg-slate-950 text-white border-t border-slate-800">
+        <div aria-hidden className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full bg-brand-600/30 blur-3xl" />
+          <div className="absolute -bottom-32 -right-32 w-[600px] h-[600px] rounded-full bg-accent-500/20 blur-3xl" />
         </div>
 
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center text-white">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur border border-white/15 px-3 py-1 text-xs font-semibold text-brand-100">
-            <Rocket className="h-3.5 w-3.5 text-accent-300" />
+        <div className="relative mx-auto max-w-4xl px-4 sm:px-6 text-center text-white">
+          <div className="inline-flex items-center gap-2 rounded-full bg-brand-500/20 border border-brand-400/30 px-3.5 py-1 text-xs font-semibold text-brand-300">
+            <Rocket className="h-4 w-4 text-amber-400" />
             Comece hoje. Veja resultado essa semana.
           </div>
-          <h2 className="mt-6 text-4xl sm:text-5xl font-extrabold leading-[1.05]">
-            Pronto pra deixar a sua clínica <span className="bp-text-gradient bg-clip-text">profissional de verdade</span>?
+          <h2 className="mt-6 text-4xl sm:text-5xl font-extrabold leading-[1.08] text-white">
+            Pronto pra deixar a sua clínica <span className="text-amber-400">profissional de verdade</span>?
           </h2>
-          <p className="mt-5 text-brand-100 text-lg">
-            Acesse a área de membros agora e veja como o BilyVet organiza tudo em menos de 5 minutos.
+          <p className="mt-4 text-slate-300 text-lg max-w-2xl mx-auto leading-relaxed">
+            Assine o BilyVet por apenas R$ 197/mês com todas as funcionalidades inclusas, IA no WhatsApp e liberação imediata.
           </p>
 
-          <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/login" className="btn-primary px-6 py-4 text-base shadow-2xl bp-glow-orange group bg-accent-500 hover:bg-accent-600">
-              Acessar área de membros
-              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+          <div className="mt-9 flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/checkout"
+              className="btn-primary px-8 py-4 text-base font-bold shadow-card bg-emerald-600 hover:bg-emerald-700 text-white border-none group justify-center"
+            >
+              Assinar agora — R$ 197/mês
+              <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
             </Link>
-            <a href="#planos" className="btn-outline px-6 py-4 text-base bg-white/10 border-white/30 text-white hover:bg-white/15">
-              Ver planos novamente
+            <a href="#planos" className="btn-outline px-6 py-4 text-base bg-white/10 border-white/20 text-slate-200 hover:bg-white/15 justify-center">
+              Ver detalhes do plano
             </a>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-brand-200">
-            <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> Seus dados criptografados</span>
-            <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4" /> Setup em minutos</span>
-            <span className="inline-flex items-center gap-1.5"><Phone className="h-4 w-4" /> Suporte humano</span>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400 font-medium">
+            <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-emerald-400" /> Seus dados criptografados</span>
+            <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4 text-emerald-400" /> Setup em minutos</span>
+            <span className="inline-flex items-center gap-1.5"><Phone className="h-4 w-4 text-emerald-400" /> Suporte humano</span>
           </div>
         </div>
       </section>

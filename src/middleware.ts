@@ -1,13 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const PUBLIC = ["/", "/login", "/recuperar-senha", "/redefinir-senha"];
+const PUBLIC = ["/", "/login", "/recuperar-senha", "/redefinir-senha", "/checkout"];
 const PUBLIC_API_PREFIXES = [
   "/api/auth/login",
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
   "/api/asaas/webhook",
   "/api/whatsapp/webhook",
+  "/api/checkout",
 ];
 
 export async function middleware(req: NextRequest) {
