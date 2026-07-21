@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Send, Search, Bot, User, Phone, CheckCheck, RefreshCw, MessageSquare, Volume2 } from "lucide-react";
+import { Send, Search, Bot, User, Phone, CheckCheck, RefreshCw, MessageSquare, Volume2, Plus, X } from "lucide-react";
 
 type Conversation = {
   phone: string;
@@ -43,6 +43,8 @@ export function ChatInboxClient() {
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingThread, setIsLoadingThread] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+  const [newPhoneInput, setNewPhoneInput] = useState("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -140,6 +142,21 @@ export function ChatInboxClient() {
     }
   }
 
+  function handleStartNewChat(e: React.FormEvent) {
+    e.preventDefault();
+    let digits = newPhoneInput.replace(/\D/g, "");
+    if ((digits.length === 10 || digits.length === 11) && !digits.startsWith("55")) {
+      digits = `55${digits}`;
+    }
+    if (digits.length < 10) {
+      alert("Informe um número de telefone com DDD válido.");
+      return;
+    }
+    setSelectedPhone(digits);
+    setIsNewChatOpen(false);
+    setNewPhoneInput("");
+  }
+
   const filteredConversations = conversations.filter((c) =>
     c.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.phone.includes(searchQuery)
@@ -148,20 +165,56 @@ export function ChatInboxClient() {
   const selectedConv = conversations.find((c) => c.phone === selectedPhone);
 
   return (
-    <div className="card bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-[calc(100vh-180px)] min-h-[550px] flex">
+    <div className="card bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full flex">
       {/* PAINEL ESQUERDO: LISTA DE CONVERSAS */}
       <div className="w-full md:w-80 lg:w-96 border-r border-slate-200 flex flex-col bg-slate-50 shrink-0">
-        <div className="p-3.5 border-b border-slate-200 bg-white">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Buscar conversa ou telefone..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+        <div className="p-3.5 border-b border-slate-200 bg-white space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Buscar conversa..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <button
+              onClick={() => setIsNewChatOpen(!isNewChatOpen)}
+              className="btn-primary p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shrink-0 text-xs font-bold flex items-center gap-1"
+              title="Iniciar nova conversa por número"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Novo</span>
+            </button>
           </div>
+
+          {/* Modal / caixa para nova conversa por numero */}
+          {isNewChatOpen && (
+            <form onSubmit={handleStartNewChat} className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2 mt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-900">Nova Conversa WhatsApp</span>
+                <button type="button" onClick={() => setIsNewChatOpen(false)} className="text-emerald-700 hover:text-emerald-900">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <input
+                type="text"
+                placeholder="Telefone (ex.: 21 99726-7809)"
+                value={newPhoneInput}
+                onChange={(e) => setNewPhoneInput(e.target.value)}
+                className="w-full px-3 py-1.5 text-xs bg-white border border-emerald-300 rounded-lg focus:outline-none"
+                autoFocus
+              />
+              <button
+                type="submit"
+                className="w-full btn-primary py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg justify-center"
+              >
+                Iniciar Chat
+              </button>
+            </form>
+          )}
         </div>
 
         {/* Lista de conversas */}

@@ -3,6 +3,14 @@ import { prisma } from "@/lib/db";
 import { requireTenantApi, isTenantError } from "@/lib/tenant";
 import { sendText, instanceNameForTenant } from "@/lib/whatsapp/evolution";
 
+function normalizePhone(p: string): string {
+  let digits = p.replace(/\D/g, "");
+  if ((digits.length === 10 || digits.length === 11) && !digits.startsWith("55")) {
+    digits = `55${digits}`;
+  }
+  return digits;
+}
+
 export async function GET(req: Request) {
   const ctx = await requireTenantApi();
   if (isTenantError(ctx)) {
@@ -16,7 +24,7 @@ export async function GET(req: Request) {
   try {
     // Se foi passado um telefone especifico, retorna o historico de mensagens dessa conversa
     if (chatPhone) {
-      const cleanPhone = chatPhone.replace(/\D/g, "");
+      const cleanPhone = normalizePhone(chatPhone);
       const messages = await prisma.whatsappMessage.findMany({
         where: { tenantId, phone: cleanPhone },
         orderBy: { createdAt: "asc" },
@@ -153,7 +161,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Telefone e mensagem sao obrigatorios" }, { status: 400 });
     }
 
-    const cleanPhone = phone.replace(/\D/g, "");
+    const cleanPhone = normalizePhone(phone);
 
     // Envia a mensagem pelo WhatsApp
     const sendRes = await sendText(instanceName, cleanPhone, text.trim());

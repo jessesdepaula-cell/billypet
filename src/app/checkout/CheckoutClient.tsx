@@ -501,7 +501,7 @@ export default function CheckoutClient() {
               <div className="rounded-2xl bg-gradient-to-br from-brand-900 to-slate-900 p-4 text-white space-y-2">
                 <div className="text-xs font-bold text-brand-300 flex items-center gap-1.5">
                   <Sparkles className="h-4 w-4 text-amber-400" />
-                  BilyVet Guarantee
+                  Garantia BilyVet
                 </div>
                 <p className="text-[11px] text-slate-300 leading-relaxed">
                   Ao assinar agora, você obtém acesso imediato a todas as ferramentas sem restrições.
