@@ -38,12 +38,24 @@ export async function GET(req: Request) {
       });
 
       // Busca informacoes do contato ou tutor associado
+      const last8 = cleanPhone.slice(-8);
       const [operatorContact, tutor] = await Promise.all([
-        prisma.whatsappContact.findUnique({
-          where: { tenantId_phone: { tenantId, phone: cleanPhone } },
+        prisma.whatsappContact.findFirst({
+          where: {
+            tenantId,
+            OR: [{ phone: cleanPhone }, { phone: { endsWith: last8 } }],
+          },
         }),
         prisma.tutor.findFirst({
-          where: { tenantId, OR: [{ phone: cleanPhone }, { whatsapp: cleanPhone }] },
+          where: {
+            tenantId,
+            OR: [
+              { phone: cleanPhone },
+              { whatsapp: cleanPhone },
+              { phone: { endsWith: last8 } },
+              { whatsapp: { endsWith: last8 } },
+            ],
+          },
           include: { pets: { select: { id: true, name: true, species: true } } },
         }),
       ]);
@@ -53,7 +65,7 @@ export async function GET(req: Request) {
         messages,
         contactInfo: {
           name: operatorContact?.name ?? tutor?.name ?? null,
-          role: operatorContact?.role ?? (tutor ? "CLIENT" : "UNKNOWN"),
+          role: operatorContact?.role ?? (tutor ? "CLIENTE" : "DESCONHECIDO"),
           pets: tutor?.pets ?? [],
           isOperator: Boolean(operatorContact?.active),
         },
@@ -100,29 +112,34 @@ export async function GET(req: Request) {
 
     // Cruzar com os nomes cadastrados de tutores e operadores
     const phones = conversationsList.map((c) => c.phone);
-    const [operatorContacts, tutors] = await Promise.all([
+    const [operatorContacts, allTutors] = await Promise.all([
       prisma.whatsappContact.findMany({
         where: { tenantId, phone: { in: phones } },
       }),
       prisma.tutor.findMany({
-        where: {
-          tenantId,
-          OR: [{ phone: { in: phones } }, { whatsapp: { in: phones } }],
-        },
+        where: { tenantId },
         select: { name: true, phone: true, whatsapp: true },
       }),
     ]);
 
     const opMap = new Map(operatorContacts.map((c) => [c.phone, c]));
     const tutorMap = new Map<string, string>();
-    for (const t of tutors) {
-      if (t.phone) tutorMap.set(t.phone.replace(/\D/g, ""), t.name);
-      if (t.whatsapp) tutorMap.set(t.whatsapp.replace(/\D/g, ""), t.name);
+    for (const t of allTutors) {
+      if (t.phone) {
+        const norm = normalizePhone(t.phone);
+        tutorMap.set(norm, t.name);
+        if (norm.length >= 8) tutorMap.set(norm.slice(-8), t.name);
+      }
+      if (t.whatsapp) {
+        const norm = normalizePhone(t.whatsapp);
+        tutorMap.set(norm, t.name);
+        if (norm.length >= 8) tutorMap.set(norm.slice(-8), t.name);
+      }
     }
 
     const conversations = conversationsList.map((c) => {
       const op = opMap.get(c.phone);
-      const tutorName = tutorMap.get(c.phone);
+      const tutorName = tutorMap.get(c.phone) ?? tutorMap.get(c.phone.slice(-8));
       const displayName = op?.name ?? tutorName ?? c.pushName ?? c.phone;
       const role = op ? `EQUIPE (${op.role})` : tutorName ? "CLIENTE" : "DESCONHECIDO";
 

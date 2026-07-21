@@ -96,8 +96,12 @@ export function ChatInboxClient() {
     }
   }, [selectedPhone]);
 
+  const threadContainerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (threadContainerRef.current) {
+      threadContainerRef.current.scrollTop = threadContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   async function handleSendMessage(e: React.FormEvent) {
@@ -310,7 +314,7 @@ export function ChatInboxClient() {
             </div>
 
             {/* Historico de mensagens */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div ref={threadContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
               {isLoadingThread && messages.length === 0 ? (
                 <div className="text-center text-slate-400 text-sm py-8 flex items-center justify-center gap-2">
                   <RefreshCw className="w-4 h-4 animate-spin" /> Carregando mensagens...

@@ -159,6 +159,18 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true, aiStatus: "disabled", msgId: incomingMsg.id });
       }
 
+function isTestPhoneAllowed(fromPhone: string, allowedList: string[]): boolean {
+  const cleanFrom = fromPhone.replace(/\D/g, "");
+  const last8From = cleanFrom.slice(-8);
+
+  for (const allowed of allowedList) {
+    const cleanAllowed = allowed.replace(/\D/g, "");
+    if (cleanFrom === cleanAllowed) return true;
+    if (last8From && cleanAllowed.length >= 8 && cleanAllowed.endsWith(last8From)) return true;
+  }
+  return false;
+}
+
       // MODO DE TESTES: se ativado, responde SOMENTE aos numeros de teste autorizados
       if (connection.aiTestMode && connection.testPhone) {
         const allowedTestPhones = connection.testPhone
@@ -166,11 +178,12 @@ export async function POST(req: Request) {
           .map((p) => p.replace(/\D/g, ""))
           .filter(Boolean);
 
-        if (allowedTestPhones.length > 0 && !allowedTestPhones.includes(fromPhone)) {
+        if (allowedTestPhones.length > 0 && !isTestPhoneAllowed(fromPhone, allowedTestPhones)) {
           return NextResponse.json({
             ok: true,
             ignored: "modo_de_teste_restrito",
             msgId: incomingMsg.id,
+            fromPhone,
             allowedTestPhones,
           });
         }
