@@ -133,8 +133,8 @@ export function Sidebar({ role, permissions }: { role: Role; permissions?: strin
   }
 
   return (
-    <aside className="hidden md:flex md:w-64 shrink-0 flex-col bg-white border-r border-slate-200 min-h-screen">
-      <div className="p-4 border-b border-slate-100 flex items-center gap-2">
+    <aside className="hidden md:flex md:w-64 shrink-0 flex-col bg-white border-r border-slate-200 h-screen overflow-hidden">
+      <div className="p-4 border-b border-slate-100 flex items-center gap-2 shrink-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.svg" alt="BilyVet" className="h-9 w-auto" />
       </div>

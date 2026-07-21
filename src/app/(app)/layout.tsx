@@ -56,9 +56,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden bg-slate-50">
       <Sidebar role={s.role as Role} permissions={s.permissions ?? null} />
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         <Topbar
           name={s.name}
           role={s.role as Role}
@@ -67,10 +67,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           subscriptionStatus={tenant?.status ?? null}
         />
         {billingReminder && <BillingReminderPopup {...billingReminder} />}
-        <main className="flex-1 p-5 lg:p-7 max-w-[1500px] w-full mx-auto">{children}</main>
-        <footer className="px-5 py-3 text-xs text-slate-400 text-center">
-          BilyVet (c) {new Date().getFullYear()} - Plataforma de gestao para clinicas, hospitais e pet shops
-        </footer>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-[1600px] w-full mx-auto flex flex-col min-h-0">
+          {children}
+        </main>
       </div>
     </div>
   );
