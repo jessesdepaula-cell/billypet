@@ -27,6 +27,9 @@ import {
   Phone,
   Award,
   PlayCircle,
+  Bot,
+  MessageSquare,
+  Mic,
 } from "lucide-react";
 
 export const metadata = {
@@ -72,9 +75,9 @@ export default async function LandingPage() {
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
             <a href="#beneficios" className="hover:text-brand-600 transition">Benefícios</a>
+            <a href="#ia" className="hover:text-brand-600 transition">Assistente IA</a>
             <a href="#modulos" className="hover:text-brand-600 transition">Módulos</a>
             <a href="#para-quem" className="hover:text-brand-600 transition">Para quem é</a>
-            <a href="#depoimentos" className="hover:text-brand-600 transition">Depoimentos</a>
             <a href="#planos" className="hover:text-brand-600 transition">Planos</a>
             <a href="#faq" className="hover:text-brand-600 transition">FAQ</a>
           </nav>
@@ -136,41 +139,23 @@ export default async function LandingPage() {
 
           {/* Botões abaixo do vídeo */}
           <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/login" className="btn-primary px-7 py-3.5 text-base font-bold shadow-card bp-glow-blue group">
-              Entrar na minha conta
-              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-            </Link>
-            <a href="#planos" className="btn-outline px-7 py-3.5 text-base font-semibold">
-              <PlayCircle className="h-4 w-4 text-brand-600" />
-              Quero conhecer os planos
+            <a
+              href={process.env.NEXT_PUBLIC_ASAAS_PAYMENT_URL || "https://www.asaas.com/c/6ly4n7j68yr5m3nu"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary px-8 py-4 text-base font-bold shadow-card bp-glow-blue group bg-emerald-600 hover:bg-emerald-700 text-white border-none"
+            >
+              Assinar agora — R$ 197/mês
+              <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
             </a>
+            <Link href="/login" className="btn-outline px-6 py-4 text-base font-semibold">
+              Entrar na minha conta
+            </Link>
           </div>
 
-          {/* Avaliações e diferenciais abaixo dos botões */}
+          {/* Diferenciais abaixo dos botões */}
           <div className="mt-8 flex flex-col items-center justify-center gap-3">
-            <div className="flex items-center gap-3 text-sm text-slate-600">
-              <div className="flex -space-x-2">
-                {["A", "L", "M", "P"].map((c, i) => (
-                  <div
-                    key={c}
-                    className={`h-8 w-8 rounded-full border-2 border-white grid place-items-center text-white text-xs font-bold shadow-soft ${
-                      ["bg-brand-600", "bg-accent-500", "bg-emerald-500", "bg-violet-500"][i]
-                    }`}
-                  >
-                    {c}
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-1.5 text-amber-500">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-amber-400" />
-                ))}
-                <span className="font-semibold text-slate-800">4.9/5</span>
-                <span className="text-slate-500 font-normal">&middot; +1.200 clínicas e pet shops já usam</span>
-              </div>
-            </div>
-
-            <ul className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-700">
+            <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-700 font-medium">
               {[
                 "Sem instalação. Funciona no navegador.",
                 "Receituário interno em PDF.",
@@ -185,89 +170,147 @@ export default async function LandingPage() {
             </ul>
           </div>
         </div>
-
-        {/* Logos / marquee */}
-        <div className="mt-20 mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="text-center text-xs uppercase tracking-widest text-slate-400 font-semibold">
-            Clínicas, hospitais e pet shops que confiam no BilyVet
-          </div>
-          <div className="mt-6 overflow-hidden relative">
-            <div className="flex gap-12 bp-marquee whitespace-nowrap">
-              {[...Array(2)].flatMap(() =>
-                [
-                  "Clínica VetCare",
-                  "PetLove SP",
-                  "Hospital Animal Vida",
-                  "Banho & Cia",
-                  "AmigoPet",
-                  "Vetmaster",
-                  "Patinhas Felizes",
-                  "VetCenter",
-                  "PetWorld",
-                ].map((n, i) => (
-                  <div key={`${n}-${i}-${Math.random()}`} className="text-slate-400 font-bold text-xl tracking-tight shrink-0">
-                    {n}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
       </section>
 
-      {/* ====================== DOR / SOLUÇÃO ====================== */}
-      <section className="py-20 bg-slate-50 border-y border-slate-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-red-50 border border-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-              <Clock className="h-3.5 w-3.5" />
-              Se identificou com algum desses problemas?
+      {/* ====================== ASSISTENTE DE IA & ASSESSORIA ====================== */}
+      <section id="ia" className="py-24 bg-gradient-to-b from-slate-900 via-brand-950 to-slate-900 text-white relative overflow-hidden">
+        <div aria-hidden className="absolute inset-0">
+          <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-brand-500/20 bp-blob" />
+          <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full bg-accent-500/20 bp-blob" style={{ animationDelay: "-8s" }} />
+          <div className="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px] opacity-10" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="text-center max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 rounded-full bg-brand-500/20 border border-brand-400/30 px-4 py-1.5 text-xs font-bold text-brand-300 backdrop-blur">
+              <Sparkles className="h-4 w-4 text-amber-400 animate-pulse" />
+              Inteligência Artificial Nativa no WhatsApp
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
-              Você perde tempo, dinheiro e clientes porque sua clínica ainda vive no <span className="line-through decoration-red-400 decoration-4">caderno e na planilha</span>.
+            <h2 className="mt-5 text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+              Sua clínica no piloto automático com a <span className="bp-text-gradient bg-clip-text">IA e Assessoria BilyVet</span>
             </h2>
-            <ul className="mt-6 space-y-3">
-              {[
-                "Atendimentos atrasados porque a recepção não acha o histórico do pet.",
-                "Estoque some, vacinas vencem e você só descobre quando falta no balcão.",
-                "Comissão de vet, banho e tosa calculada na mão — e quase sempre errada.",
-                "Falta de relatório claro: você não sabe quanto realmente sobra no fim do mês.",
-                "Receituário em folha solta, sem padrão, sem rastreabilidade.",
-                "Tutor reclama porque ninguém lembrou da revacinação.",
-              ].map((p) => (
-                <li key={p} className="flex items-start gap-3 text-slate-700">
-                  <div className="h-5 w-5 rounded-full bg-red-100 text-red-600 grid place-items-center text-xs font-bold shrink-0 mt-0.5">✕</div>
-                  {p}
-                </li>
-              ))}
-            </ul>
+            <p className="mt-4 text-lg text-slate-300 leading-relaxed">
+              Esqueça cadastros manuais demorados. Nossa Inteligência Artificial atende tutores 24h no WhatsApp, transcreve áudios e permite que a equipe alimente todo o sistema apenas mandando áudios ou textos.
+            </p>
           </div>
 
-          <div className="relative bp-perspective">
-            <div className="bp-tilt-l rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-8 text-white shadow-2xl bp-glow-blue relative overflow-hidden">
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-accent-400/30 rounded-full blur-3xl" />
-              <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-brand-300/30 rounded-full blur-3xl" />
-
-              <Rocket className="h-10 w-10 text-accent-300" />
-              <h3 className="mt-4 text-2xl font-extrabold leading-tight">
-                Com o BilyVet, sua clínica passa a funcionar como um relógio suíço.
-              </h3>
-              <p className="mt-3 text-brand-100">
-                Tudo em um único sistema, conectado em tempo real: agenda → atendimento → vendas → estoque → financeiro → relatório. Decisões com dado, não com achismo.
-              </p>
-
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                {[
-                  { k: "-72%", v: "tempo na recepção" },
-                  { k: "+38%", v: "faturamento médio" },
-                  { k: "0", v: "vacina esquecida" },
-                  { k: "1 click", v: "fechar caixa" },
-                ].map((s) => (
-                  <div key={s.k} className="rounded-xl bg-white/10 border border-white/15 backdrop-blur p-3">
-                    <div className="text-2xl font-extrabold text-accent-300">{s.k}</div>
-                    <div className="text-xs text-brand-100">{s.v}</div>
+          <div className="mt-16 grid lg:grid-cols-2 gap-10 items-center">
+            {/* Benefícios da IA */}
+            <div className="space-y-6">
+              {[
+                {
+                  icon: Bot,
+                  title: "Atendente Virtual 24 horas no WhatsApp",
+                  desc: "A IA responde dúvidas de tutores, realiza agendamentos na agenda da clínica e envia lembretes automáticos de retorno sem sobrecarregar a recepcionista.",
+                  badge: "Atendimento Automático",
+                },
+                {
+                  icon: Mic,
+                  title: "Alimentação do Sistema por Áudio e Texto",
+                  desc: "Veterinários e operadores registram consultas, exames, estoques e vendas apenas gravando um áudio no WhatsApp. A IA transcreve e estrutura os dados instantaneamente.",
+                  badge: "Voz para Dado",
+                },
+                {
+                  icon: MessageSquare,
+                  title: "Transcrição Inteligente de Mensagens",
+                  desc: "Receba áudios de clientes e converta-os em texto automaticamente no bate-papo integrado, garantindo agilidade no atendimento sem precisar ouvir áudios longos.",
+                  badge: "Transcrição Nativa",
+                },
+                {
+                  icon: TrendingUp,
+                  title: "Assessoria Estratégica de Negócio",
+                  desc: "A IA analisa dados da sua clínica para indicar vacinas vencendo, tutores ausentes e oportunidades de aumento de faturamento mês a mês.",
+                  badge: "Lucro & Retenção",
+                },
+              ].map((item) => (
+                <div key={item.title} className="rounded-2xl bg-white/5 border border-white/10 p-6 backdrop-blur hover:bg-white/10 transition group">
+                  <div className="flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 grid place-items-center text-white shadow-lg shrink-0 group-hover:scale-105 transition">
+                      <item.icon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-lg text-white">{item.title}</span>
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 border border-brand-400/20">
+                          {item.badge}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-300 leading-relaxed">{item.desc}</p>
+                    </div>
                   </div>
-                ))}
+                </div>
+              ))}
+            </div>
+
+            {/* Simulação visual do WhatsApp com IA */}
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-r from-brand-500 to-accent-500 rounded-3xl opacity-20 blur-2xl" />
+              <div className="relative rounded-3xl border border-white/15 bg-slate-950 p-6 shadow-2xl space-y-4 font-sans text-xs">
+                {/* Header da conversa */}
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-brand-600 to-accent-500 grid place-items-center font-bold text-white">
+                        IA
+                      </div>
+                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-slate-950" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm text-white flex items-center gap-1.5">
+                        Assistente Virtual BilyVet
+                        <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                      </div>
+                      <div className="text-emerald-400 text-[11px]">Online no WhatsApp 24h</div>
+                    </div>
+                  </div>
+                  <span className="px-2 py-1 rounded bg-slate-800 text-slate-400 text-[10px]">WhatsApp API</span>
+                </div>
+
+                {/* Mensagens de exemplo */}
+                <div className="space-y-3 pt-2">
+                  {/* Tutor */}
+                  <div className="flex justify-start">
+                    <div className="max-w-[85%] rounded-2xl rounded-tl-none bg-slate-800 text-slate-200 p-3 shadow">
+                      <div className="text-[10px] text-slate-400 font-semibold mb-0.5">Tutor (Mariana)</div>
+                      Olá! Gostaria de agendar uma consulta para o Thor amanhã às 14h.
+                    </div>
+                  </div>
+
+                  {/* Resposta da IA */}
+                  <div className="flex justify-end">
+                    <div className="max-w-[85%] rounded-2xl rounded-tr-none bg-brand-600 text-white p-3 shadow">
+                      <div className="text-[10px] text-brand-200 font-semibold mb-0.5">IA BilyVet (Automático)</div>
+                      Olá Mariana! 🐾 Verifiquei a agenda e a Dra. Marina está disponível amanhã às 14:00. Agendamento pré-confirmado com sucesso! Te enviamos um lembrete no WhatsApp 1h antes.
+                    </div>
+                  </div>
+
+                  {/* Veterinário por áudio */}
+                  <div className="flex justify-start">
+                    <div className="max-w-[85%] rounded-2xl rounded-tl-none bg-slate-800 text-slate-200 p-3 shadow">
+                      <div className="text-[10px] text-amber-400 font-semibold mb-1 flex items-center gap-1">
+                        <Mic className="h-3 w-3" /> Dr. Lucas (Veterinário - Áudio)
+                      </div>
+                      <div className="flex items-center gap-2 bg-slate-900/60 p-2 rounded-lg text-slate-300">
+                        <span className="h-6 w-6 rounded-full bg-amber-500/20 text-amber-400 grid place-items-center">▶</span>
+                        <span>[Áudio de 12s]: "Consulta do Thor concluída. Peso 14.2kg, prescrever V10 para dia 15."</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* IA alimentando o sistema */}
+                  <div className="flex justify-end">
+                    <div className="max-w-[85%] rounded-2xl rounded-tr-none bg-emerald-700 text-white p-3 shadow">
+                      <div className="text-[10px] text-emerald-200 font-semibold mb-0.5 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Sistema Atualizado
+                      </div>
+                      Registro efetuado: Peso de Thor atualizado para 14.2kg e lembrete da Vacina V10 programado no sistema para 15/08!
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 text-center text-[11px] text-slate-400 border-t border-slate-900">
+                  ⚡ Tudo registrado no prontuário e no financeiro em tempo real.
+                </div>
               </div>
             </div>
           </div>
@@ -478,63 +521,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ====================== DEPOIMENTOS ====================== */}
-      <section id="depoimentos" className="py-24 bg-slate-900 text-white relative overflow-hidden">
-        <div aria-hidden className="absolute inset-0">
-          <div className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-brand-500/20 bp-blob" />
-          <div className="absolute -bottom-20 -right-20 w-96 h-96 rounded-full bg-accent-500/20 bp-blob" style={{ animationDelay: "-7s" }} />
-        </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-xs font-semibold text-brand-200 backdrop-blur">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              4.9 de 5 — média real de clientes
-            </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold leading-tight">
-              Quem entrou pro BilyVet não volta mais pra planilha.
-            </h2>
-          </div>
-
-          <div className="mt-12 grid md:grid-cols-3 gap-6">
-            {[
-              {
-                n: "Dra. Marina Lopes",
-                r: "Clínica VetCare — SP",
-                t: "Em 30 dias parei de perder vacina vencida e meu ticket médio subiu 22%. O receituário em PDF é coisa de outro mundo.",
-              },
-              {
-                n: "Ricardo Almeida",
-                r: "Hospital Animal Vida — RJ",
-                t: "Tenho 3 unidades. O BilyVet me dá DRE consolidada e por unidade. Decisão que antes levava semana hoje é em 2 minutos.",
-              },
-              {
-                n: "Camila Souza",
-                r: "Banho & Cia — MG",
-                t: "A esteira kanban virou a vida da minha equipe. Cliente entra, todo mundo sabe onde o pet está. Acabou bagunça.",
-              },
-            ].map((d) => (
-              <div key={d.n} className="rounded-2xl bg-white/5 backdrop-blur border border-white/10 p-6 hover:bg-white/10 transition">
-                <div className="flex items-center gap-1 text-amber-400 mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-400" />
-                  ))}
-                </div>
-                <p className="text-slate-100 italic">"{d.t}"</p>
-                <div className="mt-5 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand-400 to-accent-400 grid place-items-center font-bold">
-                    {d.n.split(" ").map((p) => p[0]).slice(0, 2).join("")}
-                  </div>
-                  <div>
-                    <div className="font-semibold">{d.n}</div>
-                    <div className="text-xs text-slate-400">{d.r}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ====================== PLANOS ====================== */}
       <section id="planos" className="py-24">
@@ -582,13 +569,15 @@ export default async function LandingPage() {
                 ))}
               </ul>
 
-              <Link
-                href="/login"
-                className="mt-7 w-full btn-primary bp-glow-blue px-5 py-3 text-base justify-center"
+              <a
+                href={process.env.NEXT_PUBLIC_ASAAS_PAYMENT_URL || "https://www.asaas.com/c/6ly4n7j68yr5m3nu"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-7 w-full btn-primary bp-glow-blue px-5 py-3 text-base justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
               >
                 Assinar agora
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </a>
               <div className="mt-3 text-center text-xs text-slate-500">Sem fidelidade • Cancela quando quiser</div>
             </div>
           </div>
@@ -711,7 +700,7 @@ export default async function LandingPage() {
           <div>
             <div className="font-semibold text-white mb-3">Empresa</div>
             <ul className="space-y-2">
-              <li><a href="#depoimentos" className="hover:text-white">Depoimentos</a></li>
+              <li><a href="#ia" className="hover:text-white">Assistente IA</a></li>
               <li><a href="#faq" className="hover:text-white">FAQ</a></li>
               <li><a href="#" className="hover:text-white">Política de privacidade</a></li>
               <li><a href="#" className="hover:text-white">Termos de uso</a></li>

@@ -7,6 +7,7 @@ const PUBLIC_API_PREFIXES = [
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
   "/api/asaas/webhook",
+  "/api/whatsapp/webhook",
 ];
 
 export async function middleware(req: NextRequest) {
