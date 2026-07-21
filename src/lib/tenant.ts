@@ -9,6 +9,33 @@ export type TenantContext = {
   unitId: string; // primeira unit ativa - usado como default em criacoes/queries
 };
 
+/** Garante ou cria o tenant exclusivo do Super Admin caso nao esteja definido */
+async function resolveAdminTenant(userId: string): Promise<string> {
+  let adminTenant = await prisma.tenant.findFirst({
+    where: { companyName: "BilyVet Admin & Plataforma" },
+    select: { id: true },
+  });
+
+  if (!adminTenant) {
+    adminTenant = await prisma.tenant.create({
+      data: {
+        companyName: "BilyVet Admin & Plataforma",
+        tradeName: "BilyVet Matriz",
+        email: "admin@bilyvet.com.br",
+        status: "ACTIVE",
+      },
+      select: { id: true },
+    });
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { tenantId: adminTenant.id },
+  }).catch(() => {});
+
+  return adminTenant.id;
+}
+
 // Para uso em paginas/server actions (executa redirect se nao tiver tenant)
 export async function requireTenant(): Promise<TenantContext> {
   const session = await getSession();
@@ -16,17 +43,9 @@ export async function requireTenant(): Promise<TenantContext> {
 
   let tenantId = session.tenantId;
 
-  // Se for SUPER_ADMIN sem tenant especifico na sessao, utiliza o primeiro tenant cadastrado para teste/operacao
+  // Se o SUPER_ADMIN nao tiver tenantId na sessao, garante o tenant exclusivo da plataforma BilyVet
   if (!tenantId && session.role === "SUPER_ADMIN") {
-    const firstTenant = await prisma.tenant.findFirst({
-      orderBy: { createdAt: "asc" },
-      select: { id: true },
-    });
-    if (firstTenant) {
-      tenantId = firstTenant.id;
-    } else {
-      redirect("/super-admin");
-    }
+    tenantId = await resolveAdminTenant(session.id);
   }
 
   if (!tenantId) {
@@ -55,15 +74,7 @@ export async function requireTenantApi(): Promise<TenantContext | { error: strin
   let tenantId = session.tenantId;
 
   if (!tenantId && session.role === "SUPER_ADMIN") {
-    const firstTenant = await prisma.tenant.findFirst({
-      orderBy: { createdAt: "asc" },
-      select: { id: true },
-    });
-    if (firstTenant) {
-      tenantId = firstTenant.id;
-    } else {
-      return { error: "Nenhum cliente cadastrado no sistema", status: 404 };
-    }
+    tenantId = await resolveAdminTenant(session.id);
   }
 
   if (!tenantId) return { error: "Usuario sem tenant", status: 403 };
@@ -83,7 +94,6 @@ export function isTenantError(x: any): x is { error: string; status: number } {
 }
 
 // Modulos sempre liberados mesmo quando o tenant esta suspenso/cancelado
-// (precisa permitir o cliente pagar/contatar suporte para reativar)
 const BLOCK_BYPASS_MODULES = new Set(["assinatura", "suporte", "tutorial"]);
 
 // Combina requireTenant + checagem de modulo + bloqueio por inadimplencia.
@@ -92,8 +102,6 @@ export async function requireModule(moduleSlug: string): Promise<TenantContext> 
   if (!canAccess(moduleSlug, ctx.session.role, ctx.session.permissions ?? null)) {
     redirect("/dashboard");
   }
-  // Bloqueio por status do tenant: SUSPENDED ou CANCELED so podem acessar
-  // assinatura / suporte / tutorial. ADMIN tambem e bloqueado (precisa pagar).
   if (!BLOCK_BYPASS_MODULES.has(moduleSlug)) {
     const tenant = await prisma.tenant.findUnique({
       where: { id: ctx.tenantId },

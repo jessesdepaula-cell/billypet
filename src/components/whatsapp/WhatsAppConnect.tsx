@@ -178,27 +178,27 @@ export function WhatsAppConnect() {
             onClick={() => setShowConfig((v) => !v)}
             className="px-3 py-1 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-md shrink-0 transition-colors"
           >
-            {showConfig ? "Ocultar Formulário" : "Configurar Servidor Railway"}
+            {showConfig ? "Ocultar Formulário" : "Configurar Servidor"}
           </button>
         </div>
       )}
 
-      {/* FORMULARIO DE CONFIGURACAO DA RAILWAY (APARECE SE TIVER SEM URL OU QUANDO CLICAR EM CONFIGURAR) */}
+      {/* FORMULARIO DE CONFIGURACAO DO SERVIDOR (APARECE SE TIVER SEM URL OU QUANDO CLICAR EM CONFIGURAR) */}
       {showConfig && (
         <form onSubmit={handleSaveConfig} className="mt-5 p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
             <Settings className="w-5 h-5 text-purple-600" />
-            <h4 className="font-semibold text-slate-800 text-sm">Configuração da Evolution API (Sua conta Railway)</h4>
+            <h4 className="font-semibold text-slate-800 text-sm">Configuração do Servidor WhatsApp API</h4>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">
-                URL da Evolution API na Railway
+                URL do Servidor WhatsApp (API)
               </label>
               <input
                 type="url"
-                placeholder="https://evolution-production-xxxx.up.railway.app"
+                placeholder="https://sua-api.com"
                 value={evolutionUrl}
                 onChange={(e) => setEvolutionUrl(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white"
@@ -208,7 +208,7 @@ export function WhatsAppConnect() {
 
             <div>
               <label className="block text-xs font-medium text-slate-700 mb-1">
-                Chave apikey da Evolution (AUTHENTICATION_API_KEY)
+                Chave apikey do Servidor
               </label>
               <input
                 type="password"
@@ -284,7 +284,7 @@ export function WhatsAppConnect() {
             onClick={() => setShowConfig(true)}
             className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-500 hover:text-slate-700 rounded-lg transition-colors ml-auto"
           >
-            <Settings className="w-3.5 h-3.5" /> Servidor Railway
+            <Settings className="w-3.5 h-3.5" /> Configurações do Servidor
           </button>
         )}
       </div>
