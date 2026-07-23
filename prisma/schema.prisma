@@ -911,16 +911,17 @@ model WhatsappConnection {
 
 // Numeros autorizados a ALIMENTAR o sistema desta assinatura pela IA (operadores).
 model WhatsappContact {
-  id        String   @id @default(cuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userId    String? // vinculo opcional com um User (vet responsavel dos registros)
-  name      String
-  phone     String // apenas digitos, com DDI
-  role      String   @default("WORKER") // OWNER, VET, WORKER
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId        String?  // vinculo opcional com um User (vet responsavel dos registros)
+  name          String
+  phone         String   // apenas digitos, com DDI
+  role          String   @default("WORKER") // OWNER, VET, WORKER
+  profilePicUrl String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   messages WhatsappMessage[]
 
@@ -930,20 +931,21 @@ model WhatsappContact {
 
 // Log de mensagens (auditoria + memoria curta por telefone + inbox humano).
 model WhatsappMessage {
-  id        String           @id @default(cuid())
-  tenantId  String
-  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  contactId String?
-  contact   WhatsappContact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
-  phone     String // apenas digitos
-  pushName  String? // nome do perfil WhatsApp (para clientes nao cadastrados)
-  direction String // IN, OUT
-  actor     String           @default("CONTACT") // CONTACT, AI, HUMAN, SYSTEM
-  kind      String           @default("TEXT") // TEXT, AUDIO, SYSTEM
-  content   String
-  toolCalls Json?
-  readAt    DateTime? // controle de nao-lidas no inbox
-  createdAt DateTime         @default(now())
+  id            String           @id @default(cuid())
+  tenantId      String
+  tenant        Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contactId     String?
+  contact       WhatsappContact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  phone         String           // apenas digitos
+  pushName      String?          // nome do perfil WhatsApp (para clientes nao cadastrados)
+  profilePicUrl String?
+  direction     String           // IN, OUT
+  actor         String           @default("CONTACT") // CONTACT, AI, HUMAN, SYSTEM
+  kind          String           @default("TEXT") // TEXT, AUDIO, SYSTEM
+  content       String
+  toolCalls     Json?
+  readAt        DateTime?        // controle de nao-lidas no inbox
+  createdAt     DateTime         @default(now())
 
   @@index([tenantId, phone, createdAt])
   @@index([tenantId, createdAt])

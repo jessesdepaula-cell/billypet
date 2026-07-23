@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireTenantApi, isTenantError } from "@/lib/tenant";
-import { sendText, instanceNameForTenant } from "@/lib/whatsapp/evolution";
+import { sendText, instanceNameForTenant, fetchProfilePictureUrl } from "@/lib/whatsapp/evolution";
 
 function normalizePhone(p: string): string {
   let digits = p.replace(/\D/g, "");
@@ -18,6 +18,7 @@ export async function GET(req: Request) {
   }
 
   const { tenantId } = ctx;
+  const instanceName = instanceNameForTenant(tenantId);
   const { searchParams } = new URL(req.url);
   const chatPhone = searchParams.get("phone");
 
@@ -60,6 +61,21 @@ export async function GET(req: Request) {
         }),
       ]);
 
+      let profilePicUrl = operatorContact?.profilePicUrl || null;
+      if (!profilePicUrl) {
+        try {
+          profilePicUrl = await fetchProfilePictureUrl(instanceName, cleanPhone);
+          if (profilePicUrl && operatorContact) {
+            await prisma.whatsappContact.update({
+              where: { id: operatorContact.id },
+              data: { profilePicUrl },
+            }).catch(() => {});
+          }
+        } catch (err) {
+          console.error("[whatsapp/messages] erro ao buscar foto de perfil:", err);
+        }
+      }
+
       return NextResponse.json({
         phone: cleanPhone,
         messages,
@@ -67,6 +83,7 @@ export async function GET(req: Request) {
           name: operatorContact?.name ?? tutor?.name ?? null,
           role: operatorContact?.role ?? (tutor ? "CLIENTE" : "DESCONHECIDO"),
           pets: tutor?.pets ?? [],
+          profilePicUrl,
           isOperator: Boolean(operatorContact?.active),
         },
       });
@@ -137,19 +154,51 @@ export async function GET(req: Request) {
       }
     }
 
-    const conversations = conversationsList.map((c) => {
-      const op = opMap.get(c.phone);
-      const tutorName = tutorMap.get(c.phone) ?? tutorMap.get(c.phone.slice(-8));
-      const displayName = op?.name ?? tutorName ?? c.pushName ?? c.phone;
-      const role = op ? `EQUIPE (${op.role})` : tutorName ? "CLIENTE" : "DESCONHECIDO";
+    const conversations = await Promise.all(
+      conversationsList.map(async (c) => {
+        const op = opMap.get(c.phone);
+        const tutorName = tutorMap.get(c.phone) ?? tutorMap.get(c.phone.slice(-8));
+        const displayName = op?.name ?? tutorName ?? c.pushName ?? c.phone;
+        const role = op ? `EQUIPE (${op.role})` : tutorName ? "CLIENTE" : "DESCONHECIDO";
 
-      return {
-        ...c,
-        displayName,
-        role,
-        isOperator: Boolean(op),
-      };
-    });
+        let profilePicUrl = op?.profilePicUrl || null;
+        if (!profilePicUrl) {
+          try {
+            profilePicUrl = await fetchProfilePictureUrl(instanceName, c.phone);
+            if (profilePicUrl) {
+              if (op) {
+                await prisma.whatsappContact.update({
+                  where: { id: op.id },
+                  data: { profilePicUrl },
+                }).catch(() => {});
+              } else {
+                await prisma.whatsappContact.upsert({
+                  where: { tenantId_phone: { tenantId, phone: c.phone } },
+                  create: {
+                    tenantId,
+                    name: c.pushName || displayName || c.phone,
+                    phone: c.phone,
+                    role: "CLIENTE",
+                    profilePicUrl,
+                  },
+                  update: { profilePicUrl },
+                }).catch(() => {});
+              }
+            }
+          } catch (err) {
+            // Falha silenciosa se nao encontrar foto
+          }
+        }
+
+        return {
+          ...c,
+          displayName,
+          role,
+          profilePicUrl,
+          isOperator: Boolean(op),
+        };
+      })
+    );
 
     return NextResponse.json({ conversations });
   } catch (err) {
@@ -159,6 +208,7 @@ export async function GET(req: Request) {
       { status: 500 }
     );
   }
+}
 }
 
 export async function POST(req: Request) {

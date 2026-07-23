@@ -183,3 +183,21 @@ export async function getBase64FromMediaMessage(
   const data = (res.data ?? {}) as Record<string, unknown>;
   return (data.base64 as string | undefined) ?? null;
 }
+
+export async function fetchProfilePictureUrl(
+  instance: string,
+  number: string,
+): Promise<string | null> {
+  try {
+    const digits = number.replace(/\D/g, "");
+    const res = await evoFetch(`/chat/fetchProfilePictureUrl/${instance}`, "POST", {
+      number: digits,
+    });
+    if (!res.ok) return null;
+    const data = (res.data ?? {}) as Record<string, unknown>;
+    return (data.profilePictureUrl as string | undefined) ?? (data.pictureUrl as string | undefined) ?? null;
+  } catch (err) {
+    console.error("[evolution] fetchProfilePictureUrl error:", err);
+    return null;
+  }
+}

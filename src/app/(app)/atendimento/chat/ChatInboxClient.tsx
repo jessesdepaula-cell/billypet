@@ -7,6 +7,7 @@ type Conversation = {
   phone: string;
   displayName: string;
   role: string;
+  profilePicUrl?: string | null;
   lastMessage: string;
   lastMessageAt: string;
   unreadCount: number;
@@ -30,6 +31,7 @@ type ContactInfo = {
   name: string | null;
   role: string;
   pets: Array<{ id: string; name: string; species: string }>;
+  profilePicUrl?: string | null;
   isOperator: boolean;
 };
 
@@ -247,10 +249,26 @@ export function ChatInboxClient() {
                     isSelected ? "bg-emerald-50/80 border-l-4 border-emerald-600" : "hover:bg-white"
                   }`}
                 >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-bold text-white text-sm ${
-                    c.isOperator ? "bg-purple-600" : "bg-emerald-600"
-                  }`}>
-                    {c.displayName.charAt(0).toUpperCase()}
+                  <div className="relative shrink-0 w-10 h-10">
+                    {c.profilePicUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={c.profilePicUrl}
+                        alt={c.displayName}
+                        referrerPolicy="no-referrer"
+                        className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const fallback = e.currentTarget.nextElementSibling;
+                          if (fallback) fallback.classList.remove("hidden");
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm ${
+                      c.isOperator ? "bg-purple-600" : "bg-emerald-600"
+                    } ${c.profilePicUrl ? "hidden" : ""}`}>
+                      {c.displayName.charAt(0).toUpperCase()}
+                    </div>
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -289,11 +307,32 @@ export function ChatInboxClient() {
             {/* Header da conversa */}
             <div className="p-4 bg-white border-b border-slate-200 flex items-center justify-between shadow-xs">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm ${
-                  selectedConv?.isOperator ? "bg-purple-600" : "bg-emerald-600"
-                }`}>
-                  {(selectedConv?.displayName || selectedPhone).charAt(0).toUpperCase()}
-                </div>
+                {(() => {
+                  const headerAvatar = contactInfo?.profilePicUrl || selectedConv?.profilePicUrl;
+                  return (
+                    <div className="relative shrink-0 w-10 h-10">
+                      {headerAvatar ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={headerAvatar}
+                          alt={selectedConv?.displayName || selectedPhone}
+                          referrerPolicy="no-referrer"
+                          className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const fallback = e.currentTarget.nextElementSibling;
+                            if (fallback) fallback.classList.remove("hidden");
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm ${
+                        selectedConv?.isOperator ? "bg-purple-600" : "bg-emerald-600"
+                      } ${headerAvatar ? "hidden" : ""}`}>
+                        {(selectedConv?.displayName || selectedPhone).charAt(0).toUpperCase()}
+                      </div>
+                    </div>
+                  );
+                })()}
                 <div>
                   <h3 className="font-semibold text-slate-800 text-base flex items-center gap-2">
                     {selectedConv?.displayName || selectedPhone}
