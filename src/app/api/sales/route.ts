@@ -6,7 +6,6 @@ export async function POST(req: Request) {
   const ctx = await requireTenantApi();
   if (isTenantError(ctx)) return NextResponse.json({ error: ctx.error }, { status: ctx.status });
   const b = await req.json();
-  const total = Number(b.total ?? 0);
   if (b.tutorId) {
     const t = await prisma.tutor.findFirst({ where: { id: b.tutorId, tenantId: ctx.tenantId } });
     if (!t) return NextResponse.json({ error: "Tutor invalido" }, { status: 400 });
@@ -24,15 +23,31 @@ export async function POST(req: Request) {
     const count = await prisma.service.count({ where: { id: { in: serviceIds }, tenantId: ctx.tenantId } });
     if (count !== serviceIds.length) return NextResponse.json({ error: "Servico invalido" }, { status: 400 });
   }
+
+  // Recalcula os totais no servidor a partir de qtd x preco unitario (nao confia no cliente).
+  const normalizedItems = items.map((it: any) => {
+    const quantity = Math.max(0, Number(it.quantity) || 0);
+    const unitPrice = Math.max(0, Number(it.unitPrice) || 0);
+    return {
+      productId: it.productId || null,
+      serviceId: it.serviceId || null,
+      description: it.description,
+      quantity,
+      unitPrice,
+      total: quantity * unitPrice,
+    };
+  });
+  const subtotal = normalizedItems.reduce((s: number, it: any) => s + it.total, 0);
+  const discount = Math.max(0, Number(b.discount ?? 0) || 0);
+  const surcharge = Math.max(0, Number(b.surcharge ?? 0) || 0);
+  const total = Math.max(0, subtotal - discount + surcharge);
+
   const sale = await prisma.sale.create({
     data: {
       unitId: ctx.unitId, tutorId: b.tutorId || null, sellerId: ctx.session.id,
-      discount: Number(b.discount ?? 0), surcharge: Number(b.surcharge ?? 0),
+      discount, surcharge,
       total, status: "FINALIZADA", notes: b.notes,
-      items: { create: (b.items ?? []).map((it: any) => ({
-        productId: it.productId || null, serviceId: it.serviceId || null,
-        description: it.description, quantity: Number(it.quantity), unitPrice: Number(it.unitPrice), total: Number(it.total),
-      })) },
+      items: { create: normalizedItems },
       payments: { create: (b.payments ?? []).map((p: any) => ({ paymentMethodId: p.paymentMethodId, amount: Number(p.amount), installments: Number(p.installments ?? 1) })) },
     },
     include: { items: true },

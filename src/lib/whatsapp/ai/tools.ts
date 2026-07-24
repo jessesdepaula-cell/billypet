@@ -26,7 +26,7 @@ export type ToolContext = {
 };
 
 /** So digitos. */
-function digits(raw: string): string {
+function digits(raw: string | null | undefined): string {
   return (raw || "").replace(/\D/g, "");
 }
 
@@ -314,9 +314,24 @@ export async function dispatchTool(
   switch (name) {
     case "find_tutor": {
       const q = String(args.query ?? "").trim();
-      if (!q) return { ok: false, error: "Informe um termo de busca." };
-      const rows = await prisma.tutor.findMany({
-        where: {
+      // No modo CLIENT a busca e SEMPRE restrita ao telefone de quem esta falando.
+      // Isso impede que um desconhecido enumere a base de clientes da clinica pela IA
+      // (nome, telefone e pets de terceiros). A query livre so vale para OPERATOR.
+      let where: any;
+      if (mode === "CLIENT") {
+        const last8 = digits(ctx.phone).slice(-8);
+        if (!last8) return { ok: false, error: "Telefone do cliente indisponivel." };
+        where = {
+          tenantId,
+          isActive: true,
+          OR: [
+            { phone: { contains: last8 } },
+            { whatsapp: { contains: last8 } },
+          ],
+        };
+      } else {
+        if (!q) return { ok: false, error: "Informe um termo de busca." };
+        where = {
           tenantId,
           isActive: true,
           OR: [
@@ -325,7 +340,10 @@ export async function dispatchTool(
             { whatsapp: { contains: digits(q) || q } },
             { document: { contains: q } },
           ],
-        },
+        };
+      }
+      const rows = await prisma.tutor.findMany({
+        where,
         include: { pets: { where: { isActive: true }, select: { id: true, name: true, species: true } } },
         take: 8,
       });
@@ -427,6 +445,16 @@ export async function dispatchTool(
       const tutorId = String(args.tutorId ?? "");
       const tutor = await prisma.tutor.findFirst({ where: { id: tutorId, tenantId } });
       if (!tutor) return { ok: false, error: "Tutor nao encontrado nesta clinica." };
+
+      // No modo CLIENT o agendamento so pode ser para o proprio cadastro (telefone de quem fala).
+      if (mode === "CLIENT") {
+        const last8 = digits(ctx.phone).slice(-8);
+        const tutorMatchesCaller =
+          !!last8 && (digits(tutor.phone).endsWith(last8) || digits(tutor.whatsapp).endsWith(last8));
+        if (!tutorMatchesCaller) {
+          return { ok: false, error: "So e possivel agendar para o proprio cadastro." };
+        }
+      }
 
       let petId: string | null = null;
       if (args.petId) {
