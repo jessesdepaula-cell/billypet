@@ -585,8 +585,8 @@
     "semantic_hash": "aaee49bb94ec46570f0f3b4b5f6d9116"
   },
   "src/app/api/sales/route.ts": {
-    "mtime": 1784930233.5444357,
-    "ast_hash": "c5ced9068a9b283b2ed64b365b2a0a0a",
+    "mtime": 1784931834.0318274,
+    "ast_hash": "81c8ac26248d905d45f8e8896980d221",
     "semantic_hash": ""
   },
   "src/app/api/services/[id]/route.ts": {
@@ -920,8 +920,8 @@
     "semantic_hash": ""
   },
   "src/lib/whatsapp/ai/tools.ts": {
-    "mtime": 1784375258.2845817,
-    "ast_hash": "9392826c79ba3e2fc53cda4ca8e3838d",
+    "mtime": 1784931859.6647024,
+    "ast_hash": "3ac0d071648f9490d7e06be49b2ed55d",
     "semantic_hash": ""
   },
   "src/lib/whatsapp/evolution.ts": {
