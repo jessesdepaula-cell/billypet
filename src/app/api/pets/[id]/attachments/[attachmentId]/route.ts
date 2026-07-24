@@ -10,7 +10,7 @@ export async function GET(req: Request, { params }: { params: { id: string; atta
   if (isTenantError(ctx)) return NextResponse.json({ error: ctx.error }, { status: ctx.status });
 
   const att = await prisma.petAttachment.findFirst({
-    where: { id: params.attachmentId, petId: params.id },
+    where: { id: params.attachmentId, petId: params.id, pet: { tutor: { tenantId: ctx.tenantId } } },
   });
   if (!att) return NextResponse.json({ error: "Anexo nao encontrado" }, { status: 404 });
 
@@ -37,7 +37,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string; a
   if (isTenantError(ctx)) return NextResponse.json({ error: ctx.error }, { status: ctx.status });
 
   const existing = await prisma.petAttachment.findFirst({
-    where: { id: params.attachmentId, petId: params.id },
+    where: { id: params.attachmentId, petId: params.id, pet: { tutor: { tenantId: ctx.tenantId } } },
   });
   if (!existing) return NextResponse.json({ error: "Anexo nao encontrado" }, { status: 404 });
 

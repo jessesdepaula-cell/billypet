@@ -164,7 +164,7 @@ export async function POST(req: Request) {
       asaasSubscriptionId = sub.id;
 
       // Salva ou atualiza a assinatura localmente
-      await prisma.subscription.create({
+      const localSub = await prisma.subscription.create({
         data: {
           tenantId,
           asaasSubscriptionId: sub.id,
@@ -189,7 +189,7 @@ export async function POST(req: Request) {
         await prisma.subscriptionPayment.create({
           data: {
             tenantId,
-            subscriptionId: sub.id,
+            subscriptionId: localSub.id,
             asaasPaymentId: firstPayment.id,
             value: firstPayment.value,
             status: firstPayment.status,

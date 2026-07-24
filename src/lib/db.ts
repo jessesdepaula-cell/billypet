@@ -6,4 +6,6 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({ log: ["error", "warn"] });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Reutiliza a mesma instancia entre invocacoes (inclusive em serverless/prod) para
+// nao esgotar as conexoes do Postgres/Supabase sob carga.
+globalForPrisma.prisma = prisma;

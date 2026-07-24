@@ -7,6 +7,9 @@ export async function POST(req: Request) {
   if (isTenantError(ctx)) return NextResponse.json({ error: ctx.error }, { status: ctx.status });
   const b = await req.json();
   if (b.action === "open") {
+    // Impede abrir um novo caixa se ja houver um aberto na unidade
+    const alreadyOpen = await prisma.cashRegister.findFirst({ where: { unitId: ctx.unitId, status: "ABERTO" } });
+    if (alreadyOpen) return NextResponse.json({ error: "Ja existe um caixa aberto nesta unidade" }, { status: 400 });
     const c = await prisma.cashRegister.create({ data: { unitId: ctx.unitId, openedById: ctx.session.id, openValue: Number(b.openValue ?? 0) } });
     return NextResponse.json(c);
   }

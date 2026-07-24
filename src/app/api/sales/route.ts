@@ -11,6 +11,19 @@ export async function POST(req: Request) {
     const t = await prisma.tutor.findFirst({ where: { id: b.tutorId, tenantId: ctx.tenantId } });
     if (!t) return NextResponse.json({ error: "Tutor invalido" }, { status: 400 });
   }
+
+  // Valida que todos os produtos/servicos dos itens pertencem ao tenant (evita cross-tenant)
+  const items = Array.isArray(b.items) ? b.items : [];
+  const productIds = [...new Set(items.map((it: any) => it.productId).filter(Boolean))] as string[];
+  const serviceIds = [...new Set(items.map((it: any) => it.serviceId).filter(Boolean))] as string[];
+  if (productIds.length > 0) {
+    const count = await prisma.product.count({ where: { id: { in: productIds }, tenantId: ctx.tenantId } });
+    if (count !== productIds.length) return NextResponse.json({ error: "Produto invalido" }, { status: 400 });
+  }
+  if (serviceIds.length > 0) {
+    const count = await prisma.service.count({ where: { id: { in: serviceIds }, tenantId: ctx.tenantId } });
+    if (count !== serviceIds.length) return NextResponse.json({ error: "Servico invalido" }, { status: 400 });
+  }
   const sale = await prisma.sale.create({
     data: {
       unitId: ctx.unitId, tutorId: b.tutorId || null, sellerId: ctx.session.id,
@@ -27,7 +40,11 @@ export async function POST(req: Request) {
   for (const it of sale.items) {
     if (!it.productId) continue;
     const stock = await prisma.stock.findFirst({ where: { productId: it.productId, unitId: ctx.unitId } });
-    if (stock) await prisma.stock.update({ where: { id: stock.id }, data: { quantity: { decrement: it.quantity } } });
+    if (stock) {
+      // Nao deixa o estoque ficar negativo
+      const newQty = Math.max(0, stock.quantity - it.quantity);
+      await prisma.stock.update({ where: { id: stock.id }, data: { quantity: newQty } });
+    }
     await prisma.stockMovement.create({ data: { productId: it.productId, unitId: ctx.unitId, quantity: -it.quantity, type: "SAIDA_VENDA", reference: sale.id } });
   }
   if (b.tutorId) {

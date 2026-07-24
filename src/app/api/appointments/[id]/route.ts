@@ -13,37 +13,58 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (b.status) data.status = b.status;
   if (b.pipelineStage) { data.pipelineStage = b.pipelineStage; data.stageEnteredAt = new Date(); }
   if (b.scheduledAt) data.scheduledAt = new Date(b.scheduledAt);
-  if (b.vetId !== undefined) data.vetId = b.vetId || null;
   if (b.notes !== undefined) data.notes = b.notes;
   if (b.type !== undefined) data.type = b.type;
-  if (b.tutorId !== undefined) data.tutorId = b.tutorId;
-  if (b.petId !== undefined) data.petId = b.petId || null;
+
+  // vetId/tutorId/petId: valida que pertencem ao tenant antes de vincular (evita cross-tenant)
+  if (b.vetId !== undefined) {
+    if (b.vetId) {
+      const vet = await prisma.user.findFirst({ where: { id: b.vetId, tenantId: ctx.tenantId } });
+      if (!vet) return NextResponse.json({ error: "Veterinario invalido" }, { status: 400 });
+      data.vetId = b.vetId;
+    } else {
+      data.vetId = null;
+    }
+  }
+  if (b.tutorId !== undefined) {
+    const tutor = await prisma.tutor.findFirst({ where: { id: b.tutorId, tenantId: ctx.tenantId } });
+    if (!tutor) return NextResponse.json({ error: "Tutor invalido" }, { status: 400 });
+    data.tutorId = b.tutorId;
+  }
+  if (b.petId !== undefined) {
+    if (b.petId) {
+      const pet = await prisma.pet.findFirst({ where: { id: b.petId, tutor: { tenantId: ctx.tenantId } } });
+      if (!pet) return NextResponse.json({ error: "Pet invalido" }, { status: 400 });
+      data.petId = b.petId;
+    } else {
+      data.petId = null;
+    }
+  }
 
   if (b.collaboratorIds && Array.isArray(b.collaboratorIds)) {
+    // Só considera colaboradores do proprio tenant
+    const validCollaborators = b.collaboratorIds.length > 0
+      ? await prisma.collaborator.findMany({ where: { id: { in: b.collaboratorIds }, tenantId: ctx.tenantId }, select: { id: true, userId: true } })
+      : [];
     await prisma.appointmentCollaborator.deleteMany({ where: { appointmentId: params.id } });
-    if (b.collaboratorIds.length > 0) {
+    if (validCollaborators.length > 0) {
       await prisma.appointmentCollaborator.createMany({
-        data: b.collaboratorIds.map((cid: string) => ({ collaboratorId: cid }))
+        data: validCollaborators.map((c) => ({ appointmentId: params.id, collaboratorId: c.id }))
       });
-      const firstCollab = await prisma.collaborator.findFirst({
-        where: { id: b.collaboratorIds[0] },
-        select: { userId: true }
-      });
-      if (firstCollab?.userId) data.vetId = firstCollab.userId;
+      if (validCollaborators[0]?.userId) data.vetId = validCollaborators[0].userId;
     }
   }
 
   // Se houver serviceIds novos, atualiza
   if (b.serviceIds && Array.isArray(b.serviceIds)) {
+    const services = b.serviceIds.length > 0
+      ? await prisma.service.findMany({ where: { id: { in: b.serviceIds }, tenantId: ctx.tenantId } })
+      : [];
     await prisma.appointmentService.deleteMany({ where: { appointmentId: params.id } });
-    if (b.serviceIds.length > 0) {
+    if (services.length > 0) {
       await prisma.appointmentService.createMany({
-        data: b.serviceIds.map((sid: string) => ({ serviceId: sid, price: 0 }))
+        data: services.map((sv) => ({ appointmentId: params.id, serviceId: sv.id, price: sv.price }))
       });
-      const services = await prisma.service.findMany({ where: { id: { in: b.serviceIds }, tenantId: ctx.tenantId } });
-      for (const sv of services) {
-        await prisma.appointmentService.updateMany({ where: { appointmentId: params.id, serviceId: sv.id }, data: { price: sv.price } });
-      }
     }
   }
 
