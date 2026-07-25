@@ -58,7 +58,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       <Sidebar role={s.role as Role} permissions={s.permissions ?? null} />
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <Topbar
           name={s.name}
           role={s.role as Role}
@@ -67,7 +67,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           subscriptionStatus={tenant?.status ?? null}
         />
         {billingReminder && <BillingReminderPopup {...billingReminder} />}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-[1600px] w-full mx-auto flex flex-col min-h-0">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-[1600px] w-full mx-auto min-h-0">
           {children}
         </main>
       </div>

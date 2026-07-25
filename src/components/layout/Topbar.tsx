@@ -110,7 +110,7 @@ export function Topbar({ name, role, unit, permissions = null, subscriptionStatu
   const canSeeAssinatura = canAccess("assinatura", role, permissions ?? null);
 
   return (
-    <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4">
+    <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0">
       <div className="flex items-center gap-3 flex-1 max-w-md">
         <div className="relative w-full">
           <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />

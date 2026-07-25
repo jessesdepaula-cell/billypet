@@ -32,29 +32,31 @@ export default async function ProdutosPage({ searchParams }: { searchParams: { q
         <button className="btn-outline">Buscar</button>
       </form>
       <div className="card overflow-hidden">
-        <table className="bp-table">
-          <thead><tr><th>Nome</th><th>SKU</th><th>Categoria</th><th>Marca</th><th>Custo</th><th>Venda</th><th>Estoque</th><th>Min</th><th></th></tr></thead>
-          <tbody>
-            {products.map((p) => {
-              const total = p.stocks.reduce((s, x) => s + x.quantity, 0);
-              const low = total <= p.minStock;
-              return (
-                <tr key={p.id}>
-                  <td className="font-medium">{p.name}</td>
-                  <td className="text-xs">{p.sku ?? "-"}</td>
-                  <td>{p.category?.name ?? "-"}</td>
-                  <td>{p.brand ?? "-"}</td>
-                  <td>{fmtMoney(p.costPrice)}</td>
-                  <td className="font-medium">{fmtMoney(p.salePrice)}</td>
-                  <td><span className={low ? "badge-red" : "badge-green"}>{total} {p.unit}</span></td>
-                  <td className="text-slate-500">{p.minStock}</td>
-                  <td className="text-right"><Link className="text-brand-600 text-sm hover:underline" href={`/produtos/${p.id}`}>abrir</Link></td>
-                </tr>
-              );
-            })}
-            {products.length === 0 && <tr><td colSpan={9} className="text-center py-6 text-slate-500">Nenhum produto cadastrado ainda.</td></tr>}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="bp-table">
+            <thead><tr><th>Nome</th><th>SKU</th><th>Categoria</th><th>Marca</th><th>Custo</th><th>Venda</th><th>Estoque</th><th>Min</th><th></th></tr></thead>
+            <tbody>
+              {products.map((p) => {
+                const total = p.stocks.reduce((s, x) => s + x.quantity, 0);
+                const low = total <= p.minStock;
+                return (
+                  <tr key={p.id}>
+                    <td className="font-medium">{p.name}</td>
+                    <td className="text-xs">{p.sku ?? "-"}</td>
+                    <td>{p.category?.name ?? "-"}</td>
+                    <td>{p.brand ?? "-"}</td>
+                    <td>{fmtMoney(p.costPrice)}</td>
+                    <td className="font-medium">{fmtMoney(p.salePrice)}</td>
+                    <td><span className={low ? "badge-red" : "badge-green"}>{total} {p.unit}</span></td>
+                    <td className="text-slate-500">{p.minStock}</td>
+                    <td className="text-right"><Link className="text-brand-600 text-sm hover:underline" href={`/produtos/${p.id}`}>abrir</Link></td>
+                  </tr>
+                );
+              })}
+              {products.length === 0 && <tr><td colSpan={9} className="text-center py-6 text-slate-500">Nenhum produto cadastrado ainda.</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );

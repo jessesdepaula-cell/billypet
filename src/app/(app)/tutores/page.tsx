@@ -37,23 +37,25 @@ export default async function TutoresPage({ searchParams }: { searchParams: { q?
       </form>
 
       <div className="card overflow-hidden">
-        <table className="bp-table">
-          <thead><tr><th>Nome</th><th>Documento</th><th>Telefone</th><th>E-mail</th><th>Pets</th><th>Pontos</th><th></th></tr></thead>
-          <tbody>
-            {tutors.map((t) => (
-              <tr key={t.id}>
-                <td className="font-medium text-slate-800">{t.name}</td>
-                <td className="text-slate-600">{t.document ?? "-"}</td>
-                <td className="text-slate-600">{t.phone ?? "-"}</td>
-                <td className="text-slate-600">{t.email ?? "-"}</td>
-                <td><span className="badge-gray">{t._count.pets}</span></td>
-                <td><span className="badge-orange">{t.loyaltyPoints}</span></td>
-                <td className="text-right"><Link className="text-brand-600 hover:underline text-sm" href={`/tutores/${t.id}`}>abrir</Link></td>
-              </tr>
-            ))}
-            {tutors.length === 0 && <tr><td colSpan={7} className="text-center py-6 text-slate-500">Nenhum tutor cadastrado ainda. Use o botao "Novo tutor" para comecar.</td></tr>}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="bp-table">
+            <thead><tr><th>Nome</th><th>Documento</th><th>Telefone</th><th>E-mail</th><th>Pets</th><th>Pontos</th><th></th></tr></thead>
+            <tbody>
+              {tutors.map((t) => (
+                <tr key={t.id}>
+                  <td className="font-medium text-slate-800">{t.name}</td>
+                  <td className="text-slate-600">{t.document ?? "-"}</td>
+                  <td className="text-slate-600">{t.phone ?? "-"}</td>
+                  <td className="text-slate-600">{t.email ?? "-"}</td>
+                  <td><span className="badge-gray">{t._count.pets}</span></td>
+                  <td><span className="badge-orange">{t.loyaltyPoints}</span></td>
+                  <td className="text-right"><Link className="text-brand-600 hover:underline text-sm" href={`/tutores/${t.id}`}>abrir</Link></td>
+                </tr>
+              ))}
+              {tutors.length === 0 && <tr><td colSpan={7} className="text-center py-6 text-slate-500">Nenhum tutor cadastrado ainda. Use o botao "Novo tutor" para comecar.</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );

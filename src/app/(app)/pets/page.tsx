@@ -44,23 +44,25 @@ export default async function PetsPage({ searchParams }: { searchParams: { q?: s
       </form>
 
       <div className="card overflow-hidden">
-        <table className="bp-table">
-          <thead><tr><th>Nome</th><th>Especie / Raca</th><th>Sexo</th><th>Idade</th><th>Peso</th><th>Tutor</th><th></th></tr></thead>
-          <tbody>
-            {pets.map((p) => (
-              <tr key={p.id}>
-                <td className="font-medium text-slate-800">{p.name}{p.medicalAlert && <span className="badge-red ml-2">alerta</span>}</td>
-                <td>{p.species}{p.breed ? ` - ${p.breed}` : ""}</td>
-                <td>{p.sex ?? "-"}</td>
-                <td>{ageFromBirth(p.birthDate)}</td>
-                <td>{p.weightKg ? `${p.weightKg} kg` : "-"}</td>
-                <td><Link className="text-brand-600 hover:underline" href={`/tutores/${p.tutorId}`}>{p.tutor.name}</Link></td>
-                <td className="text-right"><Link className="text-brand-600 hover:underline text-sm" href={`/pets/${p.id}`}>abrir</Link></td>
-              </tr>
-            ))}
-            {pets.length === 0 && <tr><td colSpan={7} className="text-center py-6 text-slate-500">Nenhum pet cadastrado ainda. Cadastre um tutor primeiro e depois adicione os pets dele.</td></tr>}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="bp-table">
+            <thead><tr><th>Nome</th><th>Especie / Raca</th><th>Sexo</th><th>Idade</th><th>Peso</th><th>Tutor</th><th></th></tr></thead>
+            <tbody>
+              {pets.map((p) => (
+                <tr key={p.id}>
+                  <td className="font-medium text-slate-800">{p.name}{p.medicalAlert && <span className="badge-red ml-2">alerta</span>}</td>
+                  <td>{p.species}{p.breed ? ` - ${p.breed}` : ""}</td>
+                  <td>{p.sex ?? "-"}</td>
+                  <td>{ageFromBirth(p.birthDate)}</td>
+                  <td>{p.weightKg ? `${p.weightKg} kg` : "-"}</td>
+                  <td><Link className="text-brand-600 hover:underline" href={`/tutores/${p.tutorId}`}>{p.tutor.name}</Link></td>
+                  <td className="text-right"><Link className="text-brand-600 hover:underline text-sm" href={`/pets/${p.id}`}>abrir</Link></td>
+                </tr>
+              ))}
+              {pets.length === 0 && <tr><td colSpan={7} className="text-center py-6 text-slate-500">Nenhum pet cadastrado ainda. Cadastre um tutor primeiro e depois adicione os pets dele.</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );
