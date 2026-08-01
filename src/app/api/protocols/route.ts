@@ -43,20 +43,29 @@ export async function POST(req: Request) {
       dosesToCreate = template.doses.map((td) => {
         const d = new Date(startDate);
         d.setDate(d.getDate() + td.daysOffset);
+        const isFirstDose = td.daysOffset === 0 && (b.batch || b.laboratory || b.applyNow);
         return {
           dueDate: d,
-          status: "PENDENTE",
-          notes: td.name, // using name of dose here
+          status: isFirstDose ? "APLICADO" : "PENDENTE",
+          appliedAt: isFirstDose ? new Date() : null,
+          batch: isFirstDose && b.batch ? String(b.batch).trim() : (b.batch ? String(b.batch).trim() : null),
+          laboratory: isFirstDose && b.laboratory ? String(b.laboratory).trim() : (b.laboratory ? String(b.laboratory).trim() : null),
+          notes: td.name,
         };
       });
     }
   } else if (b.doses && Array.isArray(b.doses)) {
-    dosesToCreate = b.doses.map((d: any) => {
+    dosesToCreate = b.doses.map((d: any, idx: number) => {
       const dued = new Date(startDate);
-      dued.setDate(dued.getDate() + (parseInt(d.daysOffset) || 0));
+      const offset = parseInt(d.daysOffset) || 0;
+      dued.setDate(dued.getDate() + offset);
+      const isFirstDose = (offset === 0 || idx === 0) && (b.batch || b.laboratory || b.applyNow);
       return {
         dueDate: dued,
-        status: "PENDENTE",
+        status: isFirstDose ? "APLICADO" : "PENDENTE",
+        appliedAt: isFirstDose ? new Date() : null,
+        batch: b.batch ? String(b.batch).trim() : null,
+        laboratory: b.laboratory ? String(b.laboratory).trim() : null,
         notes: d.name,
       };
     });

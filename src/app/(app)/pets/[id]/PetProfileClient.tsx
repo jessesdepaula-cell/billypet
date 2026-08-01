@@ -69,6 +69,8 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
   const [protocols, setProtocols] = useState<any[]>(initialPet.protocols || []);
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [protocolStartDate, setProtocolStartDate] = useState(new Date().toISOString().slice(0, 10));
+  const [protocolBatch, setProtocolBatch] = useState("");
+  const [protocolLaboratory, setProtocolLaboratory] = useState("");
   const [protocolNotes, setProtocolNotes] = useState("");
   const [protocolLoading, setProtocolLoading] = useState(false);
   const [protocolError, setProtocolError] = useState<string | null>(null);
@@ -365,6 +367,8 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
           name: template.name,
           type: template.type,
           startDate: protocolStartDate,
+          batch: protocolBatch.trim() || null,
+          laboratory: protocolLaboratory.trim() || null,
           notes: protocolNotes,
         }),
       });
@@ -380,6 +384,8 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
 
       setShowNewProtocol(false);
       setSelectedTemplateId("");
+      setProtocolBatch("");
+      setProtocolLaboratory("");
       setProtocolNotes("");
     } catch (err: any) {
       setProtocolError(err.message);
@@ -871,13 +877,26 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
             <div className="space-y-4">
               {/* Active Protocols list */}
               <div className="card card-pad bg-white">
-                <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
+                <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2 flex-wrap gap-2">
                   <h2 className="font-semibold text-slate-800 flex items-center gap-2">
                     <Syringe className="h-4 w-4 text-brand-600" /> Protocolos Ativos e Previstos
                   </h2>
-                  <button onClick={() => setShowNewProtocol(true)} className="btn-primary text-xs flex items-center gap-1">
-                    <Plus className="h-3.5 w-3.5" /> Iniciar Protocolo
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowVaccineModal(true)}
+                      className="btn-outline text-xs flex items-center gap-1 border-amber-300 bg-amber-50/50 text-amber-800 hover:bg-amber-100"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Registrar Vacina Avulsa
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewProtocol(true)}
+                      className="btn-primary text-xs flex items-center gap-1"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Iniciar Protocolo
+                    </button>
+                  </div>
                 </div>
 
                 {showNewProtocol && (
@@ -905,6 +924,18 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
                         <label className="label text-xs">Data de Inicio *</label>
                         <input className="input text-xs" type="date" required value={protocolStartDate} onChange={(e) => setProtocolStartDate(e.target.value)} />
                       </div>
+
+                      <div className="bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/60 sm:col-span-2 grid sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="label text-xs font-semibold text-amber-900">Lote da Vacina (Rastreio)</label>
+                          <input className="input text-xs bg-white" placeholder="Ex: LT-2024-998" value={protocolBatch} onChange={(e) => setProtocolBatch(e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="label text-xs font-semibold text-amber-900">Laboratorio Fabricante</label>
+                          <input className="input text-xs bg-white" placeholder="Ex: Zoetis, MSD, Boehringer" value={protocolLaboratory} onChange={(e) => setProtocolLaboratory(e.target.value)} />
+                        </div>
+                      </div>
+
                       <div className="sm:col-span-2">
                         <label className="label text-xs">Observacoes Adicionais</label>
                         <textarea className="input text-xs" rows={2} value={protocolNotes} onChange={(e) => setProtocolNotes(e.target.value)} />
