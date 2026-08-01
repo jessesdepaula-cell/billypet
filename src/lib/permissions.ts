@@ -93,7 +93,7 @@ export const MODULE_GROUPS: { group: string; modules: { slug: string; label: str
     { slug: "relatorios", label: "Relatorios" },
     { slug: "unidades", label: "Unidades" },
     { slug: "usuarios", label: "Usuarios e permissoes" },
-    { slug: "configuracoes", label: "Cadastros" },
+    { slug: "configuracoes", label: "Configurações" },
     { slug: "assinatura", label: "Minha assinatura" },
     { slug: "suporte", label: "Suporte" },
   ]},
