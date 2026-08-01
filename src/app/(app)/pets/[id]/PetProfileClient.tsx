@@ -77,6 +77,22 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
   // Doses updating
   const [doseActionLoading, setDoseActionLoading] = useState<string | null>(null);
 
+  // Vaccine modal & state
+  const [vaccines, setVaccines] = useState<any[]>(initialPet.vaccines || []);
+  const [showVaccineModal, setShowVaccineModal] = useState(false);
+  const [vacName, setVacName] = useState("");
+  const [vacAppliedAt, setVacAppliedAt] = useState(new Date().toISOString().slice(0, 10));
+  const [vacNextDose, setVacNextDose] = useState("");
+  const [vacBatch, setVacBatch] = useState("");
+  const [vacLaboratory, setVacLaboratory] = useState("");
+  const [vacNotes, setVacNotes] = useState("");
+  const [savingVaccine, setSavingVaccine] = useState(false);
+
+  // Applying dose modal state
+  const [applyingDoseModal, setApplyingDoseModal] = useState<{ protocolId: string; doseId: string; doseName: string } | null>(null);
+  const [doseBatch, setDoseBatch] = useState("");
+  const [doseLaboratory, setDoseLaboratory] = useState("");
+
   // Acoes rapidas (cards coloridos)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
@@ -133,6 +149,112 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
       alert("Erro ao registrar obito");
     } finally {
       setObitoLoading(false);
+    }
+  }
+
+  async function handleSaveVaccine(e: React.FormEvent) {
+    e.preventDefault();
+    if (!vacName.trim()) return;
+    setSavingVaccine(true);
+    try {
+      const res = await fetch("/api/vaccines", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          petId: pet.id,
+          name: vacName.trim(),
+          appliedAt: vacAppliedAt,
+          nextDose: vacNextDose || null,
+          batch: vacBatch.trim() || null,
+          laboratory: vacLaboratory.trim() || null,
+          notes: vacNotes.trim() || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Falha ao salvar vacina");
+      }
+      const newVac = await res.json();
+      setVaccines((prev) => [newVac, ...prev]);
+      setShowVaccineModal(false);
+      setVacName("");
+      setVacBatch("");
+      setVacLaboratory("");
+      setVacNotes("");
+      setVacNextDose("");
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || "Erro ao salvar vacina");
+    } finally {
+      setSavingVaccine(false);
+    }
+  }
+
+  async function handleDeleteVaccine(id: string) {
+    if (!confirm("Excluir este registro de vacina?")) return;
+    try {
+      const res = await fetch(`/api/vaccines?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setVaccines((prev) => prev.filter((v) => v.id !== id));
+        router.refresh();
+      }
+    } catch (err) {
+      alert("Erro ao excluir vacina");
+    }
+  }
+
+  async function handleConfirmApplyDose() {
+    if (!applyingDoseModal) return;
+    setDoseActionLoading(applyingDoseModal.doseId);
+    try {
+      const res = await fetch(`/api/protocols/${applyingDoseModal.protocolId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_dose",
+          doseId: applyingDoseModal.doseId,
+          appliedAt: new Date().toISOString(),
+          batch: doseBatch.trim() || null,
+          laboratory: doseLaboratory.trim() || null,
+        }),
+      });
+
+      if (res.ok) {
+        const protocol = protocols.find((p) => p.id === applyingDoseModal.protocolId);
+        if (protocol && (protocol.type === "Vacina" || protocol.name.toLowerCase().includes("vacina"))) {
+          await fetch("/api/vaccines", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              petId: pet.id,
+              name: `${protocol.name} (${applyingDoseModal.doseName})`,
+              appliedAt: new Date().toISOString(),
+              batch: doseBatch.trim() || null,
+              laboratory: doseLaboratory.trim() || null,
+            }),
+          });
+          const vRes = await fetch(`/api/vaccines?petId=${pet.id}`);
+          if (vRes.ok) {
+            const vData = await vRes.json();
+            setVaccines(vData);
+          }
+        }
+
+        const pRes = await fetch(`/api/protocols?petId=${pet.id}`);
+        if (pRes.ok) {
+          const data = await pRes.json();
+          setProtocols(data);
+        }
+        setApplyingDoseModal(null);
+        setDoseBatch("");
+        setDoseLaboratory("");
+        router.refresh();
+      }
+    } catch (err) {
+      alert("Erro ao aplicar dose");
+    } finally {
+      setDoseActionLoading(null);
     }
   }
 
@@ -531,8 +653,7 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
                       setPendingAction("open-upload");
                       break;
                     case "vacina":
-                      setActiveTab("protocolos");
-                      setShowNewProtocol(true);
+                      setShowVaccineModal(true);
                       break;
                     case "cadastro":
                       setActiveTab("ficha");
@@ -840,7 +961,14 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
                                     <div className="font-semibold text-slate-800">{dose.notes || "Dose"}</div>
                                     <div className="text-[10px] text-slate-500">Previsao: {fmtDate(dose.dueDate)}</div>
                                     {isApplied && dose.appliedAt && (
-                                      <div className="text-[9px] text-emerald-700 font-semibold">Aplicado em: {fmtDate(dose.appliedAt)}</div>
+                                      <div className="text-[9px] text-emerald-700 font-semibold">
+                                        Aplicado em: {fmtDate(dose.appliedAt)}
+                                        {(dose.batch || dose.laboratory) && (
+                                          <span className="block text-slate-600 font-normal mt-0.5">
+                                            {dose.batch ? `Lote: ${dose.batch}` : ""} {dose.laboratory ? ` • Lab: ${dose.laboratory}` : ""}
+                                          </span>
+                                        )}
+                                      </div>
                                     )}
                                     {isLate && (
                                       <div className="text-[9px] text-red-600 font-semibold flex items-center gap-0.5">
@@ -849,7 +977,15 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
                                     )}
                                   </div>
                                   <button
-                                    onClick={() => handleToggleDose(pr.id, dose.id, isApplied)}
+                                    onClick={() => {
+                                      if (isApplied) {
+                                        handleToggleDose(pr.id, dose.id, true);
+                                      } else {
+                                        setDoseBatch("");
+                                        setDoseLaboratory("");
+                                        setApplyingDoseModal({ protocolId: pr.id, doseId: dose.id, doseName: dose.notes || "Dose" });
+                                      }
+                                    }}
                                     disabled={doseActionLoading === dose.id}
                                     className={`p-1.5 rounded-lg border transition-colors flex items-center gap-1 ${
                                       isApplied
@@ -1036,20 +1172,40 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
         {/* Sidebar Info Summary */}
         <div className="space-y-5">
           <div className="card card-pad bg-white">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Syringe className="h-4 w-4 text-accent-500" /> Vacinas Aplicadas
-            </h3>
-            {pet.vaccines.length === 0 ? (
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold flex items-center gap-2 text-slate-800">
+                <Syringe className="h-4 w-4 text-amber-500" /> Vacinas Aplicadas
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowVaccineModal(true)}
+                className="btn-outline text-[10px] py-0.5 px-2 flex items-center gap-1 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200"
+              >
+                <Plus className="h-3 w-3" /> Aplicar
+              </button>
+            </div>
+            {vaccines.length === 0 ? (
               <p className="text-xs text-slate-500">Sem vacinas registradas.</p>
             ) : (
-              <ul className="space-y-1.5 text-xs">
-                {pet.vaccines.map((v: any) => (
-                  <li key={v.id} className="flex flex-col border-b border-slate-100 pb-1.5 last:border-0">
-                    <span className="font-semibold text-slate-700">{v.name}</span>
+              <ul className="space-y-2 text-xs">
+                {vaccines.map((v: any) => (
+                  <li key={v.id} className="flex flex-col border-b border-slate-100 pb-2 last:border-0">
+                    <div className="flex justify-between items-start">
+                      <span className="font-semibold text-slate-800">{v.name}</span>
+                      <button onClick={() => handleDeleteVaccine(v.id)} className="text-slate-400 hover:text-red-600 text-[10px] p-0.5" title="Excluir vacina">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
                     <span className="text-[10px] text-slate-500 flex justify-between mt-0.5">
                       <span>Aplicada: {fmtDate(v.appliedAt)}</span>
                       {v.nextDose && <span className="font-medium text-brand-600">Proxima: {fmtDate(v.nextDose)}</span>}
                     </span>
+                    {(v.batch || v.laboratory) && (
+                      <div className="text-[10px] text-slate-600 flex flex-wrap gap-x-3 mt-1 bg-amber-50/50 p-1.5 rounded border border-amber-100">
+                        {v.batch && <span><strong>Lote:</strong> {v.batch}</span>}
+                        {v.laboratory && <span><strong>Laboratorio:</strong> {v.laboratory}</span>}
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -1080,6 +1236,153 @@ export function PetProfileClient({ pet: initialPet, tutors, protocolTemplates, s
           </div>
         </div>
       </div>
+
+      {/* Modal de Aplicacao de Vacina (Lote & Laboratorio) */}
+      {showVaccineModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setShowVaccineModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                <Syringe className="h-5 w-5 text-amber-500" /> Registrar Aplicacao de Vacina
+              </h3>
+              <button type="button" onClick={() => setShowVaccineModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveVaccine} className="space-y-3">
+              <div>
+                <label className="label text-xs">Nome da Vacina *</label>
+                <input
+                  className="input text-sm"
+                  required
+                  placeholder="Ex: V10, Antirrabica, Giardia, V8"
+                  value={vacName}
+                  onChange={(e) => setVacName(e.target.value)}
+                  autoFocus
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label text-xs">Data da Aplicacao *</label>
+                  <input
+                    className="input text-xs"
+                    type="date"
+                    required
+                    value={vacAppliedAt}
+                    onChange={(e) => setVacAppliedAt(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="label text-xs">Proxima Dose (Revacinacao)</label>
+                  <input
+                    className="input text-xs"
+                    type="date"
+                    value={vacNextDose}
+                    onChange={(e) => setVacNextDose(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 bg-amber-50/50 p-3 rounded-xl border border-amber-200/60">
+                <div>
+                  <label className="label text-xs text-amber-900 font-semibold">Lote (Rastreio)</label>
+                  <input
+                    className="input text-xs bg-white"
+                    placeholder="Ex: LT-2024-998"
+                    value={vacBatch}
+                    onChange={(e) => setVacBatch(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="label text-xs text-amber-900 font-semibold">Laboratorio</label>
+                  <input
+                    className="input text-xs bg-white"
+                    placeholder="Ex: Zoetis, MSD, Boehringer"
+                    value={vacLaboratory}
+                    onChange={(e) => setVacLaboratory(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="label text-xs">Observacoes</label>
+                <textarea
+                  className="input text-xs"
+                  rows={2}
+                  placeholder="Observacoes clinicas, via de aplicacao, reacoes..."
+                  value={vacNotes}
+                  onChange={(e) => setVacNotes(e.target.value)}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button type="submit" disabled={savingVaccine || !vacName.trim()} className="btn-primary flex-1">
+                  {savingVaccine ? "Salvando..." : "Salvar Vacina"}
+                </button>
+                <button type="button" onClick={() => setShowVaccineModal(false)} className="btn-outline">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmacao de Aplicacao de Dose com Lote & Laboratorio */}
+      {applyingDoseModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setApplyingDoseModal(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-base text-slate-800 flex items-center gap-2">
+                <Check className="h-5 w-5 text-emerald-600" /> Confirmar Aplicacao: {applyingDoseModal.doseName}
+              </h3>
+              <button type="button" onClick={() => setApplyingDoseModal(null)} className="text-slate-400 hover:text-slate-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <p className="text-xs text-slate-600">
+                Informe o lote e o laboratorio para garantir a rastreabilidade da aplicacao desta dose.
+              </p>
+              <div className="grid grid-cols-2 gap-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-200/60">
+                <div>
+                  <label className="label text-xs text-emerald-900 font-semibold">Lote</label>
+                  <input
+                    className="input text-xs bg-white"
+                    placeholder="Ex: LT-8847"
+                    value={doseBatch}
+                    onChange={(e) => setDoseBatch(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="label text-xs text-emerald-900 font-semibold">Laboratorio</label>
+                  <input
+                    className="input text-xs bg-white"
+                    placeholder="Ex: Zoetis, MSD..."
+                    value={doseLaboratory}
+                    onChange={(e) => setDoseLaboratory(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={handleConfirmApplyDose}
+                  disabled={doseActionLoading === applyingDoseModal.doseId}
+                  className="btn-primary flex-1"
+                >
+                  {doseActionLoading === applyingDoseModal.doseId ? "Aplicando..." : "Confirmar Aplicacao"}
+                </button>
+                <button type="button" onClick={() => setApplyingDoseModal(null)} className="btn-outline">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

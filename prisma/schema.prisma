@@ -503,15 +503,16 @@ model Prescription {
 }
 
 model Vaccine {
-  id        String    @id @default(cuid())
-  petId     String
-  pet       Pet       @relation(fields: [petId], references: [id])
-  name      String
-  appliedAt DateTime
-  nextDose  DateTime?
-  batch     String?
-  notes     String?
-  createdAt DateTime  @default(now())
+  id         String    @id @default(cuid())
+  petId      String
+  pet        Pet       @relation(fields: [petId], references: [id])
+  name       String
+  appliedAt  DateTime
+  nextDose   DateTime?
+  batch      String?
+  laboratory String?
+  notes      String?
+  createdAt  DateTime  @default(now())
 }
 
 model Exam {
@@ -829,6 +830,8 @@ model ProtocolApplication {
   protocol   Protocol  @relation(fields: [protocolId], references: [id], onDelete: Cascade)
   dueDate    DateTime
   appliedAt  DateTime?
+  batch      String?
+  laboratory String?
   notes      String?
   status     String    @default("PENDENTE") // PENDENTE, APLICADO, ATRASADO, CANCELADO
 }

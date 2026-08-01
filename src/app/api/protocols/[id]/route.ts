@@ -21,6 +21,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
     if (b.notes !== undefined) data.notes = b.notes;
     if (b.status !== undefined) data.status = b.status;
+    if (b.batch !== undefined) data.batch = b.batch ? String(b.batch).trim() : null;
+    if (b.laboratory !== undefined) data.laboratory = b.laboratory ? String(b.laboratory).trim() : null;
 
     const dose = await prisma.protocolApplication.update({
       where: { id: b.doseId },

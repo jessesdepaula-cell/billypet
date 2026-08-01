@@ -191,6 +191,7 @@ const APPLY_VACCINE: ToolDef = {
         appliedAt: { type: "string", description: "Data ISO da aplicacao. Padrao hoje." },
         nextDose: { type: "string", description: "Data ISO da proxima dose (opcional)." },
         batch: { type: "string", description: "Lote." },
+        laboratory: { type: "string", description: "Laboratorio fabricante (ex: Zoetis, MSD, Boehringer)." },
         notes: { type: "string" },
       },
       required: ["petId", "name"],
@@ -528,6 +529,7 @@ export async function dispatchTool(
           appliedAt: parseDate(args.appliedAt),
           nextDose: args.nextDose ? parseDate(args.nextDose) : null,
           batch: args.batch ? String(args.batch) : null,
+          laboratory: args.laboratory ? String(args.laboratory) : null,
           notes: args.notes ? String(args.notes) : null,
         },
       });
